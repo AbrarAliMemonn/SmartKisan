@@ -627,6 +627,152 @@ const categories = [
   { id: 6, name: 'IOT_DEVICES', displayName: 'IoT Sensors & Hardware', icon: 'Cpu', count: 8 },
 ];
 
+const pendingSellers = [
+  {
+    id: 10,
+    userId: 5,
+    sellerName: 'Muhammad Tariq',
+    shopName: 'Tariq Organic Seeds & Nursery',
+    description: 'Certified organic vegetable seedlings, grafted fruit saplings, and high-purity fodder seeds.',
+    storeLogoUrl: 'https://images.unsplash.com/photo-1595278069441-2cf29f8005a4?w=200',
+    phone: '+92 301 7766554',
+    email: 'tariq.seeds@gmail.com',
+    address: 'Near Old Bus Stand, Matli Road',
+    city: 'Badin',
+    province: 'Sindh',
+    location: 'Badin, Sindh, Pakistan',
+    sellerType: 'FARMER_SELLER',
+    status: 'PENDING',
+    verified: false,
+    moderationReason: '',
+    rating: 5.0,
+    totalSales: 0,
+    joinedAsSellerOn: new Date().toISOString().split('T')[0],
+  },
+];
+
+const pendingProducts = [
+  {
+    id: 201,
+    title: 'NPK 20-20-20 Water Soluble Bio-Fertilizer',
+    description: 'Balanced multi-nutrient fertilizer formulation for drip fertigation and foliar spray application on cotton and chilies.',
+    price: 6800,
+    unit: '25kg bucket',
+    category: 'FERTILIZERS',
+    sellerId: 1,
+    sellerShopName: 'SmartKisan Agro Hub',
+    sellerLocation: 'Hyderabad, Sindh',
+    sellerVerified: true,
+    rating: 5.0,
+    reviewsCount: 0,
+    stock: 35,
+    condition: 'NEW',
+    images: ['https://images.unsplash.com/photo-1628352081506-83c43123ed6d?w=600'],
+    imageUrl: 'https://images.unsplash.com/photo-1628352081506-83c43123ed6d?w=600',
+    status: 'PENDING',
+    isNegotiable: true,
+    createdAt: new Date().toISOString(),
+  },
+];
+
+const pendingPayments = [
+  {
+    id: 301,
+    orderId: 102,
+    orderNumber: 'SK-2026-102',
+    buyerId: 1,
+    buyerName: 'Abrar Ali memon',
+    sellerId: 1,
+    sellerShopName: 'SmartKisan Agro Hub',
+    amount: 8750,
+    paidAmount: 8750,
+    expectedAmount: 8750,
+    totalAmount: 8750,
+    paymentMethod: 'BANK_TRANSFER',
+    status: 'PENDING_VERIFICATION',
+    paymentStatus: 'PENDING_VERIFICATION',
+    bankName: 'Habib Bank Limited (HBL)',
+    accountNumber: 'PK64HABB00012345678901',
+    transactionRef: 'TRX-988471205',
+    transactionReference: 'TRX-988471205',
+    proofUrl: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=600',
+    paymentProofUrl: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=600',
+    submittedAt: new Date(Date.now() - 2 * 3600000).toISOString(),
+    createdAt: new Date(Date.now() - 2 * 3600000).toISOString(),
+  },
+];
+
+const paymentAccounts = [
+  {
+    id: 1,
+    userId: 1,
+    bankName: 'Habib Bank Limited (HBL)',
+    accountTitle: 'SmartKisan Agro Hub - Abrar Ali',
+    accountNumber: 'PK64HABB00012345678901',
+    iban: 'PK64HABB00012345678901',
+    accountType: 'BANK_TRANSFER',
+    branchCode: '0012',
+    isActive: true,
+    instructions: 'Please include your order ID as payment reference and upload payment receipt.',
+  },
+  {
+    id: 2,
+    userId: 1,
+    bankName: 'EasyPaisa / JazzCash',
+    accountTitle: 'Abrar Ali',
+    accountNumber: '03001234567',
+    iban: '',
+    accountType: 'MOBILE_WALLET',
+    branchCode: '',
+    isActive: true,
+    instructions: 'Send amount to mobile wallet and upload screenshot proof.',
+  },
+];
+
+const iotAlerts = [
+  {
+    id: 1,
+    sensorId: 'soilMoisture',
+    sensorName: 'Soil Moisture Sensor',
+    type: 'WARNING',
+    severity: 'MEDIUM',
+    message: 'Root-zone moisture is at 34% (approaching 30% low threshold). Irrigation scheduled for Zone 1.',
+    timestamp: new Date(Date.now() - 35 * 60000).toISOString(),
+    isResolved: false,
+  },
+  {
+    id: 2,
+    sensorId: 'temperature',
+    sensorName: 'Ambient Air Temperature',
+    type: 'INFO',
+    severity: 'LOW',
+    message: 'Temperature reached 36.5°C during peak afternoon. Tunnel shading active.',
+    timestamp: new Date(Date.now() - 2 * 3600000).toISOString(),
+    isResolved: true,
+  },
+];
+
+const cropGuides = [
+  {
+    id: 1,
+    name: 'Wheat (گندم / ڪڻڪ)',
+    stage: 'Grain Filling',
+    idealMoisture: '45-65%',
+    idealTemp: '18-28°C',
+    waterRequirement: 'Medium',
+    tips: 'Maintain adequate soil moisture during grain milking stage. Spray fungicide if leaf blight spots appear.',
+  },
+  {
+    id: 2,
+    name: 'Cotton (کپاس / ڦٽيون)',
+    stage: 'Square Formation',
+    idealMoisture: '50-70%',
+    idealTemp: '26-36°C',
+    waterRequirement: 'High',
+    tips: 'Inspect weekly for whitefly and pink bollworm. Maintain nitrogen top-dressing.',
+  },
+];
+
 // Helper for CORS and JSON
 function sendJSON(res, status, data) {
   res.writeHead(status, {
@@ -1039,16 +1185,89 @@ const server = http.createServer(async (req, res) => {
   }
 
   // =========================================================
-  // 2. ADMIN API  (/api/admin/**)
+  // 2. ADMIN API  (/api/admin/** and /admin/**)
   // =========================================================
-  if (pathname === '/api/admin/users' && req.method === 'GET') {
+  // Get all users
+  if ((pathname === '/api/admin/users' || pathname === '/admin/users') && req.method === 'GET') {
     return sendJSON(res, 200, { success: true, data: users });
   }
 
+  // Create user (Admin)
+  if ((pathname === '/api/admin/users' || pathname === '/admin/users') && req.method === 'POST') {
+    const body = await parseBody(req);
+    const email = (body.email || '').toLowerCase().trim();
+    if (!email) {
+      return sendJSON(res, 400, { success: false, message: 'Email address is required' });
+    }
+    const newUser = {
+      id: users.length + 1,
+      name: body.name || email.split('@')[0],
+      email: email,
+      password: body.password || 'password123',
+      role: (body.role || 'USER').toUpperCase(),
+      userType: (body.userType || 'FARMER').toUpperCase(),
+      isSeller: Boolean(body.isSeller),
+      emailVerified: body.emailVerified !== undefined ? Boolean(body.emailVerified) : true,
+      phone: body.phone || '',
+      location: body.location || 'Hyderabad, Sindh, Pakistan',
+      avatarImage: body.avatarImage || '',
+      farmSize: body.farmSize || '',
+      createdAt: new Date().toISOString(),
+    };
+    users.push(newUser);
+    return sendJSON(res, 201, {
+      success: true,
+      message: 'User created successfully',
+      data: newUser,
+    });
+  }
+
+  // Get single user by id (Admin)
+  if ((pathname.startsWith('/api/admin/users/') || pathname.startsWith('/admin/users/')) && req.method === 'GET') {
+    const uId = +pathname.split('/').pop();
+    const user = users.find((u) => u.id === uId) || users[0];
+    return sendJSON(res, 200, { success: true, data: user });
+  }
+
+  // Update user (Admin)
+  if ((pathname.startsWith('/api/admin/users/') || pathname.startsWith('/admin/users/')) && req.method === 'PUT') {
+    const uId = +pathname.split('/').pop();
+    const body = await parseBody(req);
+    const user = users.find((u) => u.id === uId);
+    if (!user) {
+      return sendJSON(res, 404, { success: false, message: 'User not found' });
+    }
+    if (body.name !== undefined) user.name = body.name;
+    if (body.email !== undefined) user.email = body.email;
+    if (body.phone !== undefined) user.phone = body.phone;
+    if (body.location !== undefined) user.location = body.location;
+    if (body.role !== undefined) user.role = body.role.toUpperCase();
+    if (body.userType !== undefined) user.userType = body.userType.toUpperCase();
+    if (body.farmSize !== undefined) user.farmSize = body.farmSize;
+    if (body.password) user.password = body.password;
+    if (body.emailVerified !== undefined) user.emailVerified = Boolean(body.emailVerified);
+    return sendJSON(res, 200, {
+      success: true,
+      message: 'User updated successfully',
+      data: user,
+    });
+  }
+
+  // Delete user (Admin)
+  if ((pathname.startsWith('/api/admin/users/') || pathname.startsWith('/admin/users/')) && req.method === 'DELETE') {
+    const uId = +pathname.split('/').pop();
+    const idx = users.findIndex((u) => u.id === uId);
+    if (idx !== -1) {
+      users.splice(idx, 1);
+      return sendJSON(res, 200, { success: true, message: 'User deleted successfully' });
+    }
+    return sendJSON(res, 404, { success: false, message: 'User not found' });
+  }
+
   // =========================================================
-  // 3. IOT SENSOR TELEMETRY  (/api/iot/**)
+  // 3. IOT SENSOR TELEMETRY  (/api/iot/**, /iot/**, /crops/**)
   // =========================================================
-  if (pathname === '/api/iot/sensors' && req.method === 'GET') {
+  if ((pathname === '/api/iot/sensors' || pathname === '/iot/sensors') && req.method === 'GET') {
     return sendJSON(res, 200, {
       isHardwareLive,
       lastHardwarePing,
@@ -1060,11 +1279,36 @@ const server = http.createServer(async (req, res) => {
     });
   }
 
-  if (pathname === '/api/iot/history' && req.method === 'GET') {
+  if ((pathname.startsWith('/api/iot/sensors/') || pathname.startsWith('/iot/sensors/')) && req.method === 'GET') {
+    const sKey = pathname.split('/').pop();
+    const val = sensorReadings[sKey] !== undefined ? sensorReadings[sKey] : 50;
+    return sendJSON(res, 200, {
+      success: true,
+      sensorId: sKey,
+      currentValue: val,
+      status: 'HEALTHY',
+      readings: history[sKey] || [],
+    });
+  }
+
+  if ((pathname === '/api/iot/history' || pathname === '/iot/history') && req.method === 'GET') {
     return sendJSON(res, 200, history);
   }
 
-  if (pathname === '/api/iot/telemetry' && req.method === 'POST') {
+  if ((pathname === '/api/iot/alerts' || pathname === '/iot/alerts') && req.method === 'GET') {
+    return sendJSON(res, 200, { success: true, data: iotAlerts });
+  }
+
+  if ((pathname === '/api/iot/irrigation/status' || pathname === '/iot/irrigation/status') && req.method === 'GET') {
+    return sendJSON(res, 200, {
+      zone1Active,
+      zone2Active,
+      mode: 'AUTOMATIC_AI',
+      lastIrrigation: new Date(Date.now() - 4 * 3600000).toISOString(),
+    });
+  }
+
+  if ((pathname === '/api/iot/telemetry' || pathname === '/iot/telemetry') && req.method === 'POST') {
     const body = await parseBody(req);
     isHardwareLive = true;
     lastHardwarePing = Date.now();
@@ -1092,7 +1336,7 @@ const server = http.createServer(async (req, res) => {
     });
   }
 
-  if (pathname === '/api/iot/irrigation/toggle' && req.method === 'POST') {
+  if ((pathname === '/api/iot/irrigation/toggle' || pathname === '/iot/irrigation/toggle') && req.method === 'POST') {
     const body = await parseBody(req);
     const zone = body.zone || 'zone1';
     if (zone === 'zone1') zone1Active = !zone1Active;
@@ -1105,10 +1349,32 @@ const server = http.createServer(async (req, res) => {
     });
   }
 
+  if ((pathname === '/api/crops/guides' || pathname === '/crops/guides') && req.method === 'GET') {
+    return sendJSON(res, 200, { success: true, data: cropGuides });
+  }
+
+  if ((pathname === '/api/crops/status' || pathname === '/crops/status') && req.method === 'GET') {
+    return sendJSON(res, 200, {
+      success: true,
+      data: {
+        activeCrop: 'Wheat (گندم)',
+        growthStage: 'Grain Filling',
+        healthScore: 94,
+        nextWatering: 'In 24 hours based on soil evapotranspiration',
+      },
+    });
+  }
+
   // =========================================================
-  // 4. MULTILINGUAL AI AGRICULTUREBOT  (/api/chatbot/**)
+  // 4. MULTILINGUAL AI AGRICULTUREBOT  (/api/chatbot/**, /chatbot/**)
   // =========================================================
-  if (pathname === '/api/chatbot/ask' && req.method === 'POST') {
+  if (
+    (pathname === '/api/chatbot/ask' ||
+      pathname === '/chatbot/ask' ||
+      pathname === '/api/chatbot/message' ||
+      pathname === '/chatbot/message') &&
+    req.method === 'POST'
+  ) {
     const body = await parseBody(req);
     const text = (body.message || '').toLowerCase();
     const lang = body.language || 'en';
@@ -1140,10 +1406,36 @@ const server = http.createServer(async (req, res) => {
       }
     }
 
-    return sendJSON(res, 200, { reply, language: lang, timestamp: new Date() });
+    return sendJSON(res, 200, { reply, message: reply, language: lang, timestamp: new Date() });
   }
 
-  if (pathname === '/api/chatbot/diagnose' && req.method === 'POST') {
+  if ((pathname === '/api/chatbot/suggestions' || pathname === '/chatbot/suggestions') && req.method === 'GET') {
+    const lang = parsedUrl.query.language || 'en';
+    let suggestions = [
+      'How much irrigation does wheat need this week?',
+      'Recommended fertilizer dosage for cotton',
+      'Diagnose yellow leaf spots on my crops',
+      'What are today live IoT soil moisture readings?',
+    ];
+    if (lang === 'ur') {
+      suggestions = [
+        'گندم کے لیے اس ہفتے کتنا پانی درکار ہے؟',
+        'کپاس کے لیے کھاد کا متوازن شیڈول',
+        'پتوں کے زرد نشانات کی بیماری کی تشخیص',
+        'زمین میں نمی اور درجہ حرارت کے لائیو سینسرز',
+      ];
+    } else if (lang === 'sd') {
+      suggestions = [
+        'هن هفتي ڪڻڪ کي ڪيترو پاڻي گهرجي؟',
+        'ڦٽي جي فصل لاءِ ڀاڻ جو بهترين وقت',
+        'پنن جي پيلن داغن جي بيماري جي سڃاڻپ',
+        'زمين جي نمي ۽ گرمي پد جا تازا انگ اکر',
+      ];
+    }
+    return sendJSON(res, 200, { success: true, data: suggestions });
+  }
+
+  if ((pathname === '/api/chatbot/diagnose' || pathname === '/chatbot/diagnose') && req.method === 'POST') {
     const lang = parsedUrl.query.language || 'en';
     let diagnosis = {};
     if (lang === 'ur') {
@@ -1186,6 +1478,263 @@ const server = http.createServer(async (req, res) => {
   // =========================================================
   // 5. MARKETPLACE API  (/api/marketplace/** and /marketplace/**)
   // =========================================================
+
+  // ---------------------------------------------------------
+  // 5.0 MARKETPLACE ADMIN QUEUES & ACTIONS
+  // ---------------------------------------------------------
+  // Pending Sellers Queue: /api/marketplace/admin/sellers/pending
+  if ((pathname === '/api/marketplace/admin/sellers/pending' || pathname === '/marketplace/admin/sellers/pending') && req.method === 'GET') {
+    return sendJSON(res, 200, { success: true, data: pendingSellers });
+  }
+
+  // Approve Seller: /api/marketplace/admin/sellers/:id/approve
+  if ((pathname.includes('/marketplace/admin/sellers/') && pathname.endsWith('/approve')) && req.method === 'POST') {
+    const parts = pathname.split('/');
+    const sId = +parts[parts.length - 2];
+    const idx = pendingSellers.findIndex((s) => s.id === sId);
+    let approvedSeller;
+    if (idx !== -1) {
+      approvedSeller = pendingSellers.splice(idx, 1)[0];
+      approvedSeller.status = 'APPROVED';
+      approvedSeller.verified = true;
+      if (!sellerProfiles.some((s) => s.id === approvedSeller.id || s.userId === approvedSeller.userId)) {
+        sellerProfiles.push(approvedSeller);
+      }
+    }
+    return sendJSON(res, 200, {
+      success: true,
+      message: 'Seller application approved successfully',
+      data: approvedSeller || null,
+    });
+  }
+
+  // Reject Seller: /api/marketplace/admin/sellers/:id/reject
+  if ((pathname.includes('/marketplace/admin/sellers/') && pathname.endsWith('/reject')) && req.method === 'POST') {
+    const parts = pathname.split('/');
+    const sId = +parts[parts.length - 2];
+    const body = await parseBody(req);
+    const idx = pendingSellers.findIndex((s) => s.id === sId);
+    if (idx !== -1) {
+      pendingSellers.splice(idx, 1);
+    }
+    return sendJSON(res, 200, {
+      success: true,
+      message: body.reason ? `Seller application rejected: ${body.reason}` : 'Seller application rejected',
+    });
+  }
+
+  // Suspend Seller: /api/marketplace/admin/sellers/:id/suspend
+  if ((pathname.includes('/marketplace/admin/sellers/') && pathname.endsWith('/suspend')) && req.method === 'POST') {
+    const parts = pathname.split('/');
+    const sId = +parts[parts.length - 2];
+    const seller = sellerProfiles.find((s) => s.id === sId);
+    if (seller) seller.status = 'SUSPENDED';
+    return sendJSON(res, 200, { success: true, message: 'Seller suspended' });
+  }
+
+  // Verify Seller: /api/marketplace/admin/sellers/:id/verify
+  if ((pathname.includes('/marketplace/admin/sellers/') && pathname.endsWith('/verify')) && req.method === 'POST') {
+    const parts = pathname.split('/');
+    const sId = +parts[parts.length - 2];
+    const seller = sellerProfiles.find((s) => s.id === sId);
+    if (seller) seller.verified = true;
+    return sendJSON(res, 200, { success: true, message: 'Seller verified successfully' });
+  }
+
+  // Pending Products Queue: /api/marketplace/admin/products/pending
+  if ((pathname === '/api/marketplace/admin/products/pending' || pathname === '/marketplace/admin/products/pending') && req.method === 'GET') {
+    return sendJSON(res, 200, { success: true, data: pendingProducts });
+  }
+
+  // Approve Product: /api/marketplace/admin/products/:id/approve
+  if ((pathname.includes('/marketplace/admin/products/') && pathname.endsWith('/approve')) && req.method === 'POST') {
+    const parts = pathname.split('/');
+    const pId = +parts[parts.length - 2];
+    const idx = pendingProducts.findIndex((p) => p.id === pId);
+    let approvedProd;
+    if (idx !== -1) {
+      approvedProd = pendingProducts.splice(idx, 1)[0];
+      approvedProd.status = 'APPROVED';
+      if (!products.some((p) => p.id === approvedProd.id)) {
+        products.unshift(approvedProd);
+      }
+    }
+    return sendJSON(res, 200, {
+      success: true,
+      message: 'Product listing approved and published',
+      data: approvedProd || null,
+    });
+  }
+
+  // Reject Product: /api/marketplace/admin/products/:id/reject
+  if ((pathname.includes('/marketplace/admin/products/') && pathname.endsWith('/reject')) && req.method === 'POST') {
+    const parts = pathname.split('/');
+    const pId = +parts[parts.length - 2];
+    const body = await parseBody(req);
+    const idx = pendingProducts.findIndex((p) => p.id === pId);
+    if (idx !== -1) {
+      pendingProducts.splice(idx, 1);
+    }
+    return sendJSON(res, 200, {
+      success: true,
+      message: body.reason ? `Product rejected: ${body.reason}` : 'Product listing rejected',
+    });
+  }
+
+  // Suspend Product: /api/marketplace/admin/products/:id/suspend
+  if ((pathname.includes('/marketplace/admin/products/') && pathname.endsWith('/suspend')) && req.method === 'POST') {
+    const parts = pathname.split('/');
+    const pId = +parts[parts.length - 2];
+    const prod = products.find((p) => p.id === pId);
+    if (prod) prod.status = 'SUSPENDED';
+    return sendJSON(res, 200, { success: true, message: 'Product listing suspended' });
+  }
+
+  // Pending Payments Queue: /api/marketplace/admin/payments/pending
+  if ((pathname === '/api/marketplace/admin/payments/pending' || pathname === '/marketplace/admin/payments/pending') && req.method === 'GET') {
+    return sendJSON(res, 200, { success: true, data: pendingPayments });
+  }
+
+  // Approve Payment: /api/marketplace/admin/payments/order/:orderId/approve or /api/marketplace/payments/order/:orderId/approve
+  if ((pathname.includes('/payments/order/') && pathname.endsWith('/approve')) && req.method === 'POST') {
+    const parts = pathname.split('/');
+    const orderId = +parts[parts.length - 2];
+    const pIdx = pendingPayments.findIndex((p) => p.orderId === orderId || p.id === orderId);
+    if (pIdx !== -1) {
+      pendingPayments.splice(pIdx, 1);
+    }
+    const order = orders.find((o) => o.id === orderId);
+    if (order) {
+      order.status = 'PROCESSING';
+      if (order.payment) {
+        order.payment.paymentStatus = 'VERIFIED';
+        order.payment.paidAt = new Date().toISOString();
+      }
+    }
+    return sendJSON(res, 200, {
+      success: true,
+      message: 'Payment verified and order approved for processing',
+      data: order || null,
+    });
+  }
+
+  // Reject Payment: /api/marketplace/admin/payments/order/:orderId/reject or /api/marketplace/payments/order/:orderId/reject
+  if ((pathname.includes('/payments/order/') && pathname.endsWith('/reject')) && req.method === 'POST') {
+    const parts = pathname.split('/');
+    const orderId = +parts[parts.length - 2];
+    const body = await parseBody(req);
+    const pIdx = pendingPayments.findIndex((p) => p.orderId === orderId || p.id === orderId);
+    if (pIdx !== -1) {
+      pendingPayments.splice(pIdx, 1);
+    }
+    const order = orders.find((o) => o.id === orderId);
+    if (order) {
+      order.status = 'CANCELLED';
+      if (order.payment) {
+        order.payment.paymentStatus = 'REJECTED';
+        order.payment.rejectionReason = body.reason || 'Payment verification failed';
+      }
+    }
+    return sendJSON(res, 200, {
+      success: true,
+      message: body.reason ? `Payment rejected: ${body.reason}` : 'Payment verification rejected',
+    });
+  }
+
+  // Buyer submits transfer proof: /api/marketplace/payments/order/:orderId/submit
+  if ((pathname.includes('/marketplace/payments/order/') && pathname.endsWith('/submit')) && req.method === 'POST') {
+    const parts = pathname.split('/');
+    const orderId = +parts[parts.length - 2];
+    const body = await parseBody(req);
+    const currentUser = getUserFromReq(req);
+    const order = orders.find((o) => o.id === orderId) || orders[0];
+
+    const paymentRecord = {
+      id: pendingPayments.length + 301,
+      orderId: order.id,
+      orderNumber: `SK-2026-${order.id}`,
+      buyerId: currentUser.id,
+      buyerName: currentUser.name || order.buyerName,
+      sellerId: order.sellerId || 1,
+      sellerShopName: order.sellerShopName || 'SmartKisan Agro Hub',
+      amount: body.amount || order.totalAmount,
+      paidAmount: body.paidAmount || body.amount || order.totalAmount,
+      expectedAmount: order.totalAmount,
+      totalAmount: order.totalAmount,
+      orderTotal: order.totalAmount,
+      paymentMethod: body.paymentMethod || 'BANK_TRANSFER',
+      status: 'PENDING_VERIFICATION',
+      paymentStatus: 'PENDING_VERIFICATION',
+      bankName: body.bankName || 'Habib Bank Limited (HBL)',
+      accountNumber: body.accountNumber || 'PK64HABB00012345678901',
+      transactionRef: body.transactionRef || body.transactionReference || `TRX-${Date.now().toString().slice(-8)}`,
+      transactionReference: body.transactionRef || body.transactionReference || `TRX-${Date.now().toString().slice(-8)}`,
+      proofUrl: body.proofUrl || body.paymentProofUrl || 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=600',
+      paymentProofUrl: body.proofUrl || body.paymentProofUrl || 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=600',
+      submittedAt: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+    };
+
+    pendingPayments.unshift(paymentRecord);
+    if (order.payment) {
+      order.payment.paymentStatus = 'PENDING_VERIFICATION';
+      order.payment.transactionRef = paymentRecord.transactionRef;
+      order.payment.paymentProofUrl = paymentRecord.paymentProofUrl;
+    }
+
+    return sendJSON(res, 200, {
+      success: true,
+      message: 'Payment proof submitted successfully for verification',
+      data: paymentRecord,
+    });
+  }
+
+  // Seller receiving payment accounts
+  if ((pathname === '/api/marketplace/payment-accounts/me' || pathname === '/marketplace/payment-accounts/me') && req.method === 'GET') {
+    const currentUser = getUserFromReq(req);
+    const myAccounts = paymentAccounts.filter((a) => a.userId === currentUser.id);
+    return sendJSON(res, 200, { success: true, data: myAccounts.length ? myAccounts : paymentAccounts });
+  }
+
+  if ((pathname.startsWith('/api/marketplace/payment-accounts/seller/') || pathname.startsWith('/marketplace/payment-accounts/seller/')) && req.method === 'GET') {
+    const sUserId = +pathname.split('/').pop();
+    const acts = paymentAccounts.filter((a) => a.userId === sUserId);
+    return sendJSON(res, 200, { success: true, data: acts.length ? acts : paymentAccounts });
+  }
+
+  if ((pathname === '/api/marketplace/payment-accounts' || pathname === '/marketplace/payment-accounts') && req.method === 'POST') {
+    const currentUser = getUserFromReq(req);
+    const body = await parseBody(req);
+    const newAccount = {
+      id: paymentAccounts.length + 1,
+      userId: currentUser.id,
+      bankName: body.bankName || 'Habib Bank Limited (HBL)',
+      accountTitle: body.accountTitle || currentUser.name,
+      accountNumber: body.accountNumber || '',
+      iban: body.iban || body.accountNumber || '',
+      accountType: body.accountType || 'BANK_TRANSFER',
+      branchCode: body.branchCode || '',
+      isActive: true,
+      instructions: body.instructions || '',
+    };
+    paymentAccounts.push(newAccount);
+    return sendJSON(res, 201, { success: true, message: 'Payment account added', data: newAccount });
+  }
+
+  if ((pathname.startsWith('/api/marketplace/payment-accounts/') || pathname.startsWith('/marketplace/payment-accounts/')) && req.method === 'PUT') {
+    const aId = +pathname.split('/').pop();
+    const body = await parseBody(req);
+    const act = paymentAccounts.find((a) => a.id === aId);
+    if (act) Object.assign(act, body);
+    return sendJSON(res, 200, { success: true, message: 'Payment account updated', data: act || paymentAccounts[0] });
+  }
+
+  if ((pathname.startsWith('/api/marketplace/payment-accounts/') || pathname.startsWith('/marketplace/payment-accounts/')) && req.method === 'DELETE') {
+    const aId = +pathname.split('/').pop();
+    const idx = paymentAccounts.findIndex((a) => a.id === aId);
+    if (idx !== -1) paymentAccounts.splice(idx, 1);
+    return sendJSON(res, 200, { success: true, message: 'Payment account removed' });
+  }
 
   // Seller Profile: /api/marketplace/sellers/me
   if ((pathname === '/api/marketplace/sellers/me' || pathname === '/marketplace/sellers/me') && req.method === 'GET') {
@@ -1493,7 +2042,7 @@ const server = http.createServer(async (req, res) => {
 
   // Payments: /api/marketplace/payments/seller-pending
   if ((pathname === '/api/marketplace/payments/seller-pending' || pathname === '/marketplace/payments/seller-pending') && req.method === 'GET') {
-    return sendJSON(res, 200, { success: true, data: [] });
+    return sendJSON(res, 200, { success: true, data: pendingPayments });
   }
 
   // Media upload fallback: /api/marketplace/media/upload
@@ -1508,12 +2057,34 @@ const server = http.createServer(async (req, res) => {
   }
 
   // Chat history: /api/marketplace/chat/history
-  if (pathname === '/api/marketplace/chat/history' && req.method === 'GET') {
+  if ((pathname === '/api/marketplace/chat/history' || pathname === '/marketplace/chat/history') && req.method === 'GET') {
     return sendJSON(res, 200, { success: true, data: chatMessages });
   }
 
+  // Chat conversations: /api/marketplace/chat/conversations
+  if ((pathname === '/api/marketplace/chat/conversations' || pathname === '/marketplace/chat/conversations') && req.method === 'GET') {
+    return sendJSON(res, 200, {
+      success: true,
+      data: [
+        {
+          id: 1,
+          participantId: 2,
+          participantName: 'SmartKisan Agro Hub',
+          lastMessage: 'Your order has been verified and dispatched!',
+          timestamp: new Date().toISOString(),
+          unreadCount: 0,
+        },
+      ],
+    });
+  }
+
+  // Chat mark as read: /api/marketplace/chat/read/:id
+  if ((pathname.startsWith('/api/marketplace/chat/read/') || pathname.startsWith('/marketplace/chat/read/')) && req.method === 'PATCH') {
+    return sendJSON(res, 200, { success: true, message: 'Messages marked as read' });
+  }
+
   // Chat send: /api/marketplace/chat/send
-  if (pathname === '/api/marketplace/chat/send' && req.method === 'POST') {
+  if ((pathname === '/api/marketplace/chat/send' || pathname === '/marketplace/chat/send') && req.method === 'POST') {
     const body = await parseBody(req);
     const newMsg = {
       id: chatMessages.length + 1,
@@ -1530,9 +2101,9 @@ const server = http.createServer(async (req, res) => {
   }
 
   // =========================================================
-  // 6. WEATHER API  (/api/weather/**)
+  // 6. WEATHER API  (/api/weather/** and /weather/**)
   // =========================================================
-  if (pathname.startsWith('/api/weather') && req.method === 'GET') {
+  if ((pathname.startsWith('/api/weather') || pathname.startsWith('/weather')) && req.method === 'GET') {
     const locParam = (parsedUrl.query.location || parsedUrl.query.city || 'Hyderabad').toString().trim();
     const cleanKey = locParam.toLowerCase().replace(/[^a-z]/g, '');
 
@@ -1591,14 +2162,14 @@ const server = http.createServer(async (req, res) => {
       },
     };
 
-    if (pathname === '/api/weather/current') {
+    if (pathname === '/api/weather/current' || pathname === '/weather/current') {
       return sendJSON(res, 200, {
         success: true,
         data: currentWeatherObj,
       });
     }
 
-    if (pathname === '/api/weather/forecast') {
+    if (pathname === '/api/weather/forecast' || pathname === '/weather/forecast') {
       return sendJSON(res, 200, {
         success: true,
         data: forecastList,
