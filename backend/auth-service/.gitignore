@@ -1,0 +1,18 @@
+# Secrets
+.env
+.env.local
+*.pem
+
+# Build
+target/
+build/
+*.class
+
+# Uploads
+uploads/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.DS_Store
