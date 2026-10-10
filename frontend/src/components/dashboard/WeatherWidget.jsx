@@ -26,7 +26,20 @@ export default function WeatherWidget() {
         } catch (e) {}
 
         const response = await weatherAPI.getCurrentWeather(city)
-        const data = response.data?.data || (response.data?.temp ? response.data : null)
+        const raw = response.data
+        let data = raw?.data || (raw?.temp ? raw : null)
+
+        if (!data && raw?.current) {
+          data = {
+            location: raw.location || city,
+            temp: raw.current.tempC ?? raw.current.temp,
+            condition: raw.current.condition || 'Sunny',
+            humidity: raw.current.humidity || 60,
+            windSpeed: raw.current.windKph ?? raw.current.windSpeed ?? 14.5,
+            pressure: raw.current.pressure || 1013,
+            uvIndex: raw.current.uvIndex || 7,
+          }
+        }
 
         if (!data) throw new Error('Weather data not found')
 
