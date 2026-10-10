@@ -68,6 +68,87 @@ function fetchOpenMeteo(lat, lon) {
   });
 }
 
+// ---------------- Email & OTP Service (Gmail SMTP) ----------------
+const nodemailer = require('nodemailer');
+
+const MAIL_USER = process.env.MAIL_USERNAME || 'm01012002809234@gmail.com';
+const MAIL_PASS = process.env.MAIL_PASSWORD || 'vvqtqfglovgljecn';
+
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: MAIL_USER,
+    pass: MAIL_PASS,
+  },
+});
+
+const otps = new Map(); // key: email:PURPOSE, value: { otp, expiresAt }
+
+function generateOtp() {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
+async function sendOtpEmail(toEmail, otpCode, purpose = 'VERIFY_EMAIL') {
+  const isVerify = purpose === 'VERIFY_EMAIL';
+  const subject = isVerify
+    ? `SmartKisan - Verify Your Email [${otpCode}]`
+    : `SmartKisan - Reset Your Password [${otpCode}]`;
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; margin: 0; padding: 20px; }
+        .card { max-width: 500px; margin: 0 auto; background: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .header { background: linear-gradient(135deg, #16a34a, #059669); padding: 28px 24px; text-align: center; color: #ffffff; }
+        .content { padding: 32px 24px; text-align: center; }
+        .code-box { display: inline-block; background: #f0fdf4; border: 2px dashed #16a34a; border-radius: 12px; padding: 14px 28px; margin: 24px 0; font-size: 32px; font-weight: bold; letter-spacing: 6px; color: #15803d; font-family: monospace; }
+        .footer { padding: 20px 24px; background: #f8fafc; border-top: 1px solid #e2e8f0; text-align: center; font-size: 12px; color: #64748b; }
+      </style>
+    </head>
+    <body>
+      <div class="card">
+        <div class="header">
+          <h1 style="margin: 0; font-size: 24px; font-weight: bold;">🌾 SmartKisan</h1>
+          <p style="margin: 6px 0 0 0; opacity: 0.9; font-size: 14px;">IoT Smart Agriculture Platform</p>
+        </div>
+        <div class="content">
+          <h2 style="margin: 0; font-size: 20px; color: #0f172a;">${isVerify ? 'Verify Your Email Address' : 'Password Reset Request'}</h2>
+          <p style="margin: 12px 0 0 0; font-size: 14px; color: #475569; line-height: 1.5;">
+            ${isVerify 
+              ? 'Thank you for registering on SmartKisan. Use the 6-digit verification code below to activate your account:' 
+              : 'We received a request to reset your SmartKisan account password. Use the verification code below to proceed:'}
+          </p>
+          <div class="code-box">${otpCode}</div>
+          <p style="margin: 0; font-size: 13px; color: #64748b;">
+            This code will expire in <strong>10 minutes</strong>. If you did not request this, please ignore this email.
+          </p>
+        </div>
+        <div class="footer">
+          &copy; ${new Date().getFullYear()} SmartKisan. Smart Farming, IoT & Agriculture Marketplace.
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  try {
+    await transporter.sendMail({
+      from: `"SmartKisan" <${MAIL_USER}>`,
+      to: toEmail,
+      subject,
+      html,
+    });
+    console.log(`[Email] Successfully sent ${purpose} OTP ${otpCode} to ${toEmail}`);
+    return true;
+  } catch (error) {
+    console.error(`[Email] Failed to send email to ${toEmail}:`, error);
+    return false;
+  }
+}
+
 // ---------------- State: IoT Sensors Fleet ----------------
 let isHardwareLive = false;
 let lastHardwarePing = null;
@@ -334,8 +415,29 @@ const server = http.createServer(async (req, res) => {
         userType: email.includes('admin') ? 'ADMIN' : 'FARMER',
         isSeller: true,
         emailVerified: true,
+        location: 'Hyderabad, Sindh, Pakistan',
       };
       users.push(user);
+    }
+
+    if (user.emailVerified === false) {
+      const code = generateOtp();
+      otps.set(`${email}:VERIFY_EMAIL`, {
+        otp: code,
+        expiresAt: Date.now() + 10 * 60 * 1000,
+      });
+      console.log(`[Auth] User not verified. Dispatched fresh OTP ${code} to ${email}`);
+      await sendOtpEmail(email, code, 'VERIFY_EMAIL');
+
+      return sendJSON(res, 403, {
+        success: false,
+        message: 'Your email address is not verified yet. A verification code has been sent to your email.',
+        needsVerification: true,
+        data: {
+          email: user.email,
+          needsVerification: true,
+        },
+      });
     }
 
     const token = 'smartkisan_jwt_token_' + Buffer.from(email).toString('base64');
@@ -437,60 +539,211 @@ const server = http.createServer(async (req, res) => {
   }
 
   // OTP and Password Recovery
+  if (pathname === '/api/auth/register' && req.method === 'POST') {
+    const body = await parseBody(req);
+    const email = (body.email || '').toLowerCase().trim();
+
+    if (!email || !body.password) {
+      return sendJSON(res, 400, {
+        success: false,
+        message: 'Email and password are required for registration.',
+      });
+    }
+
+    let user = users.find((u) => u.email.toLowerCase() === email);
+    if (user && user.emailVerified) {
+      return sendJSON(res, 400, {
+        success: false,
+        message: 'An account with this email already exists. Please sign in.',
+      });
+    }
+
+    if (!user) {
+      user = {
+        id: users.length + 1,
+        name: body.name || 'New Farmer',
+        email: email,
+        password: body.password,
+        role: 'USER',
+        userType: 'FARMER',
+        isSeller: false,
+        emailVerified: false,
+        phone: body.phone || '',
+        location: body.location || 'Hyderabad, Sindh, Pakistan',
+        avatarImage: '',
+        farmSize: body.farmSize || '',
+        createdAt: new Date().toISOString(),
+      };
+      users.push(user);
+    } else {
+      user.name = body.name || user.name;
+      user.password = body.password || user.password;
+      user.phone = body.phone || user.phone;
+      user.location = body.location || user.location;
+      user.farmSize = body.farmSize || user.farmSize;
+      user.emailVerified = false;
+    }
+
+    const otpCode = generateOtp();
+    otps.set(`${email}:VERIFY_EMAIL`, {
+      otp: otpCode,
+      expiresAt: Date.now() + 10 * 60 * 1000,
+    });
+    console.log(`[Auth] Registered user. Dispatched email OTP ${otpCode} to ${email}`);
+    await sendOtpEmail(email, otpCode, 'VERIFY_EMAIL');
+
+    return sendJSON(res, 201, {
+      success: true,
+      message: `Registration successful! Verification code sent to ${email}`,
+      data: {
+        email: user.email,
+        needsVerification: true,
+      },
+    });
+  }
+
   if (pathname === '/api/auth/verify-otp' && req.method === 'POST') {
     const body = await parseBody(req);
-    const currentUser = getUserFromReq(req);
+    const email = (body.email || '').toLowerCase().trim();
+    const inputOtp = (body.otp || '').toString().trim();
+
+    const record = otps.get(`${email}:VERIFY_EMAIL`);
+    if (!record || record.otp !== inputOtp) {
+      return sendJSON(res, 400, {
+        success: false,
+        message: 'Invalid verification code. Please check your inbox or click Resend code.',
+      });
+    }
+
+    if (Date.now() > record.expiresAt) {
+      return sendJSON(res, 400, {
+        success: false,
+        message: 'Verification code has expired. Please click Resend code to get a new one.',
+      });
+    }
+
+    // OTP confirmed! Delete from storage
+    otps.delete(`${email}:VERIFY_EMAIL`);
+
+    let user = users.find((u) => u.email.toLowerCase() === email);
+    if (!user) {
+      user = {
+        id: users.length + 1,
+        name: email.split('@')[0],
+        email: email,
+        role: 'USER',
+        userType: 'FARMER',
+        isSeller: false,
+        emailVerified: true,
+        location: 'Hyderabad, Sindh, Pakistan',
+        createdAt: new Date().toISOString(),
+      };
+      users.push(user);
+    } else {
+      user.emailVerified = true;
+    }
+
+    const token = 'smartkisan_jwt_token_' + Buffer.from(email).toString('base64');
     return sendJSON(res, 200, {
       success: true,
-      message: 'Account verified successfully!',
+      message: 'Email verified successfully!',
       data: {
-        token: 'smartkisan_jwt_token_' + Buffer.from(currentUser.email).toString('base64'),
+        token: token,
         refreshToken: 'smartkisan_refresh_' + Date.now(),
-        user: currentUser,
+        user: user,
       },
     });
   }
 
   if (pathname === '/api/auth/resend-otp' && req.method === 'POST') {
+    const body = await parseBody(req);
+    const email = (body.email || '').toLowerCase().trim();
+
+    if (!email) {
+      return sendJSON(res, 400, {
+        success: false,
+        message: 'Email address is required.',
+      });
+    }
+
+    const otpCode = generateOtp();
+    otps.set(`${email}:VERIFY_EMAIL`, {
+      otp: otpCode,
+      expiresAt: Date.now() + 10 * 60 * 1000,
+    });
+    console.log(`[Auth] Resending verification OTP ${otpCode} to ${email}`);
+    await sendOtpEmail(email, otpCode, 'VERIFY_EMAIL');
+
     return sendJSON(res, 200, {
       success: true,
-      message: 'Verification code resent successfully',
+      message: `A fresh 6-digit verification code has been sent to ${email}`,
     });
   }
 
   if (pathname === '/api/auth/forgot-password' && req.method === 'POST') {
+    const body = await parseBody(req);
+    const email = (body.email || '').toLowerCase().trim();
+
+    if (!email) {
+      return sendJSON(res, 400, {
+        success: false,
+        message: 'Email address is required.',
+      });
+    }
+
+    const otpCode = generateOtp();
+    otps.set(`${email}:RESET_PASSWORD`, {
+      otp: otpCode,
+      expiresAt: Date.now() + 10 * 60 * 1000,
+    });
+    console.log(`[Auth] Generated password reset OTP ${otpCode} for ${email}`);
+    await sendOtpEmail(email, otpCode, 'RESET_PASSWORD');
+
     return sendJSON(res, 200, {
       success: true,
-      message: 'Reset verification code sent to your email',
+      message: `If an account exists, a 6-digit password reset code was sent to ${email}`,
     });
   }
 
   if (pathname === '/api/auth/reset-password' && req.method === 'POST') {
+    const body = await parseBody(req);
+    const email = (body.email || '').toLowerCase().trim();
+    const inputOtp = (body.otp || '').toString().trim();
+    const newPassword = body.newPassword || '';
+
+    if (!newPassword || newPassword.length < 6) {
+      return sendJSON(res, 400, {
+        success: false,
+        message: 'Password must be at least 6 characters long.',
+      });
+    }
+
+    const record = otps.get(`${email}:RESET_PASSWORD`);
+    if (!record || record.otp !== inputOtp) {
+      return sendJSON(res, 400, {
+        success: false,
+        message: 'Invalid reset code. Please check your email or request a new code.',
+      });
+    }
+
+    if (Date.now() > record.expiresAt) {
+      return sendJSON(res, 400, {
+        success: false,
+        message: 'Reset code has expired. Please request a new code.',
+      });
+    }
+
+    otps.delete(`${email}:RESET_PASSWORD`);
+
+    const user = users.find((u) => u.email.toLowerCase() === email);
+    if (user) {
+      user.password = newPassword;
+      user.emailVerified = true;
+    }
+
     return sendJSON(res, 200, {
       success: true,
-      message: 'Password reset successfully. You can now log in.',
-    });
-  }
-
-  if (pathname === '/api/auth/register' && req.method === 'POST') {
-    const body = await parseBody(req);
-    const newUser = {
-      id: users.length + 1,
-      name: body.name || 'New Farmer',
-      email: body.email,
-      role: 'USER',
-      userType: 'FARMER',
-      isSeller: false,
-      emailVerified: true,
-      location: 'Hyderabad, Sindh, Pakistan',
-      avatarImage: '',
-      createdAt: new Date().toISOString(),
-    };
-    users.push(newUser);
-    return sendJSON(res, 201, {
-      success: true,
-      message: 'Registration successful! You may now login.',
-      data: newUser,
+      message: 'Password reset successfully. You can now log in with your new password.',
     });
   }
 

@@ -9,3 +9,7 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
+      - key: MAIL_USERNAME
+        value: m01012002809234@gmail.com
+      - key: MAIL_PASSWORD
+        value: vvqtqfglovgljecn
