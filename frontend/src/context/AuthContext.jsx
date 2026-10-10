@@ -422,6 +422,7 @@ const login = async (email, password, options = {}) => {
         status: error.response?.status,
         // true when the account exists but the email OTP was never confirmed
         needsVerification: isUnverifiedError(error),
+        data: error.response?.data?.data,
       }
     } finally {
       if (!options.silentLoading) {

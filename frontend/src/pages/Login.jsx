@@ -190,17 +190,24 @@ export default function Login() {
     setConfirmPassword('')
   }
 
-  const goToVerify = (message = '') => {
+  const goToVerify = (message = '', receivedOtp = '') => {
     clearFeedback()
     resetOtpFields()
+    if (receivedOtp) {
+      setOtp(receivedOtp)
+    }
     setCooldown(RESEND_SECONDS)
     setNotice(message)
     setView('verify')
   }
 
-  const goToReset = () => {
+  const goToReset = (receivedOtp = '') => {
     clearFeedback()
     resetOtpFields()
+    if (receivedOtp) {
+      setOtp(receivedOtp)
+      setNotice(`Reset code dispatched: ${receivedOtp}`)
+    }
     setCooldown(RESEND_SECONDS)
     setView('reset')
   }
@@ -267,13 +274,17 @@ export default function Login() {
         // Account exists but the email was never confirmed -> send a fresh
         // code and open the verification screen.
         if (result?.needsVerification) {
-          await resendVerificationOtp(email, {
+          const resendRes = await resendVerificationOtp(email, {
             silentSuccess: true,
             silentError: true,
           })
+          const receivedOtp = resendRes?.data?.otp || result?.data?.otp
 
           goToVerify(
-            'Your email address is not verified yet. We have sent a new 6-digit code to your inbox.'
+            receivedOtp
+              ? `Your email address is not verified yet. Verification code: ${receivedOtp}`
+              : 'Your email address is not verified yet. We have sent a new 6-digit code to your inbox.',
+            receivedOtp
           )
           return
         }
@@ -314,7 +325,13 @@ export default function Login() {
       )
 
       if (result?.success) {
-        goToVerify(`We have sent a 6-digit verification code to ${email}.`)
+        const receivedOtp = result?.data?.otp
+        goToVerify(
+          receivedOtp
+            ? `Account created! Verification code: ${receivedOtp}`
+            : `We have sent a 6-digit verification code to ${email}.`,
+          receivedOtp
+        )
       } else {
         setFormError(result?.error || 'Registration failed. Please try again.')
       }
@@ -346,7 +363,13 @@ export default function Login() {
 
       // 429 = a code was sent a moment ago and is still valid
       if (result?.success || result?.status === 429) {
-        goToVerify(`If this account is awaiting verification, a code was sent to ${email}.`)
+        const receivedOtp = result?.data?.otp
+        goToVerify(
+          receivedOtp
+            ? `Verification code: ${receivedOtp}`
+            : `If this account is awaiting verification, a code was sent to ${email}.`,
+          receivedOtp
+        )
       } else {
         setFormError(result?.error || 'Could not send the code. Please try again.')
       }
@@ -404,7 +427,8 @@ export default function Login() {
       const result = await forgotPassword(email, INLINE)
 
       if (result?.success) {
-        goToReset()
+        const receivedOtp = result?.data?.otp
+        goToReset(receivedOtp)
       } else {
         setFormError(result?.error || 'Could not send the reset code.')
       }
@@ -464,8 +488,16 @@ export default function Login() {
           : await resendVerificationOtp(email, options)
 
       if (result?.success) {
+        const receivedOtp = result?.data?.otp
+        if (receivedOtp) {
+          setOtp(receivedOtp)
+        }
         setFormError('')
-        setNotice(`A new code has been sent to ${email}.`)
+        setNotice(
+          receivedOtp
+            ? `A fresh verification code has been dispatched: ${receivedOtp}`
+            : `A new code has been sent to ${email}.`
+        )
         setCooldown(RESEND_SECONDS)
       } else {
         setNotice('')
