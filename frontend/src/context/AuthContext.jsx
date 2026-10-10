@@ -105,6 +105,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [users, setUsers] = useState([])
 
   // Admin-only cache
   const CACHED_USERS_KEY = 'smartkisan_registered_users'
