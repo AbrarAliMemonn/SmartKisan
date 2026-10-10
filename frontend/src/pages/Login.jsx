@@ -559,10 +559,10 @@ export default function Login() {
         <div className="absolute left-1/2 top-1/2 h-[400px] w-[400px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-green-100/50 blur-3xl" />
       </div>
 
-      <div className="relative flex min-h-screen items-center justify-center p-4 sm:p-6 lg:p-8">
+      <div className="relative flex min-h-screen items-center justify-center p-3.5 sm:p-6 lg:p-8">
         <div className="w-full max-w-6xl">
-          <div className="overflow-hidden rounded-[28px] bg-white shadow-[0_20px_70px_-20px_rgba(16,185,129,0.25)] ring-1 ring-slate-900/5">
-            <div className="grid min-h-[720px] lg:grid-cols-2">
+          <div className="overflow-hidden rounded-2xl sm:rounded-[28px] bg-white shadow-xl lg:shadow-[0_20px_70px_-20px_rgba(16,185,129,0.25)] ring-1 ring-slate-900/5">
+            <div className="grid min-h-[640px] lg:min-h-[720px] lg:grid-cols-2">
               {/* =========================================================
                   LEFT BRANDING PANEL
               ========================================================= */}
@@ -659,7 +659,7 @@ export default function Login() {
 
                   <div className="border-t border-white/10 pt-5">
                     <p className="text-xs text-green-100/60">
-                      © {new Date().getFullYear()} AgroBazaar. IoT Smart
+                      © {new Date().getFullYear()} SmartKisan. IoT Smart
                       Agriculture & Marketplace.
                     </p>
                   </div>
@@ -669,22 +669,22 @@ export default function Login() {
               {/* =========================================================
                   RIGHT AUTH PANEL
               ========================================================= */}
-              <div className="flex items-center justify-center p-6 sm:p-10 lg:p-12">
+              <div className="flex items-center justify-center px-4 py-7 sm:px-10 sm:py-10 lg:p-12">
                 <div className="w-full max-w-md">
                   {/* Mobile Logo */}
-                  <div className="mb-8 flex items-center justify-center lg:hidden">
+                  <div className="mb-6 flex items-center justify-center lg:hidden">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 shadow-lg shadow-green-600/25">
-                        <Sprout className="h-7 w-7 text-white" />
+                      <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 shadow-md shadow-green-600/25 ring-1 ring-green-600/20">
+                        <Sprout className="h-6 w-6 text-white" />
                       </div>
 
                       <div>
-                        <h1 className="text-xl font-bold text-slate-900">
-                          AgroBazaar
+                        <h1 className="text-xl font-bold tracking-tight text-slate-900">
+                          SmartKisan
                         </h1>
 
-                        <p className="text-xs font-semibold uppercase tracking-wider text-green-600">
-                          IoT Smart Farming
+                        <p className="text-[11px] font-semibold uppercase tracking-wider text-green-600">
+                          IoT Smart Agriculture
                         </p>
                       </div>
                     </div>
@@ -1303,8 +1303,8 @@ export default function Login() {
           </div>
 
           {/* Bottom footer */}
-          <p className="mt-6 text-center text-xs text-slate-400">
-            By continuing, you agree to AgroBazaar&apos;s Terms of Service &amp;
+          <p className="mt-5 text-center text-xs text-slate-400">
+            By continuing, you agree to SmartKisan&apos;s Terms of Service &amp;
             Privacy Policy
           </p>
         </div>

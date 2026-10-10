@@ -170,7 +170,7 @@ export default function Sidebar() {
 
       {/* Footer */}
       <div className={`shrink-0 border-t border-white/10 px-4 py-3 ${collapsed ? 'lg:hidden' : ''}`}>
-        <p className="text-xs text-white/40">AgroBazaar v2.0.0</p>
+        <p className="text-xs text-white/40">SmartKisan v2.0.0</p>
       </div>
     </>
   )

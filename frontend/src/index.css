@@ -4,7 +4,7 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* =====================================================================
-   AgroBazaar design tokens
+   SmartKisan design tokens
    ---------------------------------------------------------------------
    One brand colour (deep forest green), one neutral ramp (green-tinted
    slate) and a single warm "harvest" accent reserved for deals/sales.
