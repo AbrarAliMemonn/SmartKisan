@@ -94,7 +94,54 @@ function generateOtp() {
 
 function sendViaHttpsApi(toEmail, subject, html) {
   return new Promise((resolve) => {
-    // 1. Resend HTTPS API (Port 443 - Works seamlessly on Render)
+    // 1. Primary: Vercel Cloud Mail Relay (Port 443 HTTPS from Render -> Vercel Serverless -> Gmail SMTP Port 587)
+    const relayHost = process.env.MAIL_RELAY_HOST || 'smart-kisan-two.vercel.app';
+    const payload = JSON.stringify({
+      to: toEmail,
+      subject: subject,
+      html: html,
+      secret: 'smartkisan_internal_relay_secret_8829',
+    });
+
+    const relayReq = https.request({
+      hostname: relayHost,
+      port: 443,
+      path: '/api/send-email',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(payload),
+      },
+      timeout: 8000,
+    }, (res) => {
+      let d = '';
+      res.on('data', c => d += c);
+      res.on('end', () => {
+        if (res.statusCode >= 200 && res.statusCode < 300) {
+          console.log(`[Vercel Relay HTTPS] Successfully delivered email to ${toEmail}`);
+          resolve(true);
+        } else {
+          console.warn(`[Vercel Relay Notice ${res.statusCode}]`, d);
+          tryAlternativeHttpsApis(toEmail, subject, html).then(resolve);
+        }
+      });
+    });
+    relayReq.on('error', (err) => {
+      console.warn('[Vercel Relay Connection Notice]', err.message);
+      tryAlternativeHttpsApis(toEmail, subject, html).then(resolve);
+    });
+    relayReq.on('timeout', () => {
+      relayReq.destroy();
+      tryAlternativeHttpsApis(toEmail, subject, html).then(resolve);
+    });
+    relayReq.write(payload);
+    relayReq.end();
+  });
+}
+
+function tryAlternativeHttpsApis(toEmail, subject, html) {
+  return new Promise((resolve) => {
+    // 2. Resend HTTPS API (Port 443 - Works seamlessly on Render)
     if (process.env.RESEND_API_KEY) {
       const payload = JSON.stringify({
         from: process.env.RESEND_FROM || 'SmartKisan <onboarding@resend.dev>',
@@ -139,7 +186,7 @@ function sendViaHttpsApi(toEmail, subject, html) {
       return;
     }
 
-    // 2. Brevo HTTPS API (Port 443 - Works seamlessly on Render)
+    // 3. Brevo HTTPS API (Port 443 - Works seamlessly on Render)
     if (process.env.BREVO_API_KEY) {
       const payload = JSON.stringify({
         sender: { name: 'SmartKisan', email: process.env.BREVO_SENDER || 'no-reply@smartkisan.app' },
@@ -531,8 +578,8 @@ const server = http.createServer(async (req, res) => {
         otp: code,
         expiresAt: Date.now() + 10 * 60 * 1000,
       });
-      console.log(`[Auth] User not verified. Dispatched fresh OTP ${code} to ${email}`);
-      sendOtpEmail(email, code, 'VERIFY_EMAIL').catch((err) => console.error('[Email Error]', err.message));
+      console.log(`[Auth] User not verified. Dispatched fresh OTP to ${email}`);
+      await sendOtpEmail(email, code, 'VERIFY_EMAIL');
 
       return sendJSON(res, 403, {
         success: false,
@@ -541,7 +588,6 @@ const server = http.createServer(async (req, res) => {
         data: {
           email: user.email,
           needsVerification: true,
-          otp: code,
         },
       });
     }
@@ -695,8 +741,8 @@ const server = http.createServer(async (req, res) => {
       otp: otpCode,
       expiresAt: Date.now() + 10 * 60 * 1000,
     });
-    console.log(`[Auth] Registered user. Dispatched email OTP ${otpCode} to ${email}`);
-    sendOtpEmail(email, otpCode, 'VERIFY_EMAIL').catch((err) => console.error('[Email Error]', err.message));
+    console.log(`[Auth] Registered user. Dispatched email OTP to ${email}`);
+    await sendOtpEmail(email, otpCode, 'VERIFY_EMAIL');
 
     return sendJSON(res, 201, {
       success: true,
@@ -704,7 +750,6 @@ const server = http.createServer(async (req, res) => {
       data: {
         email: user.email,
         needsVerification: true,
-        otp: otpCode,
       },
     });
   }
@@ -778,15 +823,14 @@ const server = http.createServer(async (req, res) => {
       otp: otpCode,
       expiresAt: Date.now() + 10 * 60 * 1000,
     });
-    console.log(`[Auth] Resending verification OTP ${otpCode} to ${email}`);
-    sendOtpEmail(email, otpCode, 'VERIFY_EMAIL').catch((err) => console.error('[Email Error]', err.message));
+    console.log(`[Auth] Resending verification OTP to ${email}`);
+    await sendOtpEmail(email, otpCode, 'VERIFY_EMAIL');
 
     return sendJSON(res, 200, {
       success: true,
       message: `A fresh 6-digit verification code has been sent to ${email}`,
       data: {
         email: email,
-        otp: otpCode,
       },
     });
   }
@@ -807,15 +851,14 @@ const server = http.createServer(async (req, res) => {
       otp: otpCode,
       expiresAt: Date.now() + 10 * 60 * 1000,
     });
-    console.log(`[Auth] Generated password reset OTP ${otpCode} for ${email}`);
-    sendOtpEmail(email, otpCode, 'RESET_PASSWORD').catch((err) => console.error('[Email Error]', err.message));
+    console.log(`[Auth] Generated password reset OTP for ${email}`);
+    await sendOtpEmail(email, otpCode, 'RESET_PASSWORD');
 
     return sendJSON(res, 200, {
       success: true,
       message: `If an account exists, a 6-digit password reset code was sent to ${email}`,
       data: {
         email: email,
-        otp: otpCode,
       },
     });
   }
