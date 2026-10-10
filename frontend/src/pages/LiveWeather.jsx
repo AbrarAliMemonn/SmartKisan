@@ -61,41 +61,18 @@ export default function LiveWeather() {
       setCity(queryCity)
 
       const currentResponse = await weatherAPI.getCurrentWeather(queryCity)
-      const raw = currentResponse.data
-      let currentData = raw?.data || (raw?.temp ? raw : null)
-
-      if (!currentData && raw?.current) {
-        currentData = {
-          location: raw.location || queryCity,
-          temp: raw.current.tempC ?? raw.current.temp,
-          condition: raw.current.condition || 'Sunny',
-          humidity: raw.current.humidity || 60,
-          windSpeed: raw.current.windKph ?? raw.current.windSpeed ?? 14.5,
-          pressure: raw.current.pressure || 1013,
-          uvIndex: raw.current.uvIndex || 7,
-        }
-      }
-
-      if (currentData) {
-        setWeather(currentData)
+      if (currentResponse.data?.success && currentResponse.data.data) {
+        setWeather(currentResponse.data.data)
       } else {
-        setError('Weather data could not be loaded.')
+        setError('Weather data could not be loaded from backend.')
       }
 
-      const forecastResponse = await weatherAPI.getForecast(queryCity).catch(() => ({ data: null }))
-      let forecastData = []
-      if (forecastResponse?.data?.data) {
-        forecastData = forecastResponse.data.data
-      } else if (Array.isArray(forecastResponse?.data)) {
-        forecastData = forecastResponse.data
-      } else if (raw?.forecast && Array.isArray(raw.forecast)) {
-        forecastData = raw.forecast.map((f) => ({
-          day: f.day,
-          temp: f.tempC ?? f.temp,
-          condition: f.condition,
-        }))
+      const forecastResponse = await weatherAPI.getForecast(queryCity)
+      if (forecastResponse.data?.success && Array.isArray(forecastResponse.data.data)) {
+        setForecast(forecastResponse.data.data)
+      } else {
+        setForecast([])
       }
-      setForecast(forecastData)
     } catch (err) {
       console.error('Weather error:', err)
       if (err.response) {
