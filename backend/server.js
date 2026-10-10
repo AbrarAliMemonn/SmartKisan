@@ -498,6 +498,135 @@ const chatMessages = [
   },
 ];
 
+const sellerProfiles = [
+  {
+    id: 1,
+    userId: 1,
+    sellerName: 'Abrar Ali memon',
+    shopName: 'SmartKisan Agro Hub',
+    description: 'Premier certified seeds, organic fertilizers, and smart IoT farm technology provider in Sindh.',
+    storeLogoUrl: 'https://images.unsplash.com/photo-1595278069441-2cf29f8005a4?w=200',
+    phone: '+92 300 1234567',
+    email: 'abraralimemon23@gmail.com',
+    address: 'Near Agriculture Research Center, Tando Jam',
+    city: 'Hyderabad',
+    province: 'Sindh',
+    location: 'Hyderabad, Sindh, Pakistan',
+    sellerType: 'FARMER_SELLER',
+    status: 'APPROVED',
+    verified: true,
+    moderationReason: '',
+    rating: 4.9,
+    totalSales: 42,
+    joinedAsSellerOn: '2026-01-15',
+  },
+  {
+    id: 2,
+    userId: 2,
+    sellerName: 'System Administrator',
+    shopName: 'Official SmartKisan Direct',
+    description: 'Direct manufacturer and distributor of official SmartKisan sensors, soil probes, and controllers.',
+    storeLogoUrl: 'https://images.unsplash.com/photo-1542744094-3a31f272c490?w=200',
+    phone: '+92 300 9876543',
+    email: 'admin@smartagri.com',
+    address: 'Main Commercial Avenue, Shahrah-e-Faisal',
+    city: 'Karachi',
+    province: 'Sindh',
+    location: 'Karachi, Sindh, Pakistan',
+    sellerType: 'ENTERPRISE',
+    status: 'APPROVED',
+    verified: true,
+    moderationReason: '',
+    rating: 5.0,
+    totalSales: 110,
+    joinedAsSellerOn: '2026-01-01',
+  },
+];
+
+const orders = [
+  {
+    id: 101,
+    buyerId: 1,
+    sellerId: 2,
+    sellerShopName: 'Official SmartKisan Direct',
+    status: 'DELIVERED',
+    subtotal: 18500,
+    discountAmount: 0,
+    deliveryCharge: 350,
+    totalAmount: 18850,
+    couponCode: '',
+    deliveryAddress: 'Farm #14, National Highway, Tando Allahyar Road',
+    city: 'Hyderabad',
+    province: 'Sindh',
+    phone: '+92 300 1234567',
+    buyerName: 'Abrar Ali memon',
+    items: [
+      {
+        id: 1,
+        productId: 3,
+        productTitle: 'Automated Drip Irrigation Kit 1-Acre',
+        price: 18500,
+        quantity: 1,
+        unit: 'complete kit',
+        imageUrl: 'https://images.unsplash.com/photo-1563514227147-6d2ff665a6a0?w=600',
+      },
+    ],
+    orderDate: new Date(Date.now() - 4 * 86400000).toISOString(),
+    payment: {
+      id: 1,
+      paymentMethod: 'CASH_ON_DELIVERY',
+      paymentStatus: 'PAID',
+      amount: 18850,
+      paidAt: new Date(Date.now() - 3 * 86400000).toISOString(),
+    },
+  },
+  {
+    id: 102,
+    buyerId: 1,
+    sellerId: 1,
+    sellerShopName: 'SmartKisan Agro Hub',
+    status: 'PROCESSING',
+    subtotal: 9000,
+    discountAmount: 500,
+    deliveryCharge: 250,
+    totalAmount: 8750,
+    couponCode: 'WELCOME500',
+    deliveryAddress: 'House 45, Sector B, Latifabad',
+    city: 'Hyderabad',
+    province: 'Sindh',
+    phone: '+92 300 1234567',
+    buyerName: 'Abrar Ali memon',
+    items: [
+      {
+        id: 2,
+        productId: 1,
+        productTitle: 'Certified Wheat Seed - Akbar 2019',
+        price: 4500,
+        quantity: 2,
+        unit: '50kg bag',
+        imageUrl: 'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=600',
+      },
+    ],
+    orderDate: new Date(Date.now() - 1 * 86400000).toISOString(),
+    payment: {
+      id: 2,
+      paymentMethod: 'BANK_TRANSFER',
+      paymentStatus: 'VERIFIED',
+      amount: 8750,
+      paidAt: new Date().toISOString(),
+    },
+  },
+];
+
+const categories = [
+  { id: 1, name: 'SEEDS', displayName: 'Seeds & Saplings', icon: 'Sprout', count: 18 },
+  { id: 2, name: 'FERTILIZERS', displayName: 'Fertilizers & Soil Nutrients', icon: 'Layers', count: 24 },
+  { id: 3, name: 'IRRIGATION', displayName: 'Irrigation & Water Management', icon: 'Droplets', count: 12 },
+  { id: 4, name: 'MACHINERY', displayName: 'Tools & Farm Machinery', icon: 'Wrench', count: 9 },
+  { id: 5, name: 'PESTICIDES', displayName: 'Crop Protection & Pesticides', icon: 'Shield', count: 15 },
+  { id: 6, name: 'IOT_DEVICES', displayName: 'IoT Sensors & Hardware', icon: 'Cpu', count: 8 },
+];
+
 // Helper for CORS and JSON
 function sendJSON(res, status, data) {
   res.writeHead(status, {
@@ -1055,29 +1184,335 @@ const server = http.createServer(async (req, res) => {
   }
 
   // =========================================================
-  // 5. MARKETPLACE API  (/api/marketplace/**)
+  // 5. MARKETPLACE API  (/api/marketplace/** and /marketplace/**)
   // =========================================================
-  if (pathname === '/api/marketplace/products' && req.method === 'GET') {
-    return sendJSON(res, 200, { success: true, data: { content: products, totalElements: products.length } });
+
+  // Seller Profile: /api/marketplace/sellers/me
+  if ((pathname === '/api/marketplace/sellers/me' || pathname === '/marketplace/sellers/me') && req.method === 'GET') {
+    const currentUser = getUserFromReq(req);
+    let profile = sellerProfiles.find((s) => s.userId === currentUser.id);
+    if (!profile) {
+      profile = {
+        id: sellerProfiles.length + 1,
+        userId: currentUser.id,
+        sellerName: currentUser.name || 'Smart Farmer',
+        shopName: `${currentUser.name || 'Farmer'}'s Store`,
+        description: 'Certified seeds, fresh produce, and smart agricultural essentials.',
+        storeLogoUrl: currentUser.avatarImage || 'https://images.unsplash.com/photo-1595278069441-2cf29f8005a4?w=200',
+        phone: currentUser.phone || '+92 300 1234567',
+        email: currentUser.email,
+        address: currentUser.location || 'Hyderabad, Sindh, Pakistan',
+        city: 'Hyderabad',
+        province: 'Sindh',
+        location: currentUser.location || 'Hyderabad, Sindh, Pakistan',
+        sellerType: 'FARMER_SELLER',
+        status: 'APPROVED',
+        verified: true,
+        moderationReason: '',
+        rating: 4.9,
+        totalSales: 18,
+        joinedAsSellerOn: new Date().toISOString().split('T')[0],
+      };
+      sellerProfiles.push(profile);
+    }
+    return sendJSON(res, 200, { success: true, data: profile });
   }
 
-  if (pathname.startsWith('/api/marketplace/products/') && pathname.endsWith('/reviews') && req.method === 'GET') {
+  // Seller Analytics: /api/marketplace/sellers/me/analytics
+  if ((pathname === '/api/marketplace/sellers/me/analytics' || pathname === '/marketplace/sellers/me/analytics') && req.method === 'GET') {
+    const currentUser = getUserFromReq(req);
+    const sellerProds = products.filter((p) => p.sellerId === currentUser.id);
+    return sendJSON(res, 200, {
+      success: true,
+      data: {
+        totalRevenue: 125400,
+        totalOrders: 32,
+        pendingOrders: 2,
+        completedOrders: 30,
+        activeListings: sellerProds.length || 3,
+        averageRating: 4.88,
+      },
+    });
+  }
+
+  // Become / Register Seller: /api/marketplace/sellers/register
+  if ((pathname === '/api/marketplace/sellers/register' || pathname === '/marketplace/sellers/register') && req.method === 'POST') {
+    const currentUser = getUserFromReq(req);
+    const body = await parseBody(req);
+    let profile = sellerProfiles.find((s) => s.userId === currentUser.id);
+    if (!profile) {
+      profile = {
+        id: sellerProfiles.length + 1,
+        userId: currentUser.id,
+        sellerName: currentUser.name,
+        shopName: body.shopName || `${currentUser.name}'s Farm Shop`,
+        description: body.description || 'Quality agricultural products from local farmer.',
+        storeLogoUrl: body.storeLogoUrl || currentUser.avatarImage || 'https://images.unsplash.com/photo-1595278069441-2cf29f8005a4?w=200',
+        phone: body.phone || currentUser.phone || '+92 300 1234567',
+        email: currentUser.email,
+        address: body.address || currentUser.location || 'Hyderabad, Sindh, Pakistan',
+        city: body.city || 'Hyderabad',
+        province: body.province || 'Sindh',
+        location: `${body.city || 'Hyderabad'}, ${body.province || 'Sindh'}, Pakistan`,
+        sellerType: body.sellerType || 'FARMER_SELLER',
+        status: 'APPROVED',
+        verified: true,
+        rating: 5.0,
+        totalSales: 0,
+        joinedAsSellerOn: new Date().toISOString().split('T')[0],
+      };
+      sellerProfiles.push(profile);
+    } else {
+      profile.shopName = body.shopName || profile.shopName;
+      profile.description = body.description || profile.description;
+      profile.status = 'APPROVED';
+    }
+    currentUser.isSeller = true;
+    return sendJSON(res, 201, {
+      success: true,
+      message: 'Seller application approved successfully',
+      data: profile,
+    });
+  }
+
+  // Single Seller Profile: /api/marketplace/sellers/:id
+  if ((pathname.startsWith('/api/marketplace/sellers/') || pathname.startsWith('/marketplace/sellers/')) && req.method === 'GET') {
+    const idStr = pathname.split('/').pop();
+    const sId = +idStr;
+    const seller = sellerProfiles.find((s) => s.id === sId || s.userId === sId) || sellerProfiles[0];
+    return sendJSON(res, 200, { success: true, data: seller });
+  }
+
+  // Buyer Orders: /api/marketplace/orders/my-orders
+  if ((pathname === '/api/marketplace/orders/my-orders' || pathname === '/marketplace/orders/my-orders') && req.method === 'GET') {
+    const currentUser = getUserFromReq(req);
+    const userOrders = orders.filter((o) => o.buyerId === currentUser.id);
+    return sendJSON(res, 200, { success: true, data: userOrders.length ? userOrders : orders });
+  }
+
+  // Seller Orders: /api/marketplace/orders/seller-orders
+  if ((pathname === '/api/marketplace/orders/seller-orders' || pathname === '/marketplace/orders/seller-orders') && req.method === 'GET') {
+    const currentUser = getUserFromReq(req);
+    const sellerOrds = orders.filter((o) => o.sellerId === currentUser.id);
+    return sendJSON(res, 200, { success: true, data: sellerOrds.length ? sellerOrds : orders });
+  }
+
+  // Place Order: /api/marketplace/orders (POST)
+  if ((pathname === '/api/marketplace/orders' || pathname === '/marketplace/orders') && req.method === 'POST') {
+    const currentUser = getUserFromReq(req);
+    const body = await parseBody(req);
+    const newOrder = {
+      id: orders.length + 101,
+      buyerId: currentUser.id,
+      sellerId: body.sellerId || 1,
+      sellerShopName: body.sellerShopName || 'SmartKisan Agro Hub',
+      status: 'PENDING',
+      subtotal: body.subtotal || body.totalAmount || 5000,
+      discountAmount: body.discountAmount || 0,
+      deliveryCharge: body.deliveryCharge || 250,
+      totalAmount: body.totalAmount || 5250,
+      couponCode: body.couponCode || '',
+      deliveryAddress: body.deliveryAddress || currentUser.location || 'Hyderabad, Sindh, Pakistan',
+      city: body.city || 'Hyderabad',
+      province: body.province || 'Sindh',
+      phone: body.phone || currentUser.phone || '+92 300 1234567',
+      buyerName: currentUser.name || 'Valued Farmer',
+      items: body.items && body.items.length ? body.items : [
+        {
+          id: 1,
+          productId: 1,
+          productTitle: 'Certified Wheat Seed - Akbar 2019',
+          price: 4500,
+          quantity: 1,
+          unit: '50kg bag',
+          imageUrl: 'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=600',
+        }
+      ],
+      orderDate: new Date().toISOString(),
+      payment: {
+        id: orders.length + 1,
+        paymentMethod: body.paymentMethod || 'CASH_ON_DELIVERY',
+        paymentStatus: body.paymentMethod === 'CASH_ON_DELIVERY' ? 'PENDING' : 'PAID',
+        amount: body.totalAmount || 5250,
+        paidAt: new Date().toISOString(),
+      },
+    };
+    orders.unshift(newOrder);
+    return sendJSON(res, 201, { success: true, message: 'Order placed successfully', data: newOrder });
+  }
+
+  // Order Details: /api/marketplace/orders/:id (GET)
+  if ((pathname.startsWith('/api/marketplace/orders/') || pathname.startsWith('/marketplace/orders/')) && !pathname.endsWith('/status') && req.method === 'GET') {
+    const oId = +pathname.split('/').pop();
+    const order = orders.find((o) => o.id === oId) || orders[0];
+    return sendJSON(res, 200, { success: true, data: order });
+  }
+
+  // Update Order Status: /api/marketplace/orders/:id/status (PATCH / PUT)
+  if ((pathname.includes('/marketplace/orders/') && pathname.endsWith('/status')) && (req.method === 'PATCH' || req.method === 'PUT')) {
+    const parts = pathname.split('/');
+    const oId = +parts[parts.length - 2];
+    const body = await parseBody(req);
+    const order = orders.find((o) => o.id === oId);
+    if (order && body.status) {
+      order.status = body.status;
+    }
+    return sendJSON(res, 200, { success: true, message: 'Order status updated', data: order || orders[0] });
+  }
+
+  // Categories: /api/marketplace/categories
+  if ((pathname === '/api/marketplace/categories' || pathname === '/marketplace/categories') && req.method === 'GET') {
+    return sendJSON(res, 200, { success: true, data: categories });
+  }
+
+  // Seller listings: /api/marketplace/products/my-listings
+  if ((pathname === '/api/marketplace/products/my-listings' || pathname === '/marketplace/products/my-listings') && req.method === 'GET') {
+    const currentUser = getUserFromReq(req);
+    const myListings = products.filter((p) => p.sellerId === currentUser.id);
+    return sendJSON(res, 200, { success: true, data: myListings.length ? myListings : products });
+  }
+
+  // All Products List: /api/marketplace/products (GET)
+  if ((pathname === '/api/marketplace/products' || pathname === '/marketplace/products') && req.method === 'GET') {
+    const cat = parsedUrl.query.category;
+    let filtered = products;
+    if (cat) {
+      filtered = products.filter((p) => p.category && p.category.toLowerCase() === cat.toLowerCase());
+    }
+    return sendJSON(res, 200, { success: true, data: { content: filtered.length ? filtered : products, totalElements: products.length } });
+  }
+
+  // Create Product: /api/marketplace/products (POST)
+  if ((pathname === '/api/marketplace/products' || pathname === '/marketplace/products') && req.method === 'POST') {
+    const currentUser = getUserFromReq(req);
+    const body = await parseBody(req);
+    const newProduct = {
+      id: products.length + 1,
+      title: body.title || 'Organic Farm Product',
+      description: body.description || 'Harvested fresh with IoT soil monitoring.',
+      price: +body.price || 1500,
+      unit: body.unit || 'kg',
+      category: body.category || 'SEEDS',
+      sellerId: currentUser.id,
+      sellerName: currentUser.name || 'Smart Farmer',
+      sellerLocation: currentUser.location || 'Hyderabad, Sindh',
+      sellerVerified: true,
+      rating: 5.0,
+      reviewsCount: 0,
+      stock: +body.stock || 50,
+      condition: body.condition || 'NEW',
+      images: body.images && body.images.length ? body.images : ['https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=600'],
+      isNegotiable: Boolean(body.isNegotiable),
+      createdAt: new Date().toISOString(),
+    };
+    products.unshift(newProduct);
+    return sendJSON(res, 201, { success: true, message: 'Product submitted successfully', data: newProduct });
+  }
+
+  // Update Product: /api/marketplace/products/:id (PUT / POST)
+  if ((pathname.startsWith('/api/marketplace/products/') || pathname.startsWith('/marketplace/products/')) && !pathname.endsWith('/reviews') && (req.method === 'PUT' || req.method === 'POST')) {
+    const pId = +pathname.split('/').pop();
+    const body = await parseBody(req);
+    const prod = products.find((p) => p.id === pId);
+    if (prod) {
+      Object.assign(prod, body);
+      return sendJSON(res, 200, { success: true, message: 'Product updated', data: prod });
+    }
+    return sendJSON(res, 404, { success: false, message: 'Product not found' });
+  }
+
+  // Delete Product: /api/marketplace/products/:id (DELETE)
+  if ((pathname.startsWith('/api/marketplace/products/') || pathname.startsWith('/marketplace/products/')) && req.method === 'DELETE') {
+    const pId = +pathname.split('/').pop();
+    const idx = products.findIndex((p) => p.id === pId);
+    if (idx !== -1) products.splice(idx, 1);
+    return sendJSON(res, 200, { success: true, message: 'Product removed' });
+  }
+
+  // Product Reviews: /api/marketplace/products/:id/reviews (GET)
+  if ((pathname.startsWith('/api/marketplace/products/') || pathname.startsWith('/marketplace/products/')) && pathname.endsWith('/reviews') && req.method === 'GET') {
     const parts = pathname.split('/');
     const prodId = parts[parts.length - 2];
     const prodReviews = reviews[prodId] || reviews[1];
     return sendJSON(res, 200, { success: true, data: prodReviews });
   }
 
-  if (pathname.startsWith('/api/marketplace/products/') && req.method === 'GET') {
-    const prodId = +pathname.split('/').pop();
-    const product = products.find((p) => p.id === prodId) || products[0];
-    return sendJSON(res, 200, { success: true, data: product });
+  // Add Product Review: /api/marketplace/products/:id/reviews (POST)
+  if ((pathname.startsWith('/api/marketplace/products/') || pathname.startsWith('/marketplace/products/')) && pathname.endsWith('/reviews') && req.method === 'POST') {
+    const parts = pathname.split('/');
+    const prodId = parts[parts.length - 2];
+    const body = await parseBody(req);
+    const currentUser = getUserFromReq(req);
+    const newRev = {
+      id: Date.now(),
+      reviewerName: currentUser.name,
+      rating: body.rating || 5,
+      date: new Date().toISOString().split('T')[0],
+      verified: true,
+      comment: body.comment || 'Great quality product!',
+    };
+    if (!reviews[prodId]) reviews[prodId] = [];
+    reviews[prodId].unshift(newRev);
+    return sendJSON(res, 201, { success: true, message: 'Review added', data: newRev });
   }
 
+  // Coupons: /api/marketplace/coupons
+  if ((pathname === '/api/marketplace/coupons' || pathname === '/marketplace/coupons') && req.method === 'GET') {
+    return sendJSON(res, 200, {
+      success: true,
+      data: [
+        { id: 1, code: 'WELCOME500', discountAmount: 500, minOrderAmount: 3000, validUntil: '2026-12-31' },
+        { id: 2, code: 'KISAN10', discountPercent: 10, minOrderAmount: 2000, validUntil: '2026-12-31' }
+      ]
+    });
+  }
+
+  // Cart: /api/marketplace/cart
+  if ((pathname === '/api/marketplace/cart' || pathname === '/marketplace/cart') && req.method === 'GET') {
+    return sendJSON(res, 200, { success: true, data: { items: [], subtotal: 0, total: 0 } });
+  }
+
+  // Cart items: /api/marketplace/cart/items
+  if ((pathname === '/api/marketplace/cart/items' || pathname === '/marketplace/cart/items') && req.method === 'POST') {
+    const body = await parseBody(req);
+    return sendJSON(res, 200, { success: true, message: 'Item added to cart', data: body });
+  }
+
+  // Payments: /api/marketplace/payments/my-payments
+  if ((pathname === '/api/marketplace/payments/my-payments' || pathname === '/marketplace/payments/my-payments') && req.method === 'GET') {
+    const myPayments = orders.map((o) => o.payment).filter(Boolean);
+    return sendJSON(res, 200, { success: true, data: myPayments });
+  }
+
+  // Payments: /api/marketplace/payments/order/:orderId
+  if ((pathname.startsWith('/api/marketplace/payments/order/') || pathname.startsWith('/marketplace/payments/order/')) && req.method === 'GET') {
+    const ordId = +pathname.split('/').pop();
+    const foundOrder = orders.find((o) => o.id === ordId) || orders[0];
+    return sendJSON(res, 200, { success: true, data: foundOrder.payment });
+  }
+
+  // Payments: /api/marketplace/payments/seller-pending
+  if ((pathname === '/api/marketplace/payments/seller-pending' || pathname === '/marketplace/payments/seller-pending') && req.method === 'GET') {
+    return sendJSON(res, 200, { success: true, data: [] });
+  }
+
+  // Media upload fallback: /api/marketplace/media/upload
+  if ((pathname === '/api/marketplace/media/upload' || pathname === '/marketplace/media/upload') && req.method === 'POST') {
+    return sendJSON(res, 200, {
+      success: true,
+      data: {
+        url: 'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=600',
+        filename: 'product_image.jpg',
+      },
+    });
+  }
+
+  // Chat history: /api/marketplace/chat/history
   if (pathname === '/api/marketplace/chat/history' && req.method === 'GET') {
     return sendJSON(res, 200, { success: true, data: chatMessages });
   }
 
+  // Chat send: /api/marketplace/chat/send
   if (pathname === '/api/marketplace/chat/send' && req.method === 'POST') {
     const body = await parseBody(req);
     const newMsg = {
