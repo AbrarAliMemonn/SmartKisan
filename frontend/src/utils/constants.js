@@ -1,5 +1,5 @@
-export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api'
-export const WS_URL = import.meta.env.VITE_WS_URL || 'http://localhost:9099'
+export const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://smartkisan-bbjf.onrender.com/api'
+export const WS_URL = import.meta.env.VITE_WS_URL || 'https://smartkisan-bbjf.onrender.com'
 
 // Root of the backend (without the /api prefix) — Spring Security's OAuth2
 // endpoints (/oauth2/authorization/**) live outside the /api namespace.
