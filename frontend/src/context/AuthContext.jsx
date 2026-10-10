@@ -107,16 +107,70 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true)
 
   // Admin-only cache
-  const [users, setUsers] = useState([])
+  const CACHED_USERS_KEY = 'smartkisan_registered_users'
+  const getCachedAvatarKey = (email) =>
+    'smartkisan_custom_avatar_' + String(email || '').toLowerCase().trim()
+
+  const isPlaceholderAvatar = (url) => {
+    if (!url || typeof url !== 'string') return true
+    const s = url.toLowerCase()
+    return (
+      s.includes('images.unsplash.com') ||
+      s.includes('photo-1534528741775') ||
+      s.includes('photo-1507003211169')
+    )
+  }
+
+  const cacheUserLocally = (newUser) => {
+    if (!newUser || !newUser.email) return
+    try {
+      const raw = localStorage.getItem(CACHED_USERS_KEY)
+      const list = raw ? JSON.parse(raw) : []
+      const idx = list.findIndex(
+        (u) => (u.email || '').toLowerCase() === (newUser.email || '').toLowerCase()
+      )
+      if (idx !== -1) {
+        list[idx] = { ...list[idx], ...newUser }
+      } else {
+        list.push({
+          id: list.length + 10,
+          createdAt: new Date().toISOString(),
+          ...newUser,
+        })
+      }
+      localStorage.setItem(CACHED_USERS_KEY, JSON.stringify(list))
+    } catch (e) {}
+  }
 
   // =========================================================
   // PERSIST USER
   // =========================================================
 
   const persistUser = useCallback((userData) => {
-    setUser(userData)
+    if (!userData) return
 
-    localStorage.setItem('user', JSON.stringify(userData))
+    const emailKey = getCachedAvatarKey(userData.email)
+    let cachedAvatar = null
+    try {
+      cachedAvatar = localStorage.getItem(emailKey)
+    } catch (e) {}
+
+    let finalData = { ...userData }
+    const incomingAvatar = userData.avatarImage || userData.avatar
+
+    if (incomingAvatar && !isPlaceholderAvatar(incomingAvatar)) {
+      try {
+        localStorage.setItem(emailKey, incomingAvatar)
+      } catch (e) {}
+      finalData.avatar = incomingAvatar
+      finalData.avatarImage = incomingAvatar
+    } else if (cachedAvatar) {
+      finalData.avatar = cachedAvatar
+      finalData.avatarImage = cachedAvatar
+    }
+
+    setUser(finalData)
+    localStorage.setItem('user', JSON.stringify(finalData))
   }, [])
 
   // =========================================================
@@ -202,8 +256,24 @@ export const AuthProvider = ({ children }) => {
         throw new Error('Empty profile response')
       }
 
+      const emailKey = getCachedAvatarKey(userData.email)
+      let cachedAvatar = null
+      try {
+        cachedAvatar = localStorage.getItem(emailKey)
+      } catch (e) {}
+
+      const incomingAvatar = userData.avatarImage || userData.avatar
+      let userToRestore = { ...userData }
+
+      if (cachedAvatar && isPlaceholderAvatar(incomingAvatar)) {
+        userToRestore.avatar = cachedAvatar
+        userToRestore.avatarImage = cachedAvatar
+        // Quietly update server in background so server's database is restored
+        userAPI.updateProfile({ avatarImage: cachedAvatar, avatar: cachedAvatar }).catch(() => {})
+      }
+
       // First save auth-service user
-      persistUser(userData)
+      persistUser(userToRestore)
 
       setIsAuthenticated(true)
 
@@ -439,13 +509,24 @@ const login = async (email, password, options = {}) => {
   // OTP first (see verifyEmail below).
   // =========================================================
 
-  const register = (userData, options) =>
-    runAuthAction(
+  const register = (userData, options) => {
+    cacheUserLocally({
+      name: userData.name,
+      email: userData.email,
+      phone: userData.phone,
+      location: userData.location,
+      role: userData.role || 'USER',
+      userType: userData.userType || 'FARMER',
+      farmSize: userData.farmSize,
+      emailVerified: false,
+    })
+    return runAuthAction(
       () => authAPI.register(userData),
       'Registration successful. Please verify your email.',
       'Registration failed',
       options
     )
+  }
 
   // =========================================================
   // VERIFY EMAIL OTP  (step 2: confirms OTP and logs the user in)
@@ -462,6 +543,9 @@ const login = async (email, password, options = {}) => {
       }
 
       const finalUser = await establishSession(authData)
+      if (finalUser) {
+        cacheUserLocally({ ...finalUser, emailVerified: true })
+      }
 
       toast.success(
         `Email verified${finalUser?.name ? `. Welcome, ${finalUser.name}` : ''}!`
@@ -670,17 +754,64 @@ const login = async (email, password, options = {}) => {
   const fetchUsers = useCallback(async () => {
     try {
       const response = await adminAPI.getAllUsers()
+      const serverUsers = Array.isArray(response.data?.data) ? response.data.data : []
 
-      setUsers(response.data?.data || [])
+      let localUsers = []
+      try {
+        const raw = localStorage.getItem(CACHED_USERS_KEY)
+        localUsers = raw ? JSON.parse(raw) : []
+      } catch (e) {}
+
+      const userMap = new Map()
+      serverUsers.forEach((u) => {
+        if (u?.email) userMap.set(u.email.toLowerCase(), u)
+      })
+
+      const missingOnServer = []
+
+      localUsers.forEach((lu) => {
+        if (!lu?.email) return
+        const key = lu.email.toLowerCase()
+        if (!userMap.has(key)) {
+          userMap.set(key, lu)
+          missingOnServer.push(lu)
+        } else {
+          const su = userMap.get(key)
+          const customAv = localStorage.getItem(getCachedAvatarKey(key))
+          if (customAv && isPlaceholderAvatar(su.avatar)) {
+            su.avatar = customAv
+            su.avatarImage = customAv
+          }
+        }
+      })
+
+      const mergedList = Array.from(userMap.values())
+      setUsers(mergedList)
+      try {
+        localStorage.setItem(CACHED_USERS_KEY, JSON.stringify(mergedList))
+      } catch (e) {}
+
+      // If any registered users were in local cache but not in backend database, sync them!
+      if (missingOnServer.length > 0 && adminAPI.syncUsers) {
+        adminAPI.syncUsers(missingOnServer).catch(() => {})
+      }
 
       return {
         success: true,
+        data: mergedList,
       }
     } catch (error) {
       console.error('Fetch users error:', error)
-
-      toast.error(getErrorMessage(error, 'Could not load users'))
-
+      let localUsers = []
+      try {
+        const raw = localStorage.getItem(CACHED_USERS_KEY)
+        localUsers = raw ? JSON.parse(raw) : []
+      } catch (e) {}
+      if (localUsers.length > 0) {
+        setUsers(localUsers)
+      } else {
+        toast.error(getErrorMessage(error, 'Could not load users'))
+      }
       return {
         success: false,
       }
@@ -700,6 +831,7 @@ const login = async (email, password, options = {}) => {
       }
 
       setUsers((prev) => [...prev, newUser])
+      cacheUserLocally(newUser)
 
       toast.success(response.data?.message || 'User created successfully')
 
@@ -736,6 +868,7 @@ const login = async (email, password, options = {}) => {
       }
 
       setUsers((prev) => prev.map((u) => (u.id === id ? updatedUser : u)))
+      cacheUserLocally(updatedUser)
 
       if (user?.id === id) {
         persistUser(updatedUser)
@@ -770,6 +903,13 @@ const login = async (email, password, options = {}) => {
       const response = await adminAPI.deleteUser(id)
 
       setUsers((prev) => prev.filter((u) => u.id !== id))
+      try {
+        const raw = localStorage.getItem(CACHED_USERS_KEY)
+        if (raw) {
+          const list = JSON.parse(raw).filter((u) => u.id !== id)
+          localStorage.setItem(CACHED_USERS_KEY, JSON.stringify(list))
+        }
+      } catch (e) {}
 
       toast.success(response.data?.message || 'User deleted successfully')
 
@@ -800,6 +940,14 @@ const login = async (email, password, options = {}) => {
     setLoading(true)
 
     try {
+      const av = updatedData.avatarImage || updatedData.avatar
+      if (av && !isPlaceholderAvatar(av)) {
+        const emailKey = getCachedAvatarKey(user?.email || updatedData.email)
+        try {
+          localStorage.setItem(emailKey, av)
+        } catch (e) {}
+      }
+
       const response = await userAPI.updateProfile(updatedData)
 
       const updatedUser = response.data?.data
@@ -808,7 +956,13 @@ const login = async (email, password, options = {}) => {
         throw new Error('Invalid profile response from server')
       }
 
+      if (av && !isPlaceholderAvatar(av)) {
+        updatedUser.avatar = av
+        updatedUser.avatarImage = av
+      }
+
       persistUser(updatedUser)
+      cacheUserLocally(updatedUser)
 
       toast.success(response.data?.message || 'Profile updated successfully')
 
@@ -880,7 +1034,15 @@ const login = async (email, password, options = {}) => {
       const updatedUser = response.data?.data
 
       if (updatedUser) {
+        const av = updatedUser.avatar || updatedUser.avatarImage
+        if (av && !isPlaceholderAvatar(av)) {
+          const emailKey = getCachedAvatarKey(user?.email || updatedUser.email)
+          try {
+            localStorage.setItem(emailKey, av)
+          } catch (e) {}
+        }
         persistUser(updatedUser)
+        cacheUserLocally(updatedUser)
       }
 
       toast.success(response.data?.message || 'Avatar updated successfully')

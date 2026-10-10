@@ -8,6 +8,8 @@ const http = require('http');
 const https = require('https');
 const url = require('url');
 const crypto = require('crypto');
+const fs = require('fs');
+const path = require('path');
 
 const PORT = process.env.PORT || 8080;
 
@@ -360,12 +362,31 @@ setInterval(() => {
   }
 }, 3000);
 
-// ---------------- In-Memory Store for Cloud Fallback ----------------
-const users = [
+// ---------------- Persistent File Database Storage ----------------
+const DB_FILE = path.join(__dirname, 'data', 'database.json');
+
+function loadPersistentData() {
+  try {
+    if (fs.existsSync(DB_FILE)) {
+      const raw = fs.readFileSync(DB_FILE, 'utf8');
+      const data = JSON.parse(raw);
+      console.log(`[Database] Loaded persistent data from ${DB_FILE} (${data.users?.length || 0} users)`);
+      return data;
+    }
+  } catch (err) {
+    console.error('[Database] Failed to read database.json, using fallback seeds:', err.message);
+  }
+  return null;
+}
+
+const dbData = loadPersistentData();
+
+let users = (dbData && Array.isArray(dbData.users) && dbData.users.length) ? dbData.users : [
   {
     id: 1,
     name: 'Abrar Ali memon',
     email: 'abraralimemon23@gmail.com',
+    password: 'password123',
     role: 'ADMIN',
     userType: 'ADMIN',
     isSeller: true,
@@ -381,6 +402,7 @@ const users = [
     id: 2,
     name: 'System Administrator',
     email: 'admin@smartagri.com',
+    password: 'adminpassword123',
     role: 'ADMIN',
     userType: 'ADMIN',
     isSeller: true,
@@ -390,6 +412,54 @@ const users = [
     avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
     avatarImage: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
     farmSize: '50 Acres',
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 3,
+    name: 'Muhammad Tariq',
+    email: 'tariq.seeds@gmail.com',
+    password: 'password123',
+    role: 'USER',
+    userType: 'FARMER',
+    isSeller: true,
+    emailVerified: true,
+    phone: '+92 301 7766554',
+    location: 'Badin, Sindh, Pakistan',
+    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150',
+    avatarImage: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150',
+    farmSize: '15 Acres',
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 4,
+    name: 'Rasheed Ahmed',
+    email: 'rasheed.farmer@gmail.com',
+    password: 'password123',
+    role: 'USER',
+    userType: 'FARMER',
+    isSeller: false,
+    emailVerified: true,
+    phone: '+92 302 1122334',
+    location: 'Mirpurkhas, Sindh, Pakistan',
+    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150',
+    avatarImage: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150',
+    farmSize: '10 Acres',
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 5,
+    name: 'Ghulam Mustafa',
+    email: 'mustafa.agro@gmail.com',
+    password: 'password123',
+    role: 'USER',
+    userType: 'FARMER',
+    isSeller: false,
+    emailVerified: true,
+    phone: '+92 303 5544332',
+    location: 'Tando Allahyar, Sindh, Pakistan',
+    avatar: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150',
+    avatarImage: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150',
+    farmSize: '30 Acres',
     createdAt: new Date().toISOString(),
   },
 ];
@@ -407,7 +477,7 @@ function getUserFromReq(req) {
   return users[0];
 }
 
-const products = [
+let products = (dbData && Array.isArray(dbData.products)) ? dbData.products : [
   {
     id: 1,
     title: 'Certified Wheat Seed - Akbar 2019',
@@ -464,7 +534,7 @@ const products = [
   },
 ];
 
-const reviews = {
+let reviews = (dbData && dbData.reviews) ? dbData.reviews : {
   1: [
     {
       id: 101,
@@ -485,7 +555,7 @@ const reviews = {
   ],
 };
 
-const chatMessages = [
+let chatMessages = (dbData && Array.isArray(dbData.chatMessages)) ? dbData.chatMessages : [
   {
     id: 1,
     senderId: 2,
@@ -498,7 +568,7 @@ const chatMessages = [
   },
 ];
 
-const sellerProfiles = [
+let sellerProfiles = (dbData && Array.isArray(dbData.sellerProfiles)) ? dbData.sellerProfiles : [
   {
     id: 1,
     userId: 1,
@@ -543,7 +613,7 @@ const sellerProfiles = [
   },
 ];
 
-const orders = [
+let orders = (dbData && Array.isArray(dbData.orders)) ? dbData.orders : [
   {
     id: 101,
     buyerId: 1,
@@ -627,10 +697,10 @@ const categories = [
   { id: 6, name: 'IOT_DEVICES', displayName: 'IoT Sensors & Hardware', icon: 'Cpu', count: 8 },
 ];
 
-const pendingSellers = [
+let pendingSellers = (dbData && Array.isArray(dbData.pendingSellers)) ? dbData.pendingSellers : [
   {
     id: 10,
-    userId: 5,
+    userId: 3,
     sellerName: 'Muhammad Tariq',
     shopName: 'Tariq Organic Seeds & Nursery',
     description: 'Certified organic vegetable seedlings, grafted fruit saplings, and high-purity fodder seeds.',
@@ -651,7 +721,7 @@ const pendingSellers = [
   },
 ];
 
-const pendingProducts = [
+let pendingProducts = (dbData && Array.isArray(dbData.pendingProducts)) ? dbData.pendingProducts : [
   {
     id: 201,
     title: 'NPK 20-20-20 Water Soluble Bio-Fertilizer',
@@ -675,7 +745,7 @@ const pendingProducts = [
   },
 ];
 
-const pendingPayments = [
+let pendingPayments = (dbData && Array.isArray(dbData.pendingPayments)) ? dbData.pendingPayments : [
   {
     id: 301,
     orderId: 102,
@@ -688,6 +758,7 @@ const pendingPayments = [
     paidAmount: 8750,
     expectedAmount: 8750,
     totalAmount: 8750,
+    orderTotal: 8750,
     paymentMethod: 'BANK_TRANSFER',
     status: 'PENDING_VERIFICATION',
     paymentStatus: 'PENDING_VERIFICATION',
@@ -702,7 +773,7 @@ const pendingPayments = [
   },
 ];
 
-const paymentAccounts = [
+let paymentAccounts = (dbData && Array.isArray(dbData.paymentAccounts)) ? dbData.paymentAccounts : [
   {
     id: 1,
     userId: 1,
@@ -728,6 +799,38 @@ const paymentAccounts = [
     instructions: 'Send amount to mobile wallet and upload screenshot proof.',
   },
 ];
+
+function saveDb() {
+  try {
+    const dir = path.dirname(DB_FILE);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(
+      DB_FILE,
+      JSON.stringify(
+        {
+          users,
+          products,
+          orders,
+          sellerProfiles,
+          pendingSellers,
+          pendingProducts,
+          pendingPayments,
+          paymentAccounts,
+          reviews,
+          chatMessages,
+        },
+        null,
+        2
+      ),
+      'utf8'
+    );
+  } catch (e) {
+    console.error('[Database] Failed to write database.json:', e.message);
+  }
+}
+
+// Initial ensure save
+saveDb();
 
 const iotAlerts = [
   {
@@ -784,13 +887,83 @@ function sendJSON(res, status, data) {
   res.end(JSON.stringify(data));
 }
 
+function parseMultipartBuffer(buffer, boundary) {
+  const boundaryStr = '--' + boundary;
+  const parts = [];
+  const str = buffer.toString('binary');
+  const boundaryIndices = [];
+  let idx = str.indexOf(boundaryStr);
+  while (idx !== -1) {
+    boundaryIndices.push(idx);
+    idx = str.indexOf(boundaryStr, idx + boundaryStr.length);
+  }
+  for (let i = 0; i < boundaryIndices.length - 1; i++) {
+    const start = boundaryIndices[i] + boundaryStr.length + 2; // skip \r\n
+    const end = boundaryIndices[i + 1] - 2; // skip \r\n before next boundary
+    if (start < end) {
+      const partBinary = str.substring(start, end);
+      const headerEnd = partBinary.indexOf('\r\n\r\n');
+      if (headerEnd !== -1) {
+        const headerStr = partBinary.substring(0, headerEnd);
+        const bodyBinary = partBinary.substring(headerEnd + 4);
+
+        let filename = null;
+        let name = null;
+        let contentType = 'application/octet-stream';
+
+        const dispMatch = headerStr.match(/Content-Disposition:[^\r\n]*/i);
+        if (dispMatch) {
+          const nameMatch = dispMatch[0].match(/name="([^"]+)"/i);
+          if (nameMatch) name = nameMatch[1];
+          const fileMatch = dispMatch[0].match(/filename="([^"]+)"/i);
+          if (fileMatch) filename = fileMatch[1];
+        }
+        const typeMatch = headerStr.match(/Content-Type:\s*([^\r\n]+)/i);
+        if (typeMatch) contentType = typeMatch[1].trim();
+
+        const bodyBuf = Buffer.from(bodyBinary, 'binary');
+        parts.push({ name, filename, contentType, data: bodyBuf });
+      }
+    }
+  }
+  return parts;
+}
+
 function parseBody(req) {
   return new Promise((resolve) => {
-    let body = '';
-    req.on('data', (chunk) => (body += chunk));
+    const chunks = [];
+    req.on('data', (chunk) => chunks.push(chunk));
     req.on('end', () => {
+      const fullBuffer = Buffer.concat(chunks);
+      const contentType = req.headers['content-type'] || '';
+
+      if (contentType.includes('multipart/form-data')) {
+        const boundaryMatch = contentType.match(/boundary=(?:["']?)([^"';\s]+)/i);
+        if (boundaryMatch) {
+          const boundary = boundaryMatch[1];
+          const parts = parseMultipartBuffer(fullBuffer, boundary);
+          const result = {};
+          for (const p of parts) {
+            if (p.filename) {
+              const mime = p.contentType || 'image/jpeg';
+              const b64 = p.data.toString('base64');
+              const dataUrl = `data:${mime};base64,${b64}`;
+              result[p.name || 'file'] = dataUrl;
+              result.fileUrl = dataUrl;
+              result.url = dataUrl;
+              result.avatar = dataUrl;
+              result.avatarImage = dataUrl;
+            } else {
+              result[p.name] = p.data.toString('utf8');
+            }
+          }
+          return resolve(result);
+        }
+      }
+
+      const bodyStr = fullBuffer.toString('utf8');
       try {
-        resolve(body ? JSON.parse(body) : {});
+        resolve(bodyStr ? JSON.parse(bodyStr) : {});
       } catch (e) {
         resolve({});
       }
@@ -825,9 +998,9 @@ const server = http.createServer(async (req, res) => {
   }
 
   // =========================================================
-  // 1. AUTH API  (/api/auth/**)
+  // 1. AUTH API  (/api/auth/** and /auth/**)
   // =========================================================
-  if (pathname === '/api/auth/login' && req.method === 'POST') {
+  if ((pathname === '/api/auth/login' || pathname === '/auth/login') && req.method === 'POST') {
     const body = await parseBody(req);
     const email = (body.email || '').toLowerCase().trim();
     
@@ -845,6 +1018,7 @@ const server = http.createServer(async (req, res) => {
         location: 'Hyderabad, Sindh, Pakistan',
       };
       users.push(user);
+      saveDb();
     }
 
     if (user.emailVerified === false) {
@@ -879,19 +1053,19 @@ const server = http.createServer(async (req, res) => {
     });
   }
 
-  if (pathname === '/api/auth/profile' && req.method === 'GET') {
+  if ((pathname === '/api/auth/profile' || pathname === '/auth/profile') && req.method === 'GET') {
     const currentUser = getUserFromReq(req);
     return sendJSON(res, 200, { success: true, data: currentUser });
   }
 
   // User Profile (GET)
-  if ((pathname === '/api/users/profile' || pathname === '/api/users/me' || pathname === '/api/user/profile') && req.method === 'GET') {
+  if ((pathname === '/api/users/profile' || pathname === '/users/profile' || pathname === '/api/users/me' || pathname === '/users/me' || pathname === '/api/user/profile' || pathname === '/user/profile') && req.method === 'GET') {
     const currentUser = getUserFromReq(req);
     return sendJSON(res, 200, { success: true, data: currentUser });
   }
 
   // User Profile Update (PUT / POST)
-  if ((pathname === '/api/users/profile' || pathname === '/api/user/profile') && (req.method === 'PUT' || req.method === 'POST')) {
+  if ((pathname === '/api/users/profile' || pathname === '/users/profile' || pathname === '/api/user/profile' || pathname === '/user/profile') && (req.method === 'PUT' || req.method === 'POST')) {
     const body = await parseBody(req);
     const currentUser = getUserFromReq(req);
     
@@ -900,17 +1074,16 @@ const server = http.createServer(async (req, res) => {
     if (body.phone !== undefined) currentUser.phone = body.phone;
     if (body.location !== undefined) currentUser.location = body.location;
     if (body.farmSize !== undefined) currentUser.farmSize = body.farmSize;
-    if (body.avatarImage !== undefined) {
-      currentUser.avatarImage = body.avatarImage;
-      currentUser.avatar = body.avatarImage;
-    }
-    if (body.avatar !== undefined) {
-      currentUser.avatar = body.avatar;
-      if (!currentUser.avatarImage) currentUser.avatarImage = body.avatar;
+    
+    const incomingAvatar = body.avatarImage || body.avatar || body.url || body.fileUrl;
+    if (incomingAvatar && typeof incomingAvatar === 'string' && incomingAvatar.trim().length > 0) {
+      currentUser.avatarImage = incomingAvatar;
+      currentUser.avatar = incomingAvatar;
     }
 
     const idx = users.findIndex((u) => u.id === currentUser.id);
     if (idx !== -1) users[idx] = currentUser;
+    saveDb();
 
     return sendJSON(res, 200, {
       success: true,
@@ -920,15 +1093,18 @@ const server = http.createServer(async (req, res) => {
   }
 
   // User Avatar Upload (POST)
-  if ((pathname === '/api/users/avatar' || pathname === '/api/user/avatar') && req.method === 'POST') {
+  if ((pathname === '/api/users/avatar' || pathname === '/users/avatar' || pathname === '/api/user/avatar' || pathname === '/user/avatar') && req.method === 'POST') {
     const body = await parseBody(req);
     const currentUser = getUserFromReq(req);
-    const img = body.avatar || body.avatarImage || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150';
-    currentUser.avatarImage = img;
-    currentUser.avatar = img;
+    const img = body.avatar || body.avatarImage || body.url || body.fileUrl;
+    if (img && typeof img === 'string' && img.trim().length > 0) {
+      currentUser.avatarImage = img;
+      currentUser.avatar = img;
+    }
 
     const idx = users.findIndex((u) => u.id === currentUser.id);
     if (idx !== -1) users[idx] = currentUser;
+    saveDb();
 
     return sendJSON(res, 200, {
       success: true,
@@ -938,7 +1114,7 @@ const server = http.createServer(async (req, res) => {
   }
 
   // Change Password (PUT / POST)
-  if ((pathname === '/api/users/password' || pathname === '/api/user/password') && (req.method === 'PUT' || req.method === 'POST')) {
+  if ((pathname === '/api/users/password' || pathname === '/users/password' || pathname === '/api/user/password' || pathname === '/user/password') && (req.method === 'PUT' || req.method === 'POST')) {
     const body = await parseBody(req);
     const currentUser = getUserFromReq(req);
     if (!body.newPassword && !body.password) {
@@ -948,6 +1124,7 @@ const server = http.createServer(async (req, res) => {
       });
     }
     currentUser.password = body.newPassword || body.password;
+    saveDb();
     console.log(`[Auth] Password updated for ${currentUser.email}`);
     return sendJSON(res, 200, {
       success: true,
@@ -956,7 +1133,7 @@ const server = http.createServer(async (req, res) => {
   }
 
   // User Settings (PUT / POST)
-  if ((pathname === '/api/users/settings' || pathname === '/api/user/settings') && (req.method === 'PUT' || req.method === 'POST')) {
+  if ((pathname === '/api/users/settings' || pathname === '/users/settings' || pathname === '/api/user/settings' || pathname === '/user/settings') && (req.method === 'PUT' || req.method === 'POST')) {
     const body = await parseBody(req);
     return sendJSON(res, 200, {
       success: true,
@@ -966,7 +1143,7 @@ const server = http.createServer(async (req, res) => {
   }
 
   // OTP and Password Recovery
-  if (pathname === '/api/auth/register' && req.method === 'POST') {
+  if ((pathname === '/api/auth/register' || pathname === '/auth/register') && req.method === 'POST') {
     const body = await parseBody(req);
     const email = (body.email || '').toLowerCase().trim();
 
@@ -991,12 +1168,13 @@ const server = http.createServer(async (req, res) => {
         name: body.name || 'New Farmer',
         email: email,
         password: body.password,
-        role: 'USER',
-        userType: 'FARMER',
+        role: (body.role || 'USER').toUpperCase(),
+        userType: (body.userType || 'FARMER').toUpperCase(),
         isSeller: false,
         emailVerified: false,
         phone: body.phone || '',
         location: body.location || 'Hyderabad, Sindh, Pakistan',
+        avatar: '',
         avatarImage: '',
         farmSize: body.farmSize || '',
         createdAt: new Date().toISOString(),
@@ -1010,6 +1188,7 @@ const server = http.createServer(async (req, res) => {
       user.farmSize = body.farmSize || user.farmSize;
       user.emailVerified = false;
     }
+    saveDb();
 
     const otpCode = generateOtp();
     otps.set(`${email}:VERIFY_EMAIL`, {
@@ -1029,7 +1208,7 @@ const server = http.createServer(async (req, res) => {
     });
   }
 
-  if (pathname === '/api/auth/verify-otp' && req.method === 'POST') {
+  if ((pathname === '/api/auth/verify-otp' || pathname === '/auth/verify-otp') && req.method === 'POST') {
     const body = await parseBody(req);
     const email = (body.email || '').toLowerCase().trim();
     const inputOtp = (body.otp || '').toString().trim();
@@ -1069,6 +1248,7 @@ const server = http.createServer(async (req, res) => {
     } else {
       user.emailVerified = true;
     }
+    saveDb();
 
     const token = 'smartkisan_jwt_token_' + Buffer.from(email).toString('base64');
     return sendJSON(res, 200, {
@@ -1082,7 +1262,7 @@ const server = http.createServer(async (req, res) => {
     });
   }
 
-  if (pathname === '/api/auth/resend-otp' && req.method === 'POST') {
+  if ((pathname === '/api/auth/resend-otp' || pathname === '/auth/resend-otp') && req.method === 'POST') {
     const body = await parseBody(req);
     const email = (body.email || '').toLowerCase().trim();
 
@@ -1110,7 +1290,7 @@ const server = http.createServer(async (req, res) => {
     });
   }
 
-  if (pathname === '/api/auth/forgot-password' && req.method === 'POST') {
+  if ((pathname === '/api/auth/forgot-password' || pathname === '/auth/forgot-password') && req.method === 'POST') {
     const body = await parseBody(req);
     const email = (body.email || '').toLowerCase().trim();
 
@@ -1138,7 +1318,7 @@ const server = http.createServer(async (req, res) => {
     });
   }
 
-  if (pathname === '/api/auth/reset-password' && req.method === 'POST') {
+  if ((pathname === '/api/auth/reset-password' || pathname === '/auth/reset-password') && req.method === 'POST') {
     const body = await parseBody(req);
     const email = (body.email || '').toLowerCase().trim();
     const inputOtp = (body.otp || '').toString().trim();
@@ -1172,6 +1352,7 @@ const server = http.createServer(async (req, res) => {
     if (user) {
       user.password = newPassword;
       user.emailVerified = true;
+      saveDb();
     }
 
     return sendJSON(res, 200, {
@@ -1180,7 +1361,7 @@ const server = http.createServer(async (req, res) => {
     });
   }
 
-  if (pathname === '/api/auth/logout' && req.method === 'POST') {
+  if ((pathname === '/api/auth/logout' || pathname === '/auth/logout') && req.method === 'POST') {
     return sendJSON(res, 200, { success: true, message: 'Logged out successfully' });
   }
 
@@ -1210,11 +1391,13 @@ const server = http.createServer(async (req, res) => {
       emailVerified: body.emailVerified !== undefined ? Boolean(body.emailVerified) : true,
       phone: body.phone || '',
       location: body.location || 'Hyderabad, Sindh, Pakistan',
-      avatarImage: body.avatarImage || '',
+      avatarImage: body.avatarImage || body.avatar || '',
+      avatar: body.avatar || body.avatarImage || '',
       farmSize: body.farmSize || '',
       createdAt: new Date().toISOString(),
     };
     users.push(newUser);
+    saveDb();
     return sendJSON(res, 201, {
       success: true,
       message: 'User created successfully',
@@ -1246,6 +1429,11 @@ const server = http.createServer(async (req, res) => {
     if (body.farmSize !== undefined) user.farmSize = body.farmSize;
     if (body.password) user.password = body.password;
     if (body.emailVerified !== undefined) user.emailVerified = Boolean(body.emailVerified);
+    if (body.avatar || body.avatarImage) {
+      user.avatar = body.avatar || body.avatarImage;
+      user.avatarImage = body.avatarImage || body.avatar;
+    }
+    saveDb();
     return sendJSON(res, 200, {
       success: true,
       message: 'User updated successfully',
@@ -1259,9 +1447,48 @@ const server = http.createServer(async (req, res) => {
     const idx = users.findIndex((u) => u.id === uId);
     if (idx !== -1) {
       users.splice(idx, 1);
+      saveDb();
       return sendJSON(res, 200, { success: true, message: 'User deleted successfully' });
     }
     return sendJSON(res, 404, { success: false, message: 'User not found' });
+  }
+
+  // Sync users from client cache (Admin or automatic background sync)
+  if ((pathname === '/api/admin/users/sync' || pathname === '/admin/users/sync') && req.method === 'POST') {
+    const body = await parseBody(req);
+    const syncUsers = Array.isArray(body.users) ? body.users : (Array.isArray(body) ? body : []);
+    let addedCount = 0;
+    for (const su of syncUsers) {
+      if (!su || !su.email) continue;
+      const existing = users.find((u) => u.email.toLowerCase() === su.email.toLowerCase());
+      if (!existing) {
+        users.push({
+          id: users.length + 1,
+          name: su.name || su.email.split('@')[0],
+          email: su.email.toLowerCase(),
+          password: su.password || 'password123',
+          role: (su.role || 'USER').toUpperCase(),
+          userType: (su.userType || 'FARMER').toUpperCase(),
+          isSeller: Boolean(su.isSeller),
+          emailVerified: su.emailVerified !== undefined ? Boolean(su.emailVerified) : true,
+          phone: su.phone || '',
+          location: su.location || 'Hyderabad, Sindh, Pakistan',
+          avatar: su.avatar || su.avatarImage || '',
+          avatarImage: su.avatarImage || su.avatar || '',
+          farmSize: su.farmSize || '',
+          createdAt: su.createdAt || new Date().toISOString(),
+        });
+        addedCount++;
+      } else {
+        // preserve uploaded avatar if existing has default Unsplash but incoming has custom
+        if (su.avatar && !su.avatar.includes('images.unsplash.com') && (!existing.avatar || existing.avatar.includes('images.unsplash.com'))) {
+          existing.avatar = su.avatar;
+          existing.avatarImage = su.avatar;
+        }
+      }
+    }
+    if (addedCount > 0) saveDb();
+    return sendJSON(res, 200, { success: true, count: users.length, added: addedCount, data: users });
   }
 
   // =========================================================
@@ -1500,6 +1727,7 @@ const server = http.createServer(async (req, res) => {
       if (!sellerProfiles.some((s) => s.id === approvedSeller.id || s.userId === approvedSeller.userId)) {
         sellerProfiles.push(approvedSeller);
       }
+      saveDb();
     }
     return sendJSON(res, 200, {
       success: true,
@@ -1516,6 +1744,7 @@ const server = http.createServer(async (req, res) => {
     const idx = pendingSellers.findIndex((s) => s.id === sId);
     if (idx !== -1) {
       pendingSellers.splice(idx, 1);
+      saveDb();
     }
     return sendJSON(res, 200, {
       success: true,
@@ -1528,7 +1757,10 @@ const server = http.createServer(async (req, res) => {
     const parts = pathname.split('/');
     const sId = +parts[parts.length - 2];
     const seller = sellerProfiles.find((s) => s.id === sId);
-    if (seller) seller.status = 'SUSPENDED';
+    if (seller) {
+      seller.status = 'SUSPENDED';
+      saveDb();
+    }
     return sendJSON(res, 200, { success: true, message: 'Seller suspended' });
   }
 
@@ -1537,7 +1769,10 @@ const server = http.createServer(async (req, res) => {
     const parts = pathname.split('/');
     const sId = +parts[parts.length - 2];
     const seller = sellerProfiles.find((s) => s.id === sId);
-    if (seller) seller.verified = true;
+    if (seller) {
+      seller.verified = true;
+      saveDb();
+    }
     return sendJSON(res, 200, { success: true, message: 'Seller verified successfully' });
   }
 
@@ -1558,6 +1793,7 @@ const server = http.createServer(async (req, res) => {
       if (!products.some((p) => p.id === approvedProd.id)) {
         products.unshift(approvedProd);
       }
+      saveDb();
     }
     return sendJSON(res, 200, {
       success: true,
@@ -1574,6 +1810,7 @@ const server = http.createServer(async (req, res) => {
     const idx = pendingProducts.findIndex((p) => p.id === pId);
     if (idx !== -1) {
       pendingProducts.splice(idx, 1);
+      saveDb();
     }
     return sendJSON(res, 200, {
       success: true,
@@ -1586,7 +1823,10 @@ const server = http.createServer(async (req, res) => {
     const parts = pathname.split('/');
     const pId = +parts[parts.length - 2];
     const prod = products.find((p) => p.id === pId);
-    if (prod) prod.status = 'SUSPENDED';
+    if (prod) {
+      prod.status = 'SUSPENDED';
+      saveDb();
+    }
     return sendJSON(res, 200, { success: true, message: 'Product listing suspended' });
   }
 
@@ -1611,6 +1851,7 @@ const server = http.createServer(async (req, res) => {
         order.payment.paidAt = new Date().toISOString();
       }
     }
+    saveDb();
     return sendJSON(res, 200, {
       success: true,
       message: 'Payment verified and order approved for processing',
@@ -1635,6 +1876,7 @@ const server = http.createServer(async (req, res) => {
         order.payment.rejectionReason = body.reason || 'Payment verification failed';
       }
     }
+    saveDb();
     return sendJSON(res, 200, {
       success: true,
       message: body.reason ? `Payment rejected: ${body.reason}` : 'Payment verification rejected',
@@ -1681,6 +1923,7 @@ const server = http.createServer(async (req, res) => {
       order.payment.transactionRef = paymentRecord.transactionRef;
       order.payment.paymentProofUrl = paymentRecord.paymentProofUrl;
     }
+    saveDb();
 
     return sendJSON(res, 200, {
       success: true,
@@ -1718,6 +1961,7 @@ const server = http.createServer(async (req, res) => {
       instructions: body.instructions || '',
     };
     paymentAccounts.push(newAccount);
+    saveDb();
     return sendJSON(res, 201, { success: true, message: 'Payment account added', data: newAccount });
   }
 
@@ -1725,14 +1969,20 @@ const server = http.createServer(async (req, res) => {
     const aId = +pathname.split('/').pop();
     const body = await parseBody(req);
     const act = paymentAccounts.find((a) => a.id === aId);
-    if (act) Object.assign(act, body);
+    if (act) {
+      Object.assign(act, body);
+      saveDb();
+    }
     return sendJSON(res, 200, { success: true, message: 'Payment account updated', data: act || paymentAccounts[0] });
   }
 
   if ((pathname.startsWith('/api/marketplace/payment-accounts/') || pathname.startsWith('/marketplace/payment-accounts/')) && req.method === 'DELETE') {
     const aId = +pathname.split('/').pop();
     const idx = paymentAccounts.findIndex((a) => a.id === aId);
-    if (idx !== -1) paymentAccounts.splice(idx, 1);
+    if (idx !== -1) {
+      paymentAccounts.splice(idx, 1);
+      saveDb();
+    }
     return sendJSON(res, 200, { success: true, message: 'Payment account removed' });
   }
 
@@ -1763,6 +2013,7 @@ const server = http.createServer(async (req, res) => {
         joinedAsSellerOn: new Date().toISOString().split('T')[0],
       };
       sellerProfiles.push(profile);
+      saveDb();
     }
     return sendJSON(res, 200, { success: true, data: profile });
   }
@@ -1817,6 +2068,7 @@ const server = http.createServer(async (req, res) => {
       profile.status = 'APPROVED';
     }
     currentUser.isSeller = true;
+    saveDb();
     return sendJSON(res, 201, {
       success: true,
       message: 'Seller application approved successfully',
@@ -1887,6 +2139,7 @@ const server = http.createServer(async (req, res) => {
       },
     };
     orders.unshift(newOrder);
+    saveDb();
     return sendJSON(res, 201, { success: true, message: 'Order placed successfully', data: newOrder });
   }
 
@@ -1905,6 +2158,7 @@ const server = http.createServer(async (req, res) => {
     const order = orders.find((o) => o.id === oId);
     if (order && body.status) {
       order.status = body.status;
+      saveDb();
     }
     return sendJSON(res, 200, { success: true, message: 'Order status updated', data: order || orders[0] });
   }
@@ -1955,6 +2209,7 @@ const server = http.createServer(async (req, res) => {
       createdAt: new Date().toISOString(),
     };
     products.unshift(newProduct);
+    saveDb();
     return sendJSON(res, 201, { success: true, message: 'Product submitted successfully', data: newProduct });
   }
 
@@ -1965,6 +2220,7 @@ const server = http.createServer(async (req, res) => {
     const prod = products.find((p) => p.id === pId);
     if (prod) {
       Object.assign(prod, body);
+      saveDb();
       return sendJSON(res, 200, { success: true, message: 'Product updated', data: prod });
     }
     return sendJSON(res, 404, { success: false, message: 'Product not found' });
@@ -1974,7 +2230,10 @@ const server = http.createServer(async (req, res) => {
   if ((pathname.startsWith('/api/marketplace/products/') || pathname.startsWith('/marketplace/products/')) && req.method === 'DELETE') {
     const pId = +pathname.split('/').pop();
     const idx = products.findIndex((p) => p.id === pId);
-    if (idx !== -1) products.splice(idx, 1);
+    if (idx !== -1) {
+      products.splice(idx, 1);
+      saveDb();
+    }
     return sendJSON(res, 200, { success: true, message: 'Product removed' });
   }
 
@@ -2002,6 +2261,7 @@ const server = http.createServer(async (req, res) => {
     };
     if (!reviews[prodId]) reviews[prodId] = [];
     reviews[prodId].unshift(newRev);
+    saveDb();
     return sendJSON(res, 201, { success: true, message: 'Review added', data: newRev });
   }
 
@@ -2097,6 +2357,7 @@ const server = http.createServer(async (req, res) => {
       timestamp: new Date().toISOString(),
     };
     chatMessages.push(newMsg);
+    saveDb();
     return sendJSON(res, 201, { success: true, data: newMsg });
   }
 

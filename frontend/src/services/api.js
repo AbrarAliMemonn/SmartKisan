@@ -101,6 +101,7 @@ export const adminAPI = {
   createUser: (data) => api.post('/admin/users', data),
   updateUser: (id, data) => api.put(`/admin/users/${id}`, data),
   deleteUser: (id) => api.delete(`/admin/users/${id}`),
+  syncUsers: (users) => api.post('/admin/users/sync', { users }),
 }
 
 // =========================================================
