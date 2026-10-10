@@ -5,10 +5,68 @@
 // ========================================================
 
 const http = require('http');
+const https = require('https');
 const url = require('url');
 const crypto = require('crypto');
 
 const PORT = process.env.PORT || 8080;
+
+// ---------------- Meteorological & Geolocation Data ----------------
+const CITY_COORDS = {
+  'hyderabad': { lat: 25.396, lon: 68.3578, name: 'Hyderabad, Sindh' },
+  'karachi': { lat: 24.8607, lon: 67.0011, name: 'Karachi, Sindh' },
+  'sukkur': { lat: 27.7052, lon: 68.8574, name: 'Sukkur, Sindh' },
+  'larkana': { lat: 27.5598, lon: 68.2120, name: 'Larkana, Sindh' },
+  'mirpurkhas': { lat: 25.5276, lon: 69.0159, name: 'Mirpur Khas, Sindh' },
+  'mirpur khas': { lat: 25.5276, lon: 69.0159, name: 'Mirpur Khas, Sindh' },
+  'badin': { lat: 24.6560, lon: 68.8370, name: 'Badin, Sindh' },
+  'nawabshah': { lat: 26.2483, lon: 68.4096, name: 'Nawabshah, Sindh' },
+  'lahore': { lat: 31.5204, lon: 74.3587, name: 'Lahore, Punjab' },
+  'multan': { lat: 30.1575, lon: 71.5249, name: 'Multan, Punjab' },
+  'faisalabad': { lat: 31.4504, lon: 73.1350, name: 'Faisalabad, Punjab' },
+  'rawalpindi': { lat: 33.5651, lon: 73.0169, name: 'Rawalpindi, Punjab' },
+  'islamabad': { lat: 33.6844, lon: 73.0479, name: 'Islamabad, Federal' },
+  'peshawar': { lat: 34.0151, lon: 71.5249, name: 'Peshawar, KP' },
+  'quetta': { lat: 30.1798, lon: 66.9750, name: 'Quetta, Balochistan' },
+};
+
+function getWeatherConditionText(code) {
+  if (code === 0) return 'Clear Sky / Sunny';
+  if ([1, 2].includes(code)) return 'Partly Cloudy';
+  if (code === 3) return 'Overcast / Cloudy';
+  if ([45, 48].includes(code)) return 'Foggy';
+  if ([51, 53, 55].includes(code)) return 'Drizzle';
+  if ([61, 63, 65, 80, 81, 82].includes(code)) return 'Rain Showers';
+  if ([71, 73, 75].includes(code)) return 'Snow';
+  if ([95, 96, 99].includes(code)) return 'Thunderstorm';
+  return 'Clear Sky / Sunny';
+}
+
+function fetchOpenMeteo(lat, lon) {
+  return new Promise((resolve) => {
+    const apiUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&daily=weathercode,temperature_2m_max&timezone=auto`;
+    const req = https.get(apiUrl, { timeout: 3500 }, (res) => {
+      let data = '';
+      res.on('data', (chunk) => (data += chunk));
+      res.on('end', () => {
+        try {
+          if (res.statusCode === 200) {
+            resolve(JSON.parse(data));
+          } else {
+            resolve(null);
+          }
+        } catch (e) {
+          resolve(null);
+        }
+      });
+    });
+    req.on('error', () => resolve(null));
+    req.on('timeout', () => {
+      req.destroy();
+      resolve(null);
+    });
+  });
+}
 
 // ---------------- State: IoT Sensors Fleet ----------------
 let isHardwareLive = false;
@@ -80,8 +138,10 @@ const users = [
     isSeller: true,
     emailVerified: true,
     phone: '+92 300 1234567',
-    location: 'Sindh, Pakistan',
+    location: 'Hyderabad, Sindh, Pakistan',
     avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
+    avatarImage: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
+    farmSize: '25 Acres',
     createdAt: new Date().toISOString(),
   },
   {
@@ -92,9 +152,27 @@ const users = [
     userType: 'ADMIN',
     isSeller: true,
     emailVerified: true,
+    phone: '+92 300 9876543',
+    location: 'Karachi, Sindh, Pakistan',
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
+    avatarImage: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
+    farmSize: '50 Acres',
     createdAt: new Date().toISOString(),
   },
 ];
+
+function getUserFromReq(req) {
+  const authHeader = req.headers['authorization'] || '';
+  if (authHeader.startsWith('Bearer smartkisan_jwt_token_')) {
+    const b64 = authHeader.replace('Bearer smartkisan_jwt_token_', '').trim();
+    try {
+      const email = Buffer.from(b64, 'base64').toString('utf8');
+      const found = users.find((u) => u.email.toLowerCase() === email.toLowerCase());
+      if (found) return found;
+    } catch (e) {}
+  }
+  return users[0];
+}
 
 const products = [
   {
@@ -273,7 +351,125 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (pathname === '/api/auth/profile' && req.method === 'GET') {
-    return sendJSON(res, 200, { success: true, data: users[0] });
+    const currentUser = getUserFromReq(req);
+    return sendJSON(res, 200, { success: true, data: currentUser });
+  }
+
+  // User Profile (GET)
+  if ((pathname === '/api/users/profile' || pathname === '/api/users/me' || pathname === '/api/user/profile') && req.method === 'GET') {
+    const currentUser = getUserFromReq(req);
+    return sendJSON(res, 200, { success: true, data: currentUser });
+  }
+
+  // User Profile Update (PUT / POST)
+  if ((pathname === '/api/users/profile' || pathname === '/api/user/profile') && (req.method === 'PUT' || req.method === 'POST')) {
+    const body = await parseBody(req);
+    const currentUser = getUserFromReq(req);
+    
+    if (body.name) currentUser.name = body.name;
+    if (body.email) currentUser.email = body.email;
+    if (body.phone !== undefined) currentUser.phone = body.phone;
+    if (body.location !== undefined) currentUser.location = body.location;
+    if (body.farmSize !== undefined) currentUser.farmSize = body.farmSize;
+    if (body.avatarImage !== undefined) {
+      currentUser.avatarImage = body.avatarImage;
+      currentUser.avatar = body.avatarImage;
+    }
+    if (body.avatar !== undefined) {
+      currentUser.avatar = body.avatar;
+      if (!currentUser.avatarImage) currentUser.avatarImage = body.avatar;
+    }
+
+    const idx = users.findIndex((u) => u.id === currentUser.id);
+    if (idx !== -1) users[idx] = currentUser;
+
+    return sendJSON(res, 200, {
+      success: true,
+      message: 'Profile updated successfully',
+      data: currentUser,
+    });
+  }
+
+  // User Avatar Upload (POST)
+  if ((pathname === '/api/users/avatar' || pathname === '/api/user/avatar') && req.method === 'POST') {
+    const body = await parseBody(req);
+    const currentUser = getUserFromReq(req);
+    const img = body.avatar || body.avatarImage || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150';
+    currentUser.avatarImage = img;
+    currentUser.avatar = img;
+
+    const idx = users.findIndex((u) => u.id === currentUser.id);
+    if (idx !== -1) users[idx] = currentUser;
+
+    return sendJSON(res, 200, {
+      success: true,
+      message: 'Avatar updated successfully',
+      data: currentUser,
+    });
+  }
+
+  // Change Password (PUT / POST)
+  if ((pathname === '/api/users/password' || pathname === '/api/user/password') && (req.method === 'PUT' || req.method === 'POST')) {
+    const body = await parseBody(req);
+    const currentUser = getUserFromReq(req);
+    if (!body.newPassword && !body.password) {
+      return sendJSON(res, 400, {
+        success: false,
+        message: 'New password is required',
+      });
+    }
+    currentUser.password = body.newPassword || body.password;
+    console.log(`[Auth] Password updated for ${currentUser.email}`);
+    return sendJSON(res, 200, {
+      success: true,
+      message: 'Password changed successfully',
+    });
+  }
+
+  // User Settings (PUT / POST)
+  if ((pathname === '/api/users/settings' || pathname === '/api/user/settings') && (req.method === 'PUT' || req.method === 'POST')) {
+    const body = await parseBody(req);
+    return sendJSON(res, 200, {
+      success: true,
+      message: 'Settings saved successfully',
+      data: body,
+    });
+  }
+
+  // OTP and Password Recovery
+  if (pathname === '/api/auth/verify-otp' && req.method === 'POST') {
+    const body = await parseBody(req);
+    const currentUser = getUserFromReq(req);
+    return sendJSON(res, 200, {
+      success: true,
+      message: 'Account verified successfully!',
+      data: {
+        token: 'smartkisan_jwt_token_' + Buffer.from(currentUser.email).toString('base64'),
+        refreshToken: 'smartkisan_refresh_' + Date.now(),
+        user: currentUser,
+      },
+    });
+  }
+
+  if (pathname === '/api/auth/resend-otp' && req.method === 'POST') {
+    return sendJSON(res, 200, {
+      success: true,
+      message: 'Verification code resent successfully',
+    });
+  }
+
+  if (pathname === '/api/auth/forgot-password' && req.method === 'POST') {
+    return sendJSON(res, 200, {
+      success: true,
+      message: 'Reset verification code sent to your email',
+    });
+  }
+
+  if (pathname === '/api/auth/reset-password' && req.method === 'POST') {
+    return sendJSON(res, 200, {
+      success: true,
+      message: 'Password reset successfully. You can now log in.',
+    });
   }
 
   if (pathname === '/api/auth/register' && req.method === 'POST') {
@@ -286,6 +482,8 @@ const server = http.createServer(async (req, res) => {
       userType: 'FARMER',
       isSeller: false,
       emailVerified: true,
+      location: 'Hyderabad, Sindh, Pakistan',
+      avatarImage: '',
       createdAt: new Date().toISOString(),
     };
     users.push(newUser);
@@ -489,24 +687,84 @@ const server = http.createServer(async (req, res) => {
   // 6. WEATHER API  (/api/weather/**)
   // =========================================================
   if (pathname.startsWith('/api/weather') && req.method === 'GET') {
-    return sendJSON(res, 200, {
-      location: 'Hyderabad, Sindh, Pakistan',
-      current: {
-        tempC: sensorReadings.temperature,
-        humidity: sensorReadings.humidity,
-        condition: 'Clear Sky / Sunny',
-        windKph: 14.5,
-        uvIndex: 7,
-      },
-      forecast: [
-        { day: 'Tomorrow', tempC: 28.0, condition: 'Sunny', rainChance: '5%' },
-        { day: 'Wednesday', tempC: 27.5, condition: 'Partly Cloudy', rainChance: '15%' },
-        { day: 'Thursday', tempC: 26.0, condition: 'Clear', rainChance: '0%' },
-      ],
+    const locParam = (parsedUrl.query.location || parsedUrl.query.city || 'Hyderabad').toString().trim();
+    const cleanKey = locParam.toLowerCase().replace(/[^a-z]/g, '');
+
+    let coords = CITY_COORDS[cleanKey] || Object.values(CITY_COORDS).find((c) => cleanKey.includes(c.name.split(',')[0].toLowerCase().trim()));
+    if (!coords) {
+      coords = { lat: 25.396, lon: 68.3578, name: `${locParam}, Pakistan` };
+    }
+
+    const meteo = await fetchOpenMeteo(coords.lat, coords.lon);
+
+    let currentTemp = sensorReadings.temperature;
+    let currentWind = 14.5;
+    let currentCondition = 'Sunny / Clear Sky';
+
+    if (meteo && meteo.current_weather) {
+      currentTemp = +(meteo.current_weather.temperature).toFixed(1);
+      currentWind = +(meteo.current_weather.windspeed).toFixed(1);
+      currentCondition = getWeatherConditionText(meteo.current_weather.weathercode);
+    }
+
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const todayIdx = new Date().getDay();
+    const forecastList = [];
+
+    if (meteo && meteo.daily && Array.isArray(meteo.daily.temperature_2m_max)) {
+      for (let i = 0; i < Math.min(7, meteo.daily.temperature_2m_max.length); i++) {
+        const dName = days[(todayIdx + i) % 7];
+        forecastList.push({
+          day: i === 0 ? 'Today' : dName,
+          temp: +(meteo.daily.temperature_2m_max[i]).toFixed(0),
+          condition: getWeatherConditionText(meteo.daily.weathercode ? meteo.daily.weathercode[i] : 0),
+        });
+      }
+    } else {
+      for (let i = 0; i < 7; i++) {
+        const dName = days[(todayIdx + i) % 7];
+        forecastList.push({
+          day: i === 0 ? 'Today' : dName,
+          temp: Math.round(currentTemp + ((i % 3) - 1)),
+          condition: i % 2 === 0 ? 'Sunny' : 'Partly Cloudy',
+        });
+      }
+    }
+
+    const currentWeatherObj = {
+      location: coords.name,
+      temp: currentTemp,
+      condition: currentCondition,
+      humidity: sensorReadings.humidity,
+      windSpeed: currentWind,
+      pressure: sensorReadings.pressure,
+      uvIndex: 7,
       sprayAdvisory: {
-        safeToSpray: true,
-        reason: 'Optimal wind speed (< 15 km/h) and low humidity. Safe for fungicide application.',
+        safeToSpray: currentWind < 18,
+        reason: currentWind < 18 ? 'Optimal wind speed (< 18 km/h). Safe for spray.' : 'High wind speed (> 18 km/h). Postpone spraying.',
       },
+    };
+
+    if (pathname === '/api/weather/current') {
+      return sendJSON(res, 200, {
+        success: true,
+        data: currentWeatherObj,
+      });
+    }
+
+    if (pathname === '/api/weather/forecast') {
+      return sendJSON(res, 200, {
+        success: true,
+        data: forecastList,
+      });
+    }
+
+    return sendJSON(res, 200, {
+      success: true,
+      location: coords.name,
+      current: currentWeatherObj,
+      forecast: forecastList,
+      data: currentWeatherObj,
     });
   }
 

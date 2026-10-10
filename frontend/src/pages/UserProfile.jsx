@@ -28,19 +28,64 @@ export default function UserProfile() {
   const [showPassword, setShowPassword] = useState(false)
   const [savingProfile, setSavingProfile] = useState(false)
   const [savingPassword, setSavingPassword] = useState(false)
+  const [uploadingAvatar, setUploadingAvatar] = useState(false)
 
-  const handleAvatarChange = (e) => {
+  const compressImage = (file, maxWidth = 380, quality = 0.85) => {
+    return new Promise((resolve) => {
+      const reader = new FileReader()
+      reader.onload = (event) => {
+        const img = new Image()
+        img.onload = () => {
+          const canvas = document.createElement('canvas')
+          let { width, height } = img
+
+          if (width > maxWidth) {
+            height = Math.round((height * maxWidth) / width)
+            width = maxWidth
+          }
+          if (height > maxWidth) {
+            width = Math.round((width * maxWidth) / height)
+            height = maxWidth
+          }
+
+          canvas.width = width
+          canvas.height = height
+          const ctx = canvas.getContext('2d')
+          ctx.drawImage(img, 0, 0, width, height)
+          resolve(canvas.toDataURL('image/jpeg', quality))
+        }
+        img.onerror = () => resolve(event.target.result)
+        img.src = event.target.result
+      }
+      reader.onerror = () => resolve(null)
+      reader.readAsDataURL(file)
+    })
+  }
+
+  const handleAvatarChange = async (e) => {
     const file = e.target.files?.[0]
     if (!file) return
     if (!file.type.startsWith('image/')) {
-      toast.error('Please choose an image file')
+      toast.error('Please choose a valid image file (PNG, JPG, WebP)')
       return
     }
-    const reader = new FileReader()
-    reader.onload = async () => {
-      await updateUser({ avatarImage: reader.result })
+
+    try {
+      setUploadingAvatar(true)
+      const compressedDataUrl = await compressImage(file)
+      if (!compressedDataUrl) {
+        toast.error('Could not process the selected image')
+        return
+      }
+
+      await updateUser({ avatarImage: compressedDataUrl, avatar: compressedDataUrl })
+    } catch (err) {
+      console.error('Avatar change error:', err)
+      toast.error('Failed to update profile picture')
+    } finally {
+      setUploadingAvatar(false)
+      if (fileInputRef.current) fileInputRef.current.value = ''
     }
-    reader.readAsDataURL(file)
   }
 
   const handleProfileSave = async (e) => {
@@ -141,11 +186,17 @@ export default function UserProfile() {
               )}
             </div>
             <button
-              onClick={() => fileInputRef.current?.click()}
-              className="absolute bottom-0 right-0 flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-green-500 to-emerald-600 text-white shadow-md transition-transform hover:scale-110"
+              type="button"
+              onClick={() => !uploadingAvatar && fileInputRef.current?.click()}
+              disabled={uploadingAvatar}
+              className="absolute bottom-0 right-0 flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-green-500 to-emerald-600 text-white shadow-md transition-transform hover:scale-110 disabled:opacity-75 disabled:cursor-not-allowed"
               title="Change profile picture"
             >
-              <Camera size={14} />
+              {uploadingAvatar ? (
+                <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+              ) : (
+                <Camera size={14} />
+              )}
             </button>
             <input
               ref={fileInputRef}

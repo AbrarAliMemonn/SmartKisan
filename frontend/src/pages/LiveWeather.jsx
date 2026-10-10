@@ -1,17 +1,23 @@
 import { useState, useEffect } from 'react'
 import {
   Cloud, CloudRain, Sun, Wind, Droplet, Thermometer,
-  MapPin, RefreshCw, Gauge, Sunrise, Sunset,
+  MapPin, RefreshCw, Gauge, Sunrise, Sunset, Search,
 } from 'lucide-react'
 
 import Card from '../components/common/Card'
 import Button from '../components/common/Button'
 import { weatherAPI } from '../services/api'
 
+const POPULAR_CITIES = [
+  'Hyderabad', 'Karachi', 'Sukkur', 'Larkana', 'Mirpur Khas',
+  'Badin', 'Lahore', 'Multan', 'Islamabad',
+]
+
 export default function LiveWeather() {
   const [weather, setWeather] = useState(null)
   const [forecast, setForecast] = useState([])
   const [city, setCity] = useState('')
+  const [searchInput, setSearchInput] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
@@ -31,41 +37,40 @@ export default function LiveWeather() {
     return <Sun className={`${cls} text-amber-300`} />
   }
 
-  const loadWeather = async () => {
+  const loadWeather = async (targetCity = null) => {
     try {
       setLoading(true)
       setError('')
 
-      const storedUser = localStorage.getItem('user')
-      if (!storedUser) {
-        setError('User information not found. Please login again.')
-        return
+      let queryCity = targetCity || city
+      if (!queryCity) {
+        try {
+          const storedUser = localStorage.getItem('user')
+          if (storedUser) {
+            const user = JSON.parse(storedUser)
+            const userLocation = user?.location || ''
+            queryCity = userLocation.split(',')[0].trim()
+          }
+        } catch (e) {}
       }
 
-      const user = JSON.parse(storedUser)
-      const userLocation = user.location || ''
-      const userCity = userLocation.split(',')[0].trim()
-
-      if (!userCity) {
-        setError('Your city is not available in your profile.')
-        return
+      if (!queryCity) {
+        queryCity = 'Hyderabad'
       }
 
-      setCity(userCity)
+      setCity(queryCity)
 
-      const currentResponse = await weatherAPI.getCurrentWeather(userCity)
-      if (currentResponse.data?.success) {
-        setWeather(currentResponse.data.data)
+      const currentResponse = await weatherAPI.getCurrentWeather(queryCity)
+      const currentData = currentResponse.data?.data || (currentResponse.data?.temp ? currentResponse.data : null)
+      if (currentData) {
+        setWeather(currentData)
       } else {
         setError('Weather data could not be loaded.')
       }
 
-      const forecastResponse = await weatherAPI.getForecast(userCity)
-      if (forecastResponse.data?.success) {
-        setForecast(forecastResponse.data.data || [])
-      } else {
-        setForecast([])
-      }
+      const forecastResponse = await weatherAPI.getForecast(queryCity)
+      const forecastData = forecastResponse.data?.data || (Array.isArray(forecastResponse.data) ? forecastResponse.data : [])
+      setForecast(forecastData)
     } catch (err) {
       console.error('Weather error:', err)
       if (err.response) {
@@ -138,14 +143,65 @@ export default function LiveWeather() {
             Live Weather
           </h1>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400 sm:text-base">
-            Real-time weather updates for your farm
+            Real-time weather updates and microclimate forecasts for your farm
           </p>
         </div>
 
-        <Button variant="secondary" size="sm" onClick={loadWeather} disabled={loading}>
+        <Button variant="secondary" size="sm" onClick={() => loadWeather()} disabled={loading}>
           <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
           Refresh
         </Button>
+      </div>
+
+      {/* City Search & Quick Selectors */}
+      <div className="space-y-3">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault()
+            if (searchInput.trim()) {
+              loadWeather(searchInput.trim())
+            }
+          }}
+          className="relative max-w-xl"
+        >
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+          <input
+            type="text"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            placeholder="Search any farm location or district (e.g. Hyderabad, Sukkur, Multan)..."
+            className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-24 text-sm text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
+          />
+          <button
+            type="submit"
+            className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded-lg bg-green-600 px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-green-700 cursor-pointer"
+          >
+            Check
+          </button>
+        </form>
+
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 mr-1">
+            Quick Cities:
+          </span>
+          {POPULAR_CITIES.map((c) => (
+            <button
+              key={c}
+              type="button"
+              onClick={() => {
+                setSearchInput(c)
+                loadWeather(c)
+              }}
+              className={`rounded-lg px-2.5 py-1 text-xs font-medium transition cursor-pointer ${
+                city.toLowerCase().includes(c.toLowerCase())
+                  ? 'bg-green-600 text-white shadow-sm'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-white/5 dark:text-slate-300 dark:hover:bg-white/10'
+              }`}
+            >
+              {c}
+            </button>
+          ))}
+        </div>
       </div>
 
       {error && (

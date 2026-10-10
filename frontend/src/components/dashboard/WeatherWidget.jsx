@@ -14,16 +14,19 @@ export default function WeatherWidget() {
         setLoading(true)
         setError('')
 
-        const user = JSON.parse(localStorage.getItem('user'))
+        let city = 'Hyderabad'
+        try {
+          const userStr = localStorage.getItem('user')
+          if (userStr) {
+            const user = JSON.parse(userStr)
+            if (user?.location) {
+              city = user.location.split(',')[0].trim() || 'Hyderabad'
+            }
+          }
+        } catch (e) {}
 
-        if (!user?.location) {
-          setError('User location not available')
-          return
-        }
-
-        const city = user.location.split(',')[0].trim()
         const response = await weatherAPI.getCurrentWeather(city)
-        const data = response.data?.data
+        const data = response.data?.data || (response.data?.temp ? response.data : null)
 
         if (!data) throw new Error('Weather data not found')
 
