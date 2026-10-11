@@ -428,4 +428,13 @@
 
   /* Keeps the page clear of the notch / home indicator on phones */
   .pb-safe { padding-bottom: max(1rem, env(safe-area-inset-bottom)); }
+
+  /* Smooth scroll and hidden scrollbar for mobile carousels and pill strips */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
 }

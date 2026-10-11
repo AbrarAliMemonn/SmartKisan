@@ -27,6 +27,7 @@ import {
   LogIn,
   UserPlus,
   LayoutDashboard,
+  Menu,
   X,
   Sparkles,
   ChevronRight,
@@ -170,6 +171,16 @@ export default function LandingPage() {
   const [selectedCategory, setSelectedCategory] = useState('ALL')
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedProduct, setSelectedProduct] = useState(null)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
+  // Close mobile drawer on desktop resize
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 768) setMobileMenuOpen(false)
+    }
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
 
   // Auth gate modal state
   const [gateModal, setGateModal] = useState({
@@ -305,27 +316,27 @@ export default function LandingPage() {
           TOP NAVBAR
       ========================================================= */}
       <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/90 backdrop-blur-md">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-3 sm:px-6 lg:px-8">
           {/* Logo & Brand */}
-          <Link to="/" className="flex items-center gap-3 group">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-green-600 to-emerald-700 text-white shadow-md shadow-green-600/20 group-hover:scale-105 transition-transform">
-              <Sprout className="h-6 w-6" />
+          <Link to="/" className="flex items-center gap-2.5 sm:gap-3 group shrink-0">
+            <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-gradient-to-br from-green-600 to-emerald-700 text-white shadow-md shadow-green-600/20 group-hover:scale-105 transition-transform">
+              <Sprout className="h-5 w-5 sm:h-6 sm:w-6" />
             </div>
             <div>
-              <span className="text-xl font-bold tracking-tight text-slate-900 flex items-center gap-1.5">
+              <span className="text-lg sm:text-xl font-bold tracking-tight text-slate-900 flex items-center gap-1.5 leading-none">
                 SmartKisan
-                <span className="rounded-full bg-lime-100 px-2 py-0.5 text-[10px] font-bold text-green-800 uppercase tracking-wider">
+                <span className="hidden xs:inline-block rounded-full bg-lime-100 px-1.5 sm:px-2 py-0.5 text-[9px] sm:text-[10px] font-bold text-green-800 uppercase tracking-wider">
                   IoT &amp; Market
                 </span>
               </span>
-              <p className="text-[11px] font-medium text-slate-500 leading-none">
+              <p className="hidden sm:block text-[11px] font-medium text-slate-500 leading-none mt-1">
                 Smart Agriculture Platform Pakistan
               </p>
             </div>
           </Link>
 
-          {/* Nav Links */}
-          <nav className="hidden md:flex items-center gap-6 text-[14px] font-semibold text-slate-600">
+          {/* Desktop Nav Links */}
+          <nav className="hidden md:flex items-center gap-5 lg:gap-6 text-[14px] font-semibold text-slate-600">
             <a href="#marketplace" className="hover:text-green-700 transition-colors">
               Marketplace
             </a>
@@ -377,58 +388,196 @@ export default function LandingPage() {
           </nav>
 
           {/* Right Action Buttons */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             {/* Cart Button */}
             <button
               onClick={() => {
                 navigate('/marketplace/cart')
               }}
-              className="relative rounded-xl border border-slate-200 bg-white p-2.5 text-slate-700 hover:border-slate-300 hover:bg-slate-50 transition-colors shadow-sm"
+              className="relative rounded-xl border border-slate-200 bg-white p-2 sm:p-2.5 text-slate-700 hover:border-slate-300 hover:bg-slate-50 transition-colors shadow-sm"
               title="Shopping Cart"
             >
-              <ShoppingCart className="h-5 w-5 text-slate-700" />
+              <ShoppingCart className="h-4.5 w-4.5 sm:h-5 sm:w-5 text-slate-700" />
               {cartItems.length > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-green-600 text-[11px] font-bold text-white shadow">
+                <span className="absolute -top-1.5 -right-1.5 flex h-4.5 min-w-4.5 sm:h-5 sm:min-w-5 px-1 items-center justify-center rounded-full bg-green-600 text-[10px] sm:text-[11px] font-bold text-white shadow">
                   {cartItems.length}
                 </span>
               )}
             </button>
 
-            {isAuthenticated ? (
-              <div className="flex items-center gap-2">
-                <Link
-                  to="/dashboard"
-                  className="inline-flex items-center gap-2 rounded-xl bg-green-600 px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-green-600/20 hover:bg-green-700 transition-all hover:scale-[1.02]"
-                >
-                  <LayoutDashboard className="h-4 w-4" />
-                  <span>Dashboard</span>
-                </Link>
-                <button
-                  onClick={logout}
-                  className="hidden sm:inline-flex rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors"
-                >
-                  Logout
-                </button>
-              </div>
-            ) : (
-              <div className="flex items-center gap-2">
-                <Link
-                  to="/login"
-                  className="rounded-xl px-3.5 py-2 text-sm font-semibold text-slate-700 hover:text-green-700 hover:bg-slate-100 transition-all"
-                >
-                  Sign In
-                </Link>
-                <Link
-                  to="/login?mode=signup"
-                  className="inline-flex items-center gap-1.5 rounded-xl bg-green-600 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-green-600/20 hover:bg-green-700 transition-all hover:scale-[1.02]"
-                >
-                  <UserPlus className="h-4 w-4" />
-                  <span>Register</span>
-                </Link>
-              </div>
-            )}
+            {/* Desktop Auth Buttons */}
+            <div className="hidden md:flex items-center gap-2">
+              {isAuthenticated ? (
+                <>
+                  <Link
+                    to="/dashboard"
+                    className="inline-flex items-center gap-2 rounded-xl bg-green-600 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-green-600/20 hover:bg-green-700 transition-all hover:scale-[1.02]"
+                  >
+                    <LayoutDashboard className="h-4 w-4" />
+                    <span>Dashboard</span>
+                  </Link>
+                  <button
+                    onClick={logout}
+                    className="rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors"
+                  >
+                    Logout
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link
+                    to="/login"
+                    className="rounded-xl px-3.5 py-2 text-sm font-semibold text-slate-700 hover:text-green-700 hover:bg-slate-100 transition-all"
+                  >
+                    Sign In
+                  </Link>
+                  <Link
+                    to="/login?mode=signup"
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-green-600 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-green-600/20 hover:bg-green-700 transition-all hover:scale-[1.02]"
+                  >
+                    <UserPlus className="h-4 w-4" />
+                    <span>Register</span>
+                  </Link>
+                </>
+              )}
+            </div>
+
+            {/* Mobile Menu Hamburger Button */}
+            <button
+              onClick={() => setMobileMenuOpen((v) => !v)}
+              className="md:hidden rounded-xl border border-slate-200 bg-white p-2 text-slate-700 hover:border-slate-300 hover:bg-slate-50 transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
+              aria-label="Toggle navigation menu"
+            >
+              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </button>
           </div>
         </div>
+
+        {/* Mobile Navigation Drawer / Dropdown */}
+        {mobileMenuOpen && (
+          <div className="md:hidden border-t border-slate-200/80 bg-white/95 backdrop-blur-xl shadow-xl animate-in slide-in-from-top-2 duration-200">
+            <div className="mx-auto max-w-7xl px-4 py-4 space-y-3">
+              {/* Nav links */}
+              <div className="grid grid-cols-1 gap-1">
+                <a
+                  href="#marketplace"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-green-700 transition-colors"
+                >
+                  <Store className="h-4 w-4 text-green-600" />
+                  <span>Marketplace</span>
+                </a>
+
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false)
+                    handleFeatureAccess(
+                      '/dashboard',
+                      'IoT Farm Dashboard',
+                      'Sign in to access real-time root-zone sensor telemetry and automated irrigation controls.'
+                    )
+                  }}
+                  className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-green-700 transition-colors text-left"
+                >
+                  <Radio className="h-4 w-4 text-emerald-600 animate-pulse" />
+                  <span>IoT Farm Dashboard</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false)
+                    handleFeatureAccess(
+                      '/chatbot',
+                      'Multilingual AI Crop Doctor',
+                      'Sign in to consult our AI Crop Doctor for diagnostics in English, Urdu, or Sindhi.'
+                    )
+                  }}
+                  className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-green-700 transition-colors text-left"
+                >
+                  <MessageCircle className="h-4 w-4 text-indigo-600" />
+                  <span>AI Crop Doctor</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false)
+                    handleFeatureAccess(
+                      '/marketplace/seller',
+                      'Seller Center',
+                      'Sign in to set up your store profile, manage payment payout accounts, and sell products.'
+                    )
+                  }}
+                  className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-green-700 transition-colors text-left"
+                >
+                  <Store className="h-4 w-4 text-amber-600" />
+                  <span>Become a Seller</span>
+                </button>
+
+                <a
+                  href="#about"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-green-700 transition-colors"
+                >
+                  <Info className="h-4 w-4 text-slate-500" />
+                  <span>About Us</span>
+                </a>
+
+                <a
+                  href="#contact"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-green-700 transition-colors"
+                >
+                  <Phone className="h-4 w-4 text-slate-500" />
+                  <span>Contact &amp; Support</span>
+                </a>
+              </div>
+
+              {/* Mobile Auth actions */}
+              <div className="pt-3 border-t border-slate-100 space-y-2">
+                {isAuthenticated ? (
+                  <>
+                    <Link
+                      to="/dashboard"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex w-full items-center justify-center gap-2 rounded-xl bg-green-600 py-3 text-sm font-bold text-white shadow-md shadow-green-600/20 hover:bg-green-700 transition-all"
+                    >
+                      <LayoutDashboard className="h-4 w-4" />
+                      <span>Go to Dashboard</span>
+                    </Link>
+
+                    <button
+                      onClick={() => {
+                        setMobileMenuOpen(false)
+                        logout()
+                      }}
+                      className="flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors"
+                    >
+                      <span>Logout</span>
+                    </button>
+                  </>
+                ) : (
+                  <div className="grid grid-cols-2 gap-2">
+                    <Link
+                      to="/login"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex items-center justify-center rounded-xl border border-slate-200 bg-white py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+                    >
+                      Sign In
+                    </Link>
+                    <Link
+                      to="/login?mode=signup"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex items-center justify-center gap-1.5 rounded-xl bg-green-600 py-2.5 text-sm font-semibold text-white shadow-md shadow-green-600/20 hover:bg-green-700 transition-colors"
+                    >
+                      <UserPlus className="h-4 w-4" />
+                      <span>Register</span>
+                    </Link>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </header>
 
       {/* =========================================================
@@ -469,10 +618,10 @@ export default function LandingPage() {
               </p>
 
               {/* Action Buttons */}
-              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3.5 pt-2">
+              <div className="flex flex-col sm:flex-row flex-wrap items-center justify-center lg:justify-start gap-3 pt-2">
                 <a
                   href="#marketplace"
-                  className="inline-flex items-center gap-2 rounded-xl bg-lime-400 px-6 py-3.5 text-[15px] font-bold text-green-950 shadow-lg shadow-lime-400/25 hover:bg-lime-300 transition-all hover:scale-105"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-lime-400 px-6 py-3.5 text-[15px] font-bold text-green-950 shadow-lg shadow-lime-400/25 hover:bg-lime-300 transition-all hover:scale-105"
                 >
                   <ShoppingCart className="h-5 w-5" />
                   <span>Browse Marketplace</span>
@@ -486,7 +635,7 @@ export default function LandingPage() {
                       'Sign in to access live IoT sensors, root-zone telemetry, and automated drip irrigation controls.'
                     )
                   }
-                  className="inline-flex items-center gap-2 rounded-xl bg-white/15 px-5 py-3.5 text-[15px] font-semibold text-white ring-1 ring-white/20 backdrop-blur hover:bg-white/25 transition-all"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-white/15 px-5 py-3.5 text-[15px] font-semibold text-white ring-1 ring-white/20 backdrop-blur hover:bg-white/25 transition-all"
                 >
                   <Radio className="h-5 w-5 text-lime-300 animate-pulse" />
                   <span>IoT Farm Monitoring</span>
@@ -500,7 +649,7 @@ export default function LandingPage() {
                       'Sign in to diagnose crop diseases and get agricultural recommendations in English, Urdu, or Sindhi.'
                     )
                   }
-                  className="inline-flex items-center gap-2 rounded-xl bg-white/15 px-5 py-3.5 text-[15px] font-semibold text-white ring-1 ring-white/20 backdrop-blur hover:bg-white/25 transition-all"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-white/15 px-5 py-3.5 text-[15px] font-semibold text-white ring-1 ring-white/20 backdrop-blur hover:bg-white/25 transition-all"
                 >
                   <MessageCircle className="h-5 w-5 text-indigo-300" />
                   <span>AI Crop Doctor</span>
@@ -508,75 +657,75 @@ export default function LandingPage() {
               </div>
 
               {/* Trust Badges */}
-              <div className="pt-4 grid grid-cols-2 sm:grid-cols-4 gap-3 text-left">
-                <div className="rounded-xl bg-white/10 p-3 ring-1 ring-white/15 backdrop-blur">
-                  <p className="text-xl font-bold text-lime-300">100%</p>
-                  <p className="text-xs text-green-100/80">Certified Seeds &amp; Fertilizer</p>
+              <div className="pt-4 grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 text-left">
+                <div className="rounded-xl bg-white/10 p-2.5 sm:p-3 ring-1 ring-white/15 backdrop-blur">
+                  <p className="text-lg sm:text-xl font-bold text-lime-300">100%</p>
+                  <p className="text-[11px] sm:text-xs text-green-100/80 leading-tight">Certified Seeds &amp; Fertilizer</p>
                 </div>
-                <div className="rounded-xl bg-white/10 p-3 ring-1 ring-white/15 backdrop-blur">
-                  <p className="text-xl font-bold text-lime-300">24/7</p>
-                  <p className="text-xs text-green-100/80">Live IoT Telemetry</p>
+                <div className="rounded-xl bg-white/10 p-2.5 sm:p-3 ring-1 ring-white/15 backdrop-blur">
+                  <p className="text-lg sm:text-xl font-bold text-lime-300">24/7</p>
+                  <p className="text-[11px] sm:text-xs text-green-100/80 leading-tight">Live IoT Telemetry</p>
                 </div>
-                <div className="rounded-xl bg-white/10 p-3 ring-1 ring-white/15 backdrop-blur">
-                  <p className="text-xl font-bold text-lime-300">Multilingual</p>
-                  <p className="text-xs text-green-100/80">Urdu, Sindhi &amp; English AI</p>
+                <div className="rounded-xl bg-white/10 p-2.5 sm:p-3 ring-1 ring-white/15 backdrop-blur">
+                  <p className="text-base sm:text-xl font-bold text-lime-300 truncate">Multilingual</p>
+                  <p className="text-[11px] sm:text-xs text-green-100/80 leading-tight">Urdu, Sindhi &amp; English AI</p>
                 </div>
-                <div className="rounded-xl bg-white/10 p-3 ring-1 ring-white/15 backdrop-blur">
-                  <p className="text-xl font-bold text-lime-300">0% Fee</p>
-                  <p className="text-xs text-green-100/80">Direct Seller Store</p>
+                <div className="rounded-xl bg-white/10 p-2.5 sm:p-3 ring-1 ring-white/15 backdrop-blur">
+                  <p className="text-lg sm:text-xl font-bold text-lime-300">0% Fee</p>
+                  <p className="text-[11px] sm:text-xs text-green-100/80 leading-tight">Direct Seller Store</p>
                 </div>
               </div>
             </div>
 
             {/* Right Interactive Telemetry Preview */}
             <div className="lg:col-span-5">
-              <div className="relative rounded-2xl sm:rounded-3xl bg-white/10 p-5 sm:p-6 ring-1 ring-white/20 backdrop-blur-xl shadow-2xl space-y-4">
+              <div className="relative rounded-2xl sm:rounded-3xl bg-white/10 p-4 sm:p-6 ring-1 ring-white/20 backdrop-blur-xl shadow-2xl space-y-3.5 sm:space-y-4">
                 <div className="flex items-center justify-between border-b border-white/15 pb-3">
-                  <div className="flex items-center gap-2.5">
-                    <div className="h-3 w-3 rounded-full bg-emerald-400 animate-ping" />
-                    <span className="text-sm font-bold tracking-wide">Live Sensor Telemetry</span>
+                  <div className="flex items-center gap-2">
+                    <div className="h-2.5 w-2.5 rounded-full bg-emerald-400 animate-ping" />
+                    <span className="text-xs sm:text-sm font-bold tracking-wide">Live Sensor Telemetry</span>
                   </div>
-                  <span className="rounded-full bg-white/15 px-2.5 py-0.5 text-[11px] font-semibold text-lime-300">
+                  <span className="rounded-full bg-white/15 px-2 sm:px-2.5 py-0.5 text-[10px] sm:text-[11px] font-semibold text-lime-300">
                     Active Node: Sindh Field 01
                   </span>
                 </div>
 
                 {/* 4 Sensor Cards */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="rounded-xl bg-black/20 p-3.5 ring-1 ring-white/10">
-                    <div className="flex items-center justify-between text-xs text-green-200">
+                <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
+                  <div className="rounded-xl bg-black/20 p-2.5 sm:p-3.5 ring-1 ring-white/10">
+                    <div className="flex items-center justify-between text-[11px] sm:text-xs text-green-200">
                       <span>Soil Moisture</span>
-                      <Droplets className="h-4 w-4 text-emerald-400" />
+                      <Droplets className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-emerald-400 shrink-0" />
                     </div>
-                    <p className="mt-1 text-2xl font-black text-white">58.5%</p>
-                    <p className="text-[11px] text-emerald-300 font-medium">Optimal root-zone</p>
+                    <p className="mt-1 text-xl sm:text-2xl font-black text-white">58.5%</p>
+                    <p className="text-[10px] sm:text-[11px] text-emerald-300 font-medium truncate">Optimal root-zone</p>
                   </div>
 
-                  <div className="rounded-xl bg-black/20 p-3.5 ring-1 ring-white/10">
-                    <div className="flex items-center justify-between text-xs text-green-200">
+                  <div className="rounded-xl bg-black/20 p-2.5 sm:p-3.5 ring-1 ring-white/10">
+                    <div className="flex items-center justify-between text-[11px] sm:text-xs text-green-200">
                       <span>Temperature</span>
-                      <Thermometer className="h-4 w-4 text-amber-400" />
+                      <Thermometer className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-amber-400 shrink-0" />
                     </div>
-                    <p className="mt-1 text-2xl font-black text-white">26.4°C</p>
-                    <p className="text-[11px] text-amber-300 font-medium">Warm &amp; Sunny</p>
+                    <p className="mt-1 text-xl sm:text-2xl font-black text-white">26.4°C</p>
+                    <p className="text-[10px] sm:text-[11px] text-amber-300 font-medium truncate">Warm &amp; Sunny</p>
                   </div>
 
-                  <div className="rounded-xl bg-black/20 p-3.5 ring-1 ring-white/10">
-                    <div className="flex items-center justify-between text-xs text-green-200">
+                  <div className="rounded-xl bg-black/20 p-2.5 sm:p-3.5 ring-1 ring-white/10">
+                    <div className="flex items-center justify-between text-[11px] sm:text-xs text-green-200">
                       <span>Air Humidity</span>
-                      <Wind className="h-4 w-4 text-sky-400" />
+                      <Wind className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-sky-400 shrink-0" />
                     </div>
-                    <p className="mt-1 text-2xl font-black text-white">62.0%</p>
-                    <p className="text-[11px] text-sky-300 font-medium">Normal transpiration</p>
+                    <p className="mt-1 text-xl sm:text-2xl font-black text-white">62.0%</p>
+                    <p className="text-[10px] sm:text-[11px] text-sky-300 font-medium truncate">Normal transpiration</p>
                   </div>
 
-                  <div className="rounded-xl bg-black/20 p-3.5 ring-1 ring-white/10">
-                    <div className="flex items-center justify-between text-xs text-green-200">
+                  <div className="rounded-xl bg-black/20 p-2.5 sm:p-3.5 ring-1 ring-white/10">
+                    <div className="flex items-center justify-between text-[11px] sm:text-xs text-green-200">
                       <span>Water Tank</span>
-                      <Layers className="h-4 w-4 text-indigo-400" />
+                      <Layers className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-indigo-400 shrink-0" />
                     </div>
-                    <p className="mt-1 text-2xl font-black text-white">85.0%</p>
-                    <p className="text-[11px] text-indigo-300 font-medium">Pumps Ready</p>
+                    <p className="mt-1 text-xl sm:text-2xl font-black text-white">85.0%</p>
+                    <p className="text-[10px] sm:text-[11px] text-indigo-300 font-medium truncate">Pumps Ready</p>
                   </div>
                 </div>
 
@@ -655,7 +804,7 @@ export default function LandingPage() {
         </div>
 
         {/* Category Filter Pills */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-4 scrollbar-none">
+        <div className="flex items-center gap-2 overflow-x-auto pb-3 pt-1 no-scrollbar touch-pan-x">
           {CATEGORIES.map((cat) => {
             const Icon = cat.icon
             const active = selectedCategory === cat.id
@@ -988,9 +1137,9 @@ export default function LandingPage() {
             <img
               src="https://images.unsplash.com/photo-1592982537447-7440770cbfc9?w=900"
               alt="Pakistani Agriculture"
-              className="w-full h-[380px] object-cover"
+              className="w-full h-[240px] sm:h-[380px] object-cover"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent flex items-end p-8">
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent flex items-end p-5 sm:p-8">
               <div className="text-white">
                 <p className="text-xs font-bold uppercase tracking-wider text-lime-300">Sindh Agri Corridor</p>
                 <h3 className="text-xl font-bold mt-1">Hyderabad &amp; Tando Jam Agri Hub</h3>
@@ -1127,7 +1276,7 @@ export default function LandingPage() {
             <span className="font-semibold text-white">SmartKisan</span>
             <span>&copy; {new Date().getFullYear()} All Rights Reserved.</span>
           </div>
-          <div className="flex items-center gap-6">
+          <div className="flex flex-wrap justify-center sm:justify-end items-center gap-x-5 gap-y-2 text-center">
             <a href="#marketplace" className="hover:text-white transition-colors">Marketplace</a>
             <a href="#about" className="hover:text-white transition-colors">About Us</a>
             <a href="#contact" className="hover:text-white transition-colors">Contact</a>
@@ -1141,7 +1290,7 @@ export default function LandingPage() {
       ========================================================= */}
       {gateModal.isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-          <div className="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl border border-slate-200">
+          <div className="relative w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl bg-white p-5 sm:p-6 shadow-2xl border border-slate-200">
             <button
               onClick={() => setGateModal({ ...gateModal, isOpen: false })}
               className="absolute right-4 top-4 rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
@@ -1192,16 +1341,16 @@ export default function LandingPage() {
           PRODUCT DETAIL MODAL
       ========================================================= */}
       {selectedProduct && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-          <div className="relative w-full max-w-2xl rounded-3xl bg-white p-6 shadow-2xl border border-slate-200 overflow-hidden">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-3 sm:p-4 animate-in fade-in duration-200">
+          <div className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl sm:rounded-3xl bg-white p-4 sm:p-6 shadow-2xl border border-slate-200">
             <button
               onClick={() => setSelectedProduct(null)}
-              className="absolute right-4 top-4 z-10 rounded-full bg-white/80 p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-800 transition-colors shadow"
+              className="absolute right-3.5 top-3.5 z-10 rounded-full bg-white/90 p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-800 transition-colors shadow ring-1 ring-black/5"
             >
               <X className="h-5 w-5" />
             </button>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 items-start">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6 items-start">
               <div className="aspect-square w-full rounded-2xl overflow-hidden bg-slate-100">
                 <img
                   src={selectedProduct.images?.[0] || selectedProduct.imageUrl || selectedProduct.image}
@@ -1232,11 +1381,11 @@ export default function LandingPage() {
                   )}
                 </div>
 
-                <p className="text-xs text-slate-600 leading-relaxed max-h-36 overflow-y-auto">
+                <p className="text-xs text-slate-600 leading-relaxed">
                   {selectedProduct.description}
                 </p>
 
-                <div className="pt-2 flex gap-2.5">
+                <div className="pt-2 flex flex-col sm:flex-row gap-2.5">
                   <button
                     onClick={() => {
                       handleAddToCart(selectedProduct)
