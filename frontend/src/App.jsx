@@ -3,7 +3,6 @@ import { useAuthContext } from './context/AuthContext'
 import Layout from './components/layout/Layout'
 import ProtectedRoute from './components/ProtectedRoute'
 import LandingPage from './pages/LandingPage'
-import UserPortalHub from './pages/UserPortalHub'
 import Login from './pages/Login'
 import OAuthCallback from './pages/OAuthCallback'
 import IoTDashboard from './pages/IoTDashboard'
@@ -48,8 +47,7 @@ function App() {
           isAuthenticated ? (
             <Layout>
               <Routes>
-                <Route path="/" element={<Navigate to="/hub" replace />} />
-                <Route path="/hub" element={<UserPortalHub />} />
+                <Route path="/" element={<Navigate to="/dashboard" replace />} />
                 <Route path="/dashboard" element={<IoTDashboard />} />
                 <Route path="/live-monitoring" element={<LiveMonitoring />} />
                 <Route path="/sensor-details" element={<SensorDetails />} />
@@ -89,7 +87,7 @@ function App() {
                 />
 
                 {/* Fallback */}
-                <Route path="*" element={<Navigate to="/hub" replace />} />
+                <Route path="*" element={<Navigate to="/dashboard" replace />} />
               </Routes>
             </Layout>
           ) : (

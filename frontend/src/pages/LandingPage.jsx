@@ -26,7 +26,7 @@ import {
   ExternalLink,
   LogIn,
   UserPlus,
-  Compass,
+  LayoutDashboard,
   X,
   Sparkles,
   ChevronRight,
@@ -397,11 +397,11 @@ export default function LandingPage() {
             {isAuthenticated ? (
               <div className="flex items-center gap-2">
                 <Link
-                  to="/hub"
+                  to="/dashboard"
                   className="inline-flex items-center gap-2 rounded-xl bg-green-600 px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-green-600/20 hover:bg-green-700 transition-all hover:scale-[1.02]"
                 >
-                  <Compass className="h-4 w-4" />
-                  <span>My Portal Hub</span>
+                  <LayoutDashboard className="h-4 w-4" />
+                  <span>Dashboard</span>
                 </Link>
                 <button
                   onClick={logout}

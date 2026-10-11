@@ -17,7 +17,6 @@ import {
   ChevronRight,
   Leaf,
   X,
-  Compass,
   Store,
 } from 'lucide-react'
 import useStore from '../../store/useStore'
@@ -30,7 +29,6 @@ const menuGroups = [
   {
     label: 'Overview',
     items: [
-      { path: '/hub', icon: Compass, label: 'Portal Hub' },
       { path: '/dashboard', icon: LayoutDashboard, label: 'IoT Dashboard' },
       { path: '/live-monitoring', icon: Radio, label: 'Live Monitoring' },
       { path: '/sensor-details', icon: Gauge, label: 'Sensor Details' },

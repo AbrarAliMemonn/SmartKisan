@@ -132,7 +132,7 @@ export default function Login() {
 
   const getRedirectTarget = () => {
     const params = new URLSearchParams(window.location.search)
-    return params.get('redirect') || '/hub'
+    return params.get('redirect') || '/dashboard'
   }
 
   // view: 'auth' (sign in / sign up) | 'verify' | 'forgot' | 'reset'
