@@ -8,7 +8,7 @@ import { EmptyState } from './Marketplace'
 
 export default function Cart() {
   const navigate = useNavigate()
-  const { cartItems, updateCartQty, removeFromCart } = useStore()
+  const { cartItems, updateCartQty, removeFromCart, clearCart } = useStore()
 
   const subtotal = cartItems.reduce((sum, c) => sum + c.price * c.qty, 0)
   const itemCount = cartItems.reduce((s, i) => s + i.qty, 0)
@@ -52,13 +52,23 @@ export default function Cart() {
         <ChevronLeft size={16} /> Continue Shopping
       </button>
 
-      <div className="flex items-baseline gap-2">
-        <h1 className="page-title">
-          Your Cart
-        </h1>
-        <span className="text-sm text-slate-400">
-          {itemCount} {itemCount === 1 ? 'item' : 'items'}
-        </span>
+      <div className="flex items-center justify-between">
+        <div className="flex items-baseline gap-2">
+          <h1 className="page-title">
+            Your Cart
+          </h1>
+          <span className="text-sm text-slate-400">
+            {itemCount} {itemCount === 1 ? 'item' : 'items'}
+          </span>
+        </div>
+
+        <button
+          onClick={() => clearCart()}
+          className="flex items-center gap-1.5 text-xs font-semibold text-red-500 hover:text-red-700 transition-colors px-2.5 py-1.5 rounded-lg border border-red-200 hover:bg-red-50 dark:border-red-900/40 dark:hover:bg-red-500/10"
+        >
+          <Trash2 size={13} />
+          <span>Clear All</span>
+        </button>
       </div>
 
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">

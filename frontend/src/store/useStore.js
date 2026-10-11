@@ -135,7 +135,7 @@ const useStore = create(
         set((state) => ({ wishlist: state.wishlist.filter((w) => w.productId !== productId) })),
     }),
     {
-      name: 'smart-agri-marketplace-storage',
+      name: 'smartkisan-marketplace-storage-v2',
       partialize: (state) => ({ cartItems: state.cartItems, wishlist: state.wishlist }),
     }
   )

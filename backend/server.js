@@ -2204,20 +2204,20 @@ const server = http.createServer(async (req, res) => {
     const body = await parseBody(req);
     const newOrder = {
       id: orders.length + 101,
-      buyerId: currentUser.id,
+      buyerId: currentUser?.id || 1,
       sellerId: body.sellerId || 1,
       sellerShopName: body.sellerShopName || 'SmartKisan Agro Hub',
       status: 'PENDING',
       subtotal: body.subtotal || body.totalAmount || 5000,
       discountAmount: body.discountAmount || 0,
-      deliveryCharge: body.deliveryCharge || 250,
-      totalAmount: body.totalAmount || 5250,
+      deliveryCharge: body.deliveryCharge !== undefined ? body.deliveryCharge : 0,
+      totalAmount: body.totalAmount || body.subtotal || 5000,
       couponCode: body.couponCode || '',
-      deliveryAddress: body.deliveryAddress || currentUser.location || 'Hyderabad, Sindh, Pakistan',
+      deliveryAddress: body.deliveryAddress || body.address || currentUser.location || 'Hyderabad, Sindh, Pakistan',
       city: body.city || 'Hyderabad',
       province: body.province || 'Sindh',
       phone: body.phone || currentUser.phone || '+92 300 1234567',
-      buyerName: currentUser.name || 'Valued Farmer',
+      buyerName: body.buyerName || body.name || currentUser.name || 'Valued Farmer',
       items: body.items && body.items.length ? body.items : [
         {
           id: 1,
@@ -2234,8 +2234,9 @@ const server = http.createServer(async (req, res) => {
         id: orders.length + 1,
         paymentMethod: body.paymentMethod || 'CASH_ON_DELIVERY',
         paymentStatus: body.paymentMethod === 'CASH_ON_DELIVERY' ? 'PENDING' : 'PAID',
-        amount: body.totalAmount || 5250,
+        amount: body.totalAmount || body.subtotal || 5000,
         paidAt: new Date().toISOString(),
+        transactionReference: body.transactionReference || '',
       },
     };
     orders.unshift(newOrder);
