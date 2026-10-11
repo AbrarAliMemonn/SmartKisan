@@ -52,17 +52,17 @@ export default function UserPortalHub() {
           </div>
 
           <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight">
-            Assalam-o-Alaikum, {displayName}! 👋
+            Welcome back, {displayName}! 👋
           </h1>
 
           <p className="text-sm sm:text-base text-green-100/90 leading-relaxed">
-            SmartKisan Portal mein khush aamdeed. Aap aaj kya karna chahte hain? Neeche diye gaye options mein se apna matlooba module muntakhib karein:
+            Welcome to the SmartKisan Portal. What would you like to explore today? Select any module below to launch:
           </p>
         </div>
       </div>
 
       {/* =========================================================
-          MODULE LAUNCHER GRID ("Aap kya karna chahte hain?")
+          MODULE LAUNCHER GRID (Select a module)
       ========================================================= */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* 1. IoT Farm Dashboard */}
@@ -82,7 +82,7 @@ export default function UserPortalHub() {
                 📡 IoT Smart Farm Dashboard
               </h2>
               <p className="mt-1 text-xs text-slate-500 leading-relaxed dark:text-slate-400">
-                Live sensor readings (Soil Moisture, Temperature, Humidity, Water Level) aur automated irrigation switch controls.
+                Live sensor telemetry (Soil Moisture, Temperature, Humidity, Water Level) and automated irrigation pump controls.
               </p>
             </div>
 
@@ -148,7 +148,7 @@ export default function UserPortalHub() {
                 🏪 Seller Center / Manage Store
               </h2>
               <p className="mt-1 text-xs text-slate-500 leading-relaxed dark:text-slate-400">
-                Apna agricultural store manage karein: Store logo, bank &amp; JazzCash/EasyPaisa accounts, products add/edit/delete aur orders.
+                Manage your agricultural store: update storefront branding, payout bank &amp; mobile wallets, manage inventory, and track incoming orders.
               </p>
             </div>
 
@@ -214,7 +214,7 @@ export default function UserPortalHub() {
                 🤖 AI Crop Doctor &amp; Advisor
               </h2>
               <p className="mt-1 text-xs text-slate-500 leading-relaxed dark:text-slate-400">
-                Urdu, Sindhi aur English mein faslon ki bimariyon ki tashkhees, khad ka schedule aur zameen ki tayari ke mashware maahir AI se lein.
+                Instant crop disease diagnosis, customized fertilization schedules, and regional agronomy advice in English, Urdu, and Sindhi.
               </p>
             </div>
 
@@ -263,7 +263,7 @@ export default function UserPortalHub() {
                 🛒 Marketplace Shopping (Buy)
               </h2>
               <p className="mt-1 text-xs text-slate-500 leading-relaxed dark:text-slate-400">
-                Certified beej, high-yield fertilizers, micro-irrigation kits aur zaraye aalaat direct khareedein.
+                Purchase certified seeds, high-yield fertilizers, micro-irrigation kits, and modern farm implements directly from trusted suppliers.
               </p>
             </div>
 
@@ -313,7 +313,7 @@ export default function UserPortalHub() {
                 🌤️ Live Weather &amp; Forecast
               </h2>
               <p className="mt-1 text-xs text-slate-500 leading-relaxed dark:text-slate-400">
-                Hyderabad, Sukkur, Multan aur Pakistani agricultural belts ka live mausam, barish aur darja-e-hararat.
+                Real-time weather telemetry, precipitation forecasts, and temperature radar for regional agricultural belts.
               </p>
             </div>
 
@@ -355,7 +355,7 @@ export default function UserPortalHub() {
                   🛡️ Admin Panel &amp; Approvals
                 </h2>
                 <p className="mt-1 text-xs text-slate-500 leading-relaxed dark:text-slate-400">
-                  Registered users, seller requests, product approvals aur payment verification queue manage karein.
+                  Manage registered users, review seller onboarding requests, approve product listings, and audit system operations.
                 </p>
               </div>
 

@@ -309,7 +309,7 @@ export default function Login() {
     }
 
     if ((formData.requestedServices || []).length === 0) {
-      setFormError('Barah-e-karam kam az kam ek maqsad (check box) muntakhib karein.')
+      setFormError('Please select at least one purpose/module checkbox.')
       return
     }
 
@@ -914,14 +914,14 @@ export default function Login() {
                               </div>
                             </div>
 
-                            {/* Aap SmartKisan par kya karna chahte hain? */}
+                            {/* What would you like to do on SmartKisan? */}
                             <div className="pt-2">
                               <label className={labelClass}>
-                                Aap SmartKisan par kya karna chahte hain?{' '}
+                                What would you like to do on SmartKisan?{' '}
                                 <span className="text-red-500">*</span>
                               </label>
                               <p className="text-[12px] text-slate-500 mb-2.5">
-                                Apni zaroorat ke mutabiq modules chunain (Admin approval ke baad activate honge):
+                                Select modules matching your agricultural needs (activated upon Admin verification):
                               </p>
 
                               <div className="space-y-2">
@@ -929,22 +929,22 @@ export default function Login() {
                                   {
                                     id: 'IOT_FARMING',
                                     title: '📡 IoT Farm & Sensor Monitoring',
-                                    desc: 'Khet ke sensors, zameen ki nami aur automatic paani ke pumps monitor karna',
+                                    desc: 'Monitor field sensors, root-zone soil moisture, and automated irrigation pumps',
                                   },
                                   {
                                     id: 'BECOME_SELLER',
                                     title: '🏪 Sell Agri Products / Become a Seller',
-                                    desc: 'Marketplace par apni dukan banana, beej, khad ya fasal bechna (Admin approval)',
+                                    desc: 'Open your farm storefront to sell seeds, crops, fertilizers, or tools (Admin approval)',
                                   },
                                   {
                                     id: 'AI_ADVISORY',
                                     title: '🤖 Multilingual AI Crop Doctor',
-                                    desc: 'Urdu aur Sindhi mein faslon ki bimariyon aur behtareen paidaawar ke mashware',
+                                    desc: 'Consult AI for crop disease diagnostics and advisory in English, Urdu, or Sindhi',
                                   },
                                   {
                                     id: 'BUY_PRODUCTS',
                                     title: '🛒 Buy Agricultural Supplies',
-                                    desc: 'Taqseem-shuda beej, fertilizers, drip kits aur zaraye aalaat khareedna',
+                                    desc: 'Purchase certified seeds, high-yield fertilizers, drip kits, and farm machinery',
                                   },
                                 ].map((service) => {
                                   const isChecked = (formData.requestedServices || []).includes(service.id)

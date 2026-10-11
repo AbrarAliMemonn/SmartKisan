@@ -256,7 +256,7 @@ export default function LandingPage() {
       imageUrl: product.imageUrl || product.images?.[0],
       stock: product.stock,
     })
-    toast.success(`${product.title} cart mein add ho gaya! 🛒`)
+    toast.success(`${product.title} added to cart! 🛒`)
   }
 
   const handleBuyNow = (product, e) => {
@@ -279,7 +279,7 @@ export default function LandingPage() {
       setGateModal({
         isOpen: true,
         title: 'Checkout & Place Order',
-        subtitle: 'Apna order confirm karne aur delivery details darj karne ke liye sign in karein.',
+        subtitle: 'Please sign in to enter delivery details and confirm your order.',
         targetRoute: '/marketplace/checkout',
       })
     }
@@ -288,13 +288,13 @@ export default function LandingPage() {
   const handleContactSubmit = (e) => {
     e.preventDefault()
     if (!contactForm.name || !contactForm.email || !contactForm.message) {
-      toast.error('Barah-e-karam apna naam, email aur paigham darj karein.')
+      toast.error('Please enter your full name, email address, and message.')
       return
     }
     setContactSubmitting(true)
     setTimeout(() => {
       setContactSubmitting(false)
-      toast.success('Shukriya! Aapka paigham SmartKisan team ko pohnch gya hai. Hum jald rabta karenge.')
+      toast.success('Thank you! Your message has been sent to the SmartKisan team. We will get back to you shortly.')
       setContactForm({ name: '', email: '', phone: '', message: '' })
     }, 900)
   }
@@ -315,7 +315,7 @@ export default function LandingPage() {
               <span className="text-xl font-bold tracking-tight text-slate-900 flex items-center gap-1.5">
                 SmartKisan
                 <span className="rounded-full bg-lime-100 px-2 py-0.5 text-[10px] font-bold text-green-800 uppercase tracking-wider">
-                  IoT & Market
+                  IoT &amp; Market
                 </span>
               </span>
               <p className="text-[11px] font-medium text-slate-500 leading-none">
@@ -334,7 +334,7 @@ export default function LandingPage() {
                 handleFeatureAccess(
                   '/dashboard',
                   'IoT Farm Dashboard',
-                  'Apne khet ke sensors aur real-time zameen ki nami monitor karne ke liye login karein.'
+                  'Sign in to access real-time root-zone sensor telemetry and automated irrigation controls.'
                 )
               }
               className="hover:text-green-700 transition-colors flex items-center gap-1"
@@ -347,7 +347,7 @@ export default function LandingPage() {
                 handleFeatureAccess(
                   '/chatbot',
                   'Multilingual AI Crop Doctor',
-                  'Urdu aur Sindhi mein faslon ki bimariyon aur behtareen mashwaron ke liye login karein.'
+                  'Sign in to consult our AI Crop Doctor for diagnostics in English, Urdu, or Sindhi.'
                 )
               }
               className="hover:text-green-700 transition-colors flex items-center gap-1"
@@ -360,7 +360,7 @@ export default function LandingPage() {
                 handleFeatureAccess(
                   '/marketplace/seller',
                   'Seller Center',
-                  'Apna farm store chalane, beej aur khad bechne aur payment accounts set karne ke liye login karein.'
+                  'Sign in to set up your store profile, manage payment payout accounts, and sell products.'
                 )
               }
               className="hover:text-green-700 transition-colors flex items-center gap-1"
@@ -381,11 +381,10 @@ export default function LandingPage() {
             {/* Cart Button */}
             <button
               onClick={() => {
-                if (isAuthenticated) navigate('/marketplace/cart')
-                else navigate('/marketplace/cart')
+                navigate('/marketplace/cart')
               }}
               className="relative rounded-xl border border-slate-200 bg-white p-2.5 text-slate-700 hover:border-slate-300 hover:bg-slate-50 transition-colors shadow-sm"
-              title="Cart"
+              title="Shopping Cart"
             >
               <ShoppingCart className="h-5 w-5 text-slate-700" />
               {cartItems.length > 0 && (
@@ -466,7 +465,7 @@ export default function LandingPage() {
               </h1>
 
               <p className="mx-auto lg:mx-0 max-w-2xl text-base sm:text-lg text-green-100/90 leading-relaxed">
-                Khet ki zameen aur paani ko IoT sensors se monitor karein, Urdu aur Sindhi mein AI Crop Doctor se mashwara lein, aur baghair kisi commission ke certified beej, khad aur fasal khareedein aur bechein.
+                Monitor soil moisture and irrigation with real-time IoT sensors, consult our intelligent AI Crop Doctor in your local language, and buy or sell certified agricultural supplies directly with zero middleman commission.
               </p>
 
               {/* Action Buttons */}
@@ -484,7 +483,7 @@ export default function LandingPage() {
                     handleFeatureAccess(
                       '/dashboard',
                       'IoT Precision Farm Dashboard',
-                      'Live hardware sensors, soil moisture (58.5%), aur automatic drip irrigation dekhne ke liye sign in karein.'
+                      'Sign in to access live IoT sensors, root-zone telemetry, and automated drip irrigation controls.'
                     )
                   }
                   className="inline-flex items-center gap-2 rounded-xl bg-white/15 px-5 py-3.5 text-[15px] font-semibold text-white ring-1 ring-white/20 backdrop-blur hover:bg-white/25 transition-all"
@@ -498,7 +497,7 @@ export default function LandingPage() {
                     handleFeatureAccess(
                       '/chatbot',
                       'AI Agriculture Advisor',
-                      'Urdu aur Sindhi mein bimariyon ki tashkhees aur mashwaron ke liye sign in karein.'
+                      'Sign in to diagnose crop diseases and get agricultural recommendations in English, Urdu, or Sindhi.'
                     )
                   }
                   className="inline-flex items-center gap-2 rounded-xl bg-white/15 px-5 py-3.5 text-[15px] font-semibold text-white ring-1 ring-white/20 backdrop-blur hover:bg-white/25 transition-all"
@@ -512,15 +511,15 @@ export default function LandingPage() {
               <div className="pt-4 grid grid-cols-2 sm:grid-cols-4 gap-3 text-left">
                 <div className="rounded-xl bg-white/10 p-3 ring-1 ring-white/15 backdrop-blur">
                   <p className="text-xl font-bold text-lime-300">100%</p>
-                  <p className="text-xs text-green-100/80">Certified Seeds &amp; Khad</p>
+                  <p className="text-xs text-green-100/80">Certified Seeds &amp; Fertilizer</p>
                 </div>
                 <div className="rounded-xl bg-white/10 p-3 ring-1 ring-white/15 backdrop-blur">
                   <p className="text-xl font-bold text-lime-300">24/7</p>
                   <p className="text-xs text-green-100/80">Live IoT Telemetry</p>
                 </div>
                 <div className="rounded-xl bg-white/10 p-3 ring-1 ring-white/15 backdrop-blur">
-                  <p className="text-xl font-bold text-lime-300">Urdu &amp; Sindhi</p>
-                  <p className="text-xs text-green-100/80">AI Voice &amp; Chat</p>
+                  <p className="text-xl font-bold text-lime-300">Multilingual</p>
+                  <p className="text-xs text-green-100/80">Urdu, Sindhi &amp; English AI</p>
                 </div>
                 <div className="rounded-xl bg-white/10 p-3 ring-1 ring-white/15 backdrop-blur">
                   <p className="text-xl font-bold text-lime-300">0% Fee</p>
@@ -602,7 +601,7 @@ export default function LandingPage() {
                     handleFeatureAccess(
                       '/dashboard',
                       'Full IoT Dashboard',
-                      'Khet ke sensors aur automated switches ko control karne ke liye account login karein.'
+                      'Sign in to monitor live sensors and control automated irrigation switches.'
                     )
                   }
                   className="w-full rounded-xl bg-white/20 py-2.5 text-center text-xs font-bold text-white hover:bg-white/30 transition-colors flex items-center justify-center gap-2"
@@ -627,10 +626,10 @@ export default function LandingPage() {
               <span>Direct Agricultural Marketplace</span>
             </div>
             <h2 className="mt-2 text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
-              Taqseem-shuda Beej, Khad &amp; Zaraye Samaan
+              Certified Seeds, Fertilizers &amp; Agricultural Equipment
             </h2>
             <p className="mt-1 text-sm text-slate-500 max-w-2xl">
-              Buy verified seeds, bio-fertilizers, solar irrigation equipment, and machinery directly from certified Pakistani sellers.
+              Buy verified seeds, bio-fertilizers, solar irrigation kits, and farm machinery directly from certified Pakistani sellers.
             </p>
           </div>
 
@@ -692,9 +691,9 @@ export default function LandingPage() {
         ) : filteredProducts.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-12 text-center my-8">
             <Package className="mx-auto h-12 w-12 text-slate-300" />
-            <h3 className="mt-3 text-base font-bold text-slate-800">Koi product nahi mila</h3>
+            <h3 className="mt-3 text-base font-bold text-slate-800">No products found</h3>
             <p className="mt-1 text-xs text-slate-500">
-              Apni search change karein ya doosri category select karein.
+              Try adjusting your search query or select another category.
             </p>
             <button
               onClick={() => {
@@ -805,10 +804,10 @@ export default function LandingPage() {
               Smart Ecosystem
             </span>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
-              SmartKisan Ke Aham Khad-o-Khaal
+              Key Features &amp; Platform Capabilities
             </h2>
             <p className="text-sm sm:text-base text-slate-600">
-              Humara maqsad Pakistani kisan ko jadid tareen technology faraham karna hai. Har module kisan ki paidaawar aur aamdani barhanay ke liye banaya gaya hai.
+              Empowering farmers with modern agricultural technology. Every module is purpose-built to maximize crop yield, conserve resources, and boost profitability.
             </p>
           </div>
 
@@ -823,23 +822,23 @@ export default function LandingPage() {
                   Hardware &amp; Telemetry
                 </div>
                 <h3 className="text-xl font-bold text-slate-900">
-                  1. IoT Smart Farm Monitoring
+                  1. IoT Precision Farm Monitoring
                 </h3>
                 <p className="text-sm text-slate-600 leading-relaxed">
-                  Zameen ki nami (Soil Moisture), darja-e-hararat, aur automatic drip irrigation pumps ka real-time control. Paani ki 40% tak bachat karein.
+                  Real-time monitoring of root-zone soil moisture, temperature, humidity, and automated drip irrigation. Save up to 40% water while maintaining peak crop health.
                 </p>
                 <ul className="text-xs text-slate-600 space-y-2 pt-2">
                   <li className="flex items-center gap-2">
                     <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-                    <span>Real-time ESP32 / Arduino sensor feed</span>
+                    <span>Real-time ESP32 / Arduino sensor feeds</span>
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-                    <span>Auto-Irrigation Pump toggles &amp; alerts</span>
+                    <span>Automated irrigation pump controls &amp; alerts</span>
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-                    <span>Historical trend analytics &amp; moisture charts</span>
+                    <span>Historical trend analytics &amp; moisture telemetry</span>
                   </li>
                 </ul>
               </div>
@@ -849,7 +848,7 @@ export default function LandingPage() {
                   handleFeatureAccess(
                     '/dashboard',
                     'IoT Smart Farm Console',
-                    'Khet ke sensors aur auto-irrigation controls tak rasai ke liye account sign in karein.'
+                    'Sign in to access field sensor telemetry and automated irrigation controls.'
                   )
                 }
                 className="w-full rounded-xl bg-emerald-600 py-3 text-sm font-bold text-white shadow-md shadow-emerald-600/20 hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2"
@@ -872,21 +871,22 @@ export default function LandingPage() {
                   2. Multilingual AI Crop Doctor
                 </h3>
                 <p className="text-sm text-slate-600 leading-relaxed">
-                  Urdu, Sindhi aur English mein faslon ki bimariyon, keeron aur khad ke schedule par maahirana mashwara haasil karein.
+                  Get instant expert advisory on crop diseases, pest management, and fertilizer schedules in English, Urdu, and Sindhi.
                 </p>
                 <div className="rounded-xl bg-indigo-50/50 p-3 border border-indigo-100 space-y-2">
-                  <p className="text-[11px] font-bold text-indigo-900">Misaali Sawaalat:</p>
+                  <p className="text-[11px] font-bold text-indigo-900">Sample AI Inquiries (English, Urdu &amp; Sindhi):</p>
+                  <p className="text-xs text-indigo-800 italic">&ldquo;How much irrigation does wheat need this week?&rdquo;</p>
                   <p className="text-xs text-indigo-800 italic">&ldquo;گندم کے لیے اس ہفتے کتنا پانی درکار ہے؟&rdquo;</p>
                   <p className="text-xs text-indigo-800 italic">&ldquo;ڪڻڪ ۽ ڦٽي لاءِ پهرين پاڻي تي ڪهڙو ڀاڻ وجهجي؟&rdquo;</p>
                 </div>
                 <ul className="text-xs text-slate-600 space-y-2">
                   <li className="flex items-center gap-2">
                     <CheckCircle2 className="h-4 w-4 text-indigo-600" />
-                    <span>Bilingual voice &amp; text recognition</span>
+                    <span>Multilingual voice &amp; text understanding</span>
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckCircle2 className="h-4 w-4 text-indigo-600" />
-                    <span>Real-time sensor grounded responses</span>
+                    <span>Grounded in real-time IoT sensor telemetry</span>
                   </li>
                 </ul>
               </div>
@@ -896,7 +896,7 @@ export default function LandingPage() {
                   handleFeatureAccess(
                     '/chatbot',
                     'AI Agriculture Doctor',
-                    'Faslon ke mashwaron ke liye AI Crop Doctor se baat cheet shuru karein.'
+                    'Sign in to consult the AI Crop Doctor.'
                   )
                 }
                 className="w-full rounded-xl bg-indigo-600 py-3 text-sm font-bold text-white shadow-md shadow-indigo-600/20 hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2"
@@ -919,12 +919,12 @@ export default function LandingPage() {
                   3. Become a Seller &amp; Run Store
                 </h3>
                 <p className="text-sm text-slate-600 leading-relaxed">
-                  Apna official store banayein. Logo, shop details, payment accounts (EasyPaisa, JazzCash, Bank) configure karein aur products direct bechein.
+                  Launch your official farm storefront. Configure store branding, payment payout accounts (Bank, EasyPaisa, JazzCash), and sell products directly nationwide.
                 </p>
                 <ul className="text-xs text-slate-600 space-y-2 pt-2">
                   <li className="flex items-center gap-2">
                     <CheckCircle2 className="h-4 w-4 text-amber-600" />
-                    <span>Product add, update, delete &amp; inventory control</span>
+                    <span>Add, update, delete products &amp; inventory control</span>
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckCircle2 className="h-4 w-4 text-amber-600" />
@@ -932,7 +932,7 @@ export default function LandingPage() {
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckCircle2 className="h-4 w-4 text-amber-600" />
-                    <span>Direct payments to JazzCash / EasyPaisa</span>
+                    <span>Direct payouts to JazzCash, EasyPaisa &amp; Bank</span>
                   </li>
                 </ul>
               </div>
@@ -942,7 +942,7 @@ export default function LandingPage() {
                   handleFeatureAccess(
                     '/marketplace/seller',
                     'Seller Dashboard & Store Management',
-                    'Apna store create aur manage karne ke liye sign in karein.'
+                    'Sign in to create and manage your seller storefront.'
                   )
                 }
                 className="w-full rounded-xl bg-amber-600 py-3 text-sm font-bold text-white shadow-md shadow-amber-600/20 hover:bg-amber-700 transition-colors flex items-center justify-center gap-2"
@@ -965,21 +965,21 @@ export default function LandingPage() {
               About SmartKisan
             </span>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">
-              Jadid Zaraye Inqilab: Pakistani Kisanon Ke Liye Mukammal Nizam
+              Modern Agricultural Revolution: A Complete Platform for Farmers
             </h2>
             <p className="text-slate-600 leading-relaxed text-sm sm:text-base">
-              SmartKisan Sindh aur Punjab ke zameendaron aur kisanon ke liye tayar kia gaya eik comprehensive platform hai. Hum traditional farming ko IoT sensors, AI machine learning aur e-commerce ke zariye munafa-bakhsh banatay hain.
+              SmartKisan is an end-to-end platform engineered for farmers and agricultural producers across Pakistan. We transform traditional agriculture into a data-driven, high-yield enterprise through IoT edge telemetry, intelligent advisory, and a commission-free direct marketplace.
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
               <div className="rounded-2xl border border-slate-200 bg-white p-4">
                 <ShieldCheck className="h-8 w-8 text-green-600 mb-2" />
                 <h4 className="font-bold text-slate-900 text-sm">Direct Marketplace</h4>
-                <p className="text-xs text-slate-500 mt-1">Aartiyon aur middlemen ke be-ja commission ka khatma.</p>
+                <p className="text-xs text-slate-500 mt-1">Eliminating middleman exploitation and hidden commissions.</p>
               </div>
               <div className="rounded-2xl border border-slate-200 bg-white p-4">
                 <Cpu className="h-8 w-8 text-emerald-600 mb-2" />
                 <h4 className="font-bold text-slate-900 text-sm">IoT Telemetry</h4>
-                <p className="text-xs text-slate-500 mt-1">Sahi waqt par sahi miqdaar mein paani aur khad ka istemal.</p>
+                <p className="text-xs text-slate-500 mt-1">Applying water and nutrients precisely when your crops need them.</p>
               </div>
             </div>
           </div>
@@ -1012,10 +1012,10 @@ export default function LandingPage() {
                 Contact &amp; Support
               </span>
               <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight">
-                Humse Rabta Karein
+                Get In Touch With Us
               </h2>
               <p className="text-slate-300 text-sm leading-relaxed">
-                SmartKisan platform, IoT device installations ya seller banne ke mutaliq kisi bhi sawaal ke liye humari helpline ya office se rabta karein.
+                Have questions about our platform, IoT sensor installations, or becoming a certified seller? Get in touch with our team today.
               </p>
 
               <div className="space-y-4 pt-2">
@@ -1024,7 +1024,7 @@ export default function LandingPage() {
                     <MapPin className="h-5 w-5" />
                   </div>
                   <div>
-                    <p className="text-xs text-slate-400 font-semibold uppercase">Markazi Office</p>
+                    <p className="text-xs text-slate-400 font-semibold uppercase">Headquarters</p>
                     <p className="text-sm font-medium text-white">Agriculture Research Corridor, Tando Jam Road, Hyderabad, Sindh</p>
                   </div>
                 </div>
@@ -1054,10 +1054,10 @@ export default function LandingPage() {
             {/* Contact Form */}
             <div className="lg:col-span-7">
               <form onSubmit={handleContactSubmit} className="rounded-3xl bg-white/5 p-6 sm:p-8 ring-1 ring-white/10 backdrop-blur-md space-y-4">
-                <h3 className="text-lg font-bold text-white mb-2">Paigham Bhejein (Send Message)</h3>
+                <h3 className="text-lg font-bold text-white mb-2">Send Us a Message</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1">Aapka Naam *</label>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1">Your Full Name *</label>
                     <input
                       type="text"
                       required
@@ -1092,13 +1092,13 @@ export default function LandingPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Paigham (Message) *</label>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Your Message *</label>
                   <textarea
                     rows={4}
                     required
                     value={contactForm.message}
                     onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
-                    placeholder="Apna sawaal ya paigham yahan darj karein..."
+                    placeholder="Write your inquiry or question here..."
                     className="w-full rounded-xl bg-white/10 border border-white/15 px-4 py-3 text-sm text-white placeholder:text-slate-400 focus:outline-none focus:border-lime-400 focus:ring-2 focus:ring-lime-400/20 resize-none"
                   />
                 </div>
@@ -1109,7 +1109,7 @@ export default function LandingPage() {
                   className="w-full rounded-xl bg-lime-400 py-3.5 text-sm font-bold text-green-950 shadow-lg shadow-lime-400/20 hover:bg-lime-300 transition-colors flex items-center justify-center gap-2"
                 >
                   <Send className="h-4 w-4" />
-                  <span>{contactSubmitting ? 'Bheja ja rha hai...' : 'Paigham Bhejein'}</span>
+                  <span>{contactSubmitting ? 'Sending...' : 'Send Message'}</span>
                 </button>
               </form>
             </div>
@@ -1170,7 +1170,7 @@ export default function LandingPage() {
                 className="w-full rounded-xl bg-green-600 py-3 text-sm font-semibold text-white shadow-md shadow-green-600/20 hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
               >
                 <LogIn className="h-4 w-4" />
-                <span>Sign In (لاگ اِن کریں)</span>
+                <span>Sign In</span>
               </button>
 
               <button
@@ -1181,7 +1181,7 @@ export default function LandingPage() {
                 className="w-full rounded-xl border border-slate-300 bg-white py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors flex items-center justify-center gap-2"
               >
                 <UserPlus className="h-4 w-4" />
-                <span>Create New Account (نیا اکاؤنٹ بنائیں)</span>
+                <span>Create New Account</span>
               </button>
             </div>
           </div>
