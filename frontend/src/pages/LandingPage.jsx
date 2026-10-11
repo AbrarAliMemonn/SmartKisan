@@ -44,6 +44,9 @@ import {
   Minus,
   Loader2,
   CheckCircle,
+  Upload,
+  Camera,
+  Trash2,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import useStore from '../store/useStore'
@@ -288,6 +291,7 @@ export default function LandingPage() {
     province: 'Sindh',
     paymentMethod: 'COD', // 'COD' | 'EASYPAISA' | 'JAZZCASH' | 'BANK'
     transactionReference: '',
+    paymentProofUrl: '',
   })
   const [directSubmitting, setDirectSubmitting] = useState(false)
   const [directOrderSuccess, setDirectOrderSuccess] = useState(null)
@@ -305,8 +309,75 @@ export default function LandingPage() {
       province: 'Sindh',
       paymentMethod: 'COD',
       transactionReference: '',
+      paymentProofUrl: '',
     })
     setDirectOrderSuccess(null)
+  }
+
+  const handleReceiptFileChange = (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload an image file (JPG, PNG, WEBP, or screenshot).')
+      return
+    }
+    if (file.size > 8 * 1024 * 1024) {
+      toast.error('Receipt image size exceeds 8MB. Please choose a smaller file.')
+      return
+    }
+
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      const img = new Image()
+      img.onload = () => {
+        try {
+          const canvas = document.createElement('canvas')
+          const MAX_WIDTH = 1200
+          const MAX_HEIGHT = 1200
+          let width = img.width
+          let height = img.height
+
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height *= MAX_WIDTH / width
+              width = MAX_WIDTH
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width *= MAX_HEIGHT / height
+              height = MAX_HEIGHT
+            }
+          }
+
+          canvas.width = width
+          canvas.height = height
+          const ctx = canvas.getContext('2d')
+          ctx.drawImage(img, 0, 0, width, height)
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.85)
+
+          setDirectOrderForm((prev) => ({
+            ...prev,
+            paymentProofUrl: compressedDataUrl,
+          }))
+          toast.success('Payment receipt picture attached! 🧾')
+        } catch {
+          setDirectOrderForm((prev) => ({
+            ...prev,
+            paymentProofUrl: event.target.result,
+          }))
+          toast.success('Payment receipt picture attached! 🧾')
+        }
+      }
+      img.onerror = () => {
+        setDirectOrderForm((prev) => ({
+          ...prev,
+          paymentProofUrl: event.target.result,
+        }))
+        toast.success('Payment receipt picture attached! 🧾')
+      }
+      img.src = event.target.result
+    }
+    reader.readAsDataURL(file)
   }
 
   const handleDirectOrderSubmit = async (e) => {
@@ -351,6 +422,8 @@ export default function LandingPage() {
         deliveryCharge: 0,
         paymentMethod: directOrderForm.paymentMethod,
         transactionReference: directOrderForm.transactionReference.trim(),
+        paymentProofUrl: directOrderForm.paymentProofUrl || '',
+        proofUrl: directOrderForm.paymentProofUrl || '',
         items: [
           {
             id: 1,
@@ -377,6 +450,7 @@ export default function LandingPage() {
         deliveryAddress: directOrderForm.address,
         city: directOrderForm.city,
         buyerName: directOrderForm.name,
+        paymentProofUrl: directOrderForm.paymentProofUrl,
       }
       setDirectOrderSuccess(fallback)
       toast.success('Order placed successfully!')
@@ -1564,6 +1638,19 @@ export default function LandingPage() {
                       {directOrderForm.name}, {directOrderForm.address}, {directOrderForm.city}
                     </span>
                   </div>
+                  {directOrderForm.paymentProofUrl && (
+                    <div className="flex items-center justify-between border-b border-slate-200/70 pb-2">
+                      <span className="text-slate-500">Payment Receipt</span>
+                      <div className="flex items-center gap-2">
+                        <img
+                          src={directOrderForm.paymentProofUrl}
+                          alt="Receipt Proof"
+                          className="h-10 w-10 sm:h-12 sm:w-12 object-cover rounded-lg border border-slate-300 shadow-sm"
+                        />
+                        <span className="text-xs font-bold text-emerald-700">Receipt Attached</span>
+                      </div>
+                    </div>
+                  )}
                   <div className="flex justify-between pt-1 text-sm sm:text-base font-extrabold text-green-700">
                     <span>Total Amount</span>
                     <span>{formatPKR((directCheckoutProduct.price || 0) * directCheckoutQty)}</span>
@@ -1921,6 +2008,68 @@ export default function LandingPage() {
                           placeholder="e.g. TRX-984321 or Bank Ref #"
                           className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-mono text-slate-900 focus:border-green-600 focus:outline-none"
                         />
+                      </div>
+
+                      {/* Receipt Picture Upload */}
+                      <div className="pt-2 border-t border-slate-200/80">
+                        <div className="flex items-center justify-between mb-1.5">
+                          <label className="flex items-center gap-1.5 text-[11px] font-bold text-slate-700">
+                            <Camera className="h-3.5 w-3.5 text-green-700" />
+                            <span>Payment Receipt / Screenshot</span>
+                          </label>
+                          {directOrderForm.paymentProofUrl && (
+                            <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full flex items-center gap-1">
+                              <Check className="h-3 w-3 stroke-[3]" /> Slip Attached
+                            </span>
+                          )}
+                        </div>
+
+                        {directOrderForm.paymentProofUrl ? (
+                          <div className="relative rounded-xl border border-emerald-200 bg-emerald-50/60 p-2.5 flex items-center gap-3">
+                            <img
+                              src={directOrderForm.paymentProofUrl}
+                              alt="Uploaded Receipt"
+                              className="h-16 w-16 sm:h-20 sm:w-20 object-cover rounded-lg border border-emerald-300 shadow-sm shrink-0"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs font-bold text-slate-800 truncate">
+                                Receipt Image Attached
+                              </p>
+                              <p className="text-[11px] text-slate-500 mt-0.5">
+                                Verification proof ready for submission
+                              </p>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setDirectOrderForm((prev) => ({
+                                    ...prev,
+                                    paymentProofUrl: '',
+                                  }))
+                                }
+                                className="mt-2 text-xs font-semibold text-red-600 hover:text-red-700 flex items-center gap-1"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                                <span>Remove Picture</span>
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <label className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-300 bg-white p-3.5 text-center cursor-pointer hover:border-green-500 hover:bg-green-50/40 transition-all group">
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={handleReceiptFileChange}
+                              className="hidden"
+                            />
+                            <Upload className="h-6 w-6 text-slate-400 group-hover:text-green-600 mb-1 transition-colors" />
+                            <span className="text-xs font-bold text-slate-700 group-hover:text-green-700">
+                              Upload Payment Receipt / Screenshot
+                            </span>
+                            <span className="text-[10px] text-slate-400 mt-0.5">
+                              JPG, PNG, WEBP or Mobile Slip Screenshot
+                            </span>
+                          </label>
+                        )}
                       </div>
                     </div>
                   )}

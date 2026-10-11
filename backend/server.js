@@ -2233,13 +2233,42 @@ const server = http.createServer(async (req, res) => {
       payment: {
         id: orders.length + 1,
         paymentMethod: body.paymentMethod || 'CASH_ON_DELIVERY',
-        paymentStatus: body.paymentMethod === 'CASH_ON_DELIVERY' ? 'PENDING' : 'PAID',
+        paymentStatus: body.paymentMethod === 'CASH_ON_DELIVERY' ? 'PENDING' : 'PENDING_VERIFICATION',
         amount: body.totalAmount || body.subtotal || 5000,
         paidAt: new Date().toISOString(),
         transactionReference: body.transactionReference || '',
+        paymentProofUrl: body.paymentProofUrl || body.proofUrl || '',
       },
     };
     orders.unshift(newOrder);
+
+    if (body.paymentMethod && body.paymentMethod !== 'CASH_ON_DELIVERY') {
+      const paymentRecord = {
+        id: pendingPayments.length + 301,
+        orderId: newOrder.id,
+        orderNumber: `SK-2026-${newOrder.id}`,
+        buyerId: newOrder.buyerId,
+        buyerName: newOrder.buyerName,
+        sellerId: newOrder.sellerId,
+        sellerShopName: newOrder.sellerShopName,
+        amount: newOrder.totalAmount,
+        paidAmount: newOrder.totalAmount,
+        expectedAmount: newOrder.totalAmount,
+        totalAmount: newOrder.totalAmount,
+        orderTotal: newOrder.totalAmount,
+        paymentMethod: newOrder.payment.paymentMethod,
+        status: 'PENDING_VERIFICATION',
+        paymentStatus: 'PENDING_VERIFICATION',
+        transactionRef: body.transactionReference || `TRX-${Date.now().toString().slice(-8)}`,
+        transactionReference: body.transactionReference || `TRX-${Date.now().toString().slice(-8)}`,
+        proofUrl: body.paymentProofUrl || body.proofUrl || '',
+        paymentProofUrl: body.paymentProofUrl || body.proofUrl || '',
+        submittedAt: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
+      };
+      pendingPayments.unshift(paymentRecord);
+    }
+
     saveDb();
     return sendJSON(res, 201, { success: true, message: 'Order placed successfully', data: newOrder });
   }
@@ -2406,13 +2435,15 @@ const server = http.createServer(async (req, res) => {
     return sendJSON(res, 200, { success: true, data: pendingPayments });
   }
 
-  // Media upload fallback: /api/marketplace/media/upload
+  // Media upload fallback / multipart: /api/marketplace/media/upload
   if ((pathname === '/api/marketplace/media/upload' || pathname === '/marketplace/media/upload') && req.method === 'POST') {
+    const body = await parseBody(req);
+    const uploadedUrl = body.url || body.file || body.fileUrl || body.avatar || 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=600';
     return sendJSON(res, 200, {
       success: true,
       data: {
-        url: 'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=600',
-        filename: 'product_image.jpg',
+        url: uploadedUrl,
+        filename: 'receipt_proof.jpg',
       },
     });
   }
