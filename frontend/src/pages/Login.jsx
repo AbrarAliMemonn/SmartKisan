@@ -34,6 +34,7 @@ const initialFormData = {
   phone: '',
   location: '',
   farmSize: '',
+  requestedServices: ['IOT_FARMING', 'BUY_PRODUCTS'],
 }
 
 const RESEND_SECONDS = 60
@@ -129,9 +130,17 @@ export default function Login() {
     loading,
   } = useAuthContext()
 
+  const getRedirectTarget = () => {
+    const params = new URLSearchParams(window.location.search)
+    return params.get('redirect') || '/hub'
+  }
+
   // view: 'auth' (sign in / sign up) | 'verify' | 'forgot' | 'reset'
   const [view, setView] = useState('auth')
-  const [isLogin, setIsLogin] = useState(true)
+  const [isLogin, setIsLogin] = useState(() => {
+    const params = new URLSearchParams(window.location.search)
+    return params.get('mode') !== 'signup'
+  })
   const [showPassword, setShowPassword] = useState(false)
   const [oauthLoading, setOauthLoading] = useState(false)
   const [submitting, setSubmitting] = useState(false)
@@ -260,7 +269,7 @@ export default function Login() {
         const result = await login(email, password, LOGIN_OPTIONS)
 
         if (result?.success) {
-          navigate('/dashboard')
+          navigate(getRedirectTarget())
           return
         }
 
@@ -299,6 +308,11 @@ export default function Login() {
       return
     }
 
+    if ((formData.requestedServices || []).length === 0) {
+      setFormError('Barah-e-karam kam az kam ek maqsad (check box) muntakhib karein.')
+      return
+    }
+
     setSubmitting(true)
     try {
       const result = await register(
@@ -309,6 +323,7 @@ export default function Login() {
           phone: formData.phone.trim(),
           location: formData.location.trim(),
           farmSize: formData.farmSize.trim(),
+          requestedServices: formData.requestedServices,
         },
         { silentSuccess: true, silentError: true }
       )
@@ -375,7 +390,7 @@ export default function Login() {
       const result = await verifyEmail(email, otp, INLINE)
 
       if (result?.success) {
-        navigate('/dashboard')
+        navigate(getRedirectTarget())
       } else {
         setNotice('')
         setFormError(result?.error || 'Verification failed. Please try again.')
@@ -896,6 +911,71 @@ export default function Login() {
                                   className={`${inputClass()} px-4`}
                                   placeholder="e.g. 15 acres"
                                 />
+                              </div>
+                            </div>
+
+                            {/* Aap SmartKisan par kya karna chahte hain? */}
+                            <div className="pt-2">
+                              <label className={labelClass}>
+                                Aap SmartKisan par kya karna chahte hain?{' '}
+                                <span className="text-red-500">*</span>
+                              </label>
+                              <p className="text-[12px] text-slate-500 mb-2.5">
+                                Apni zaroorat ke mutabiq modules chunain (Admin approval ke baad activate honge):
+                              </p>
+
+                              <div className="space-y-2">
+                                {[
+                                  {
+                                    id: 'IOT_FARMING',
+                                    title: '📡 IoT Farm & Sensor Monitoring',
+                                    desc: 'Khet ke sensors, zameen ki nami aur automatic paani ke pumps monitor karna',
+                                  },
+                                  {
+                                    id: 'BECOME_SELLER',
+                                    title: '🏪 Sell Agri Products / Become a Seller',
+                                    desc: 'Marketplace par apni dukan banana, beej, khad ya fasal bechna (Admin approval)',
+                                  },
+                                  {
+                                    id: 'AI_ADVISORY',
+                                    title: '🤖 Multilingual AI Crop Doctor',
+                                    desc: 'Urdu aur Sindhi mein faslon ki bimariyon aur behtareen paidaawar ke mashware',
+                                  },
+                                  {
+                                    id: 'BUY_PRODUCTS',
+                                    title: '🛒 Buy Agricultural Supplies',
+                                    desc: 'Taqseem-shuda beej, fertilizers, drip kits aur zaraye aalaat khareedna',
+                                  },
+                                ].map((service) => {
+                                  const isChecked = (formData.requestedServices || []).includes(service.id)
+                                  return (
+                                    <label
+                                      key={service.id}
+                                      className={`flex items-start gap-3 rounded-xl border p-3 cursor-pointer transition-all ${
+                                        isChecked
+                                          ? 'border-green-500 bg-green-50/70 ring-1 ring-green-500/20'
+                                          : 'border-slate-200 bg-slate-50/50 hover:bg-slate-50 hover:border-slate-300'
+                                      }`}
+                                    >
+                                      <input
+                                        type="checkbox"
+                                        checked={isChecked}
+                                        onChange={() => {
+                                          const current = formData.requestedServices || []
+                                          const next = isChecked
+                                            ? current.filter((s) => s !== service.id)
+                                            : [...current, service.id]
+                                          updateField('requestedServices', next)
+                                        }}
+                                        className="mt-0.5 h-4 w-4 rounded border-slate-300 text-green-600 focus:ring-green-500"
+                                      />
+                                      <div className="min-w-0 flex-1">
+                                        <p className="text-xs font-bold text-slate-800">{service.title}</p>
+                                        <p className="text-[11px] text-slate-500 mt-0.5 leading-relaxed">{service.desc}</p>
+                                      </div>
+                                    </label>
+                                  )
+                                })}
                               </div>
                             </div>
                           </>

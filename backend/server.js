@@ -1162,6 +1162,16 @@ const server = http.createServer(async (req, res) => {
       });
     }
 
+    const reqServices = Array.isArray(body.requestedServices) && body.requestedServices.length
+      ? body.requestedServices
+      : ['BUY_PRODUCTS'];
+    const serviceApprovals = {
+      BUY_PRODUCTS: 'APPROVED',
+      IOT_FARMING: reqServices.includes('IOT_FARMING') ? 'PENDING' : 'NONE',
+      BECOME_SELLER: reqServices.includes('BECOME_SELLER') ? 'PENDING' : 'NONE',
+      AI_ADVISORY: reqServices.includes('AI_ADVISORY') ? 'APPROVED' : 'NONE',
+    };
+
     if (!user) {
       user = {
         id: users.length + 1,
@@ -1177,6 +1187,8 @@ const server = http.createServer(async (req, res) => {
         avatar: '',
         avatarImage: '',
         farmSize: body.farmSize || '',
+        requestedServices: reqServices,
+        serviceApprovals: serviceApprovals,
         createdAt: new Date().toISOString(),
       };
       users.push(user);
@@ -1186,7 +1198,38 @@ const server = http.createServer(async (req, res) => {
       user.phone = body.phone || user.phone;
       user.location = body.location || user.location;
       user.farmSize = body.farmSize || user.farmSize;
+      user.requestedServices = reqServices;
+      user.serviceApprovals = serviceApprovals;
       user.emailVerified = false;
+    }
+
+    // If user requested to become a seller, auto-queue in pendingSellers for Admin review
+    if (reqServices.includes('BECOME_SELLER')) {
+      const alreadyPending = pendingSellers.some((s) => s.userId === user.id || s.email.toLowerCase() === email);
+      const alreadyApproved = sellerProfiles.some((s) => s.userId === user.id || s.email.toLowerCase() === email);
+      if (!alreadyPending && !alreadyApproved) {
+        pendingSellers.unshift({
+          id: pendingSellers.length + 50,
+          userId: user.id,
+          sellerName: user.name,
+          shopName: `${user.name}'s Farm Store`,
+          description: 'Certified seeds, fresh farm produce, and agricultural equipment.',
+          storeLogoUrl: 'https://images.unsplash.com/photo-1595278069441-2cf29f8005a4?w=200',
+          phone: user.phone || '+92 300 1234567',
+          email: user.email,
+          address: user.location,
+          city: 'Hyderabad',
+          province: 'Sindh',
+          location: user.location,
+          sellerType: 'FARMER_SELLER',
+          status: 'PENDING',
+          verified: false,
+          moderationReason: 'Requested during registration',
+          rating: 5.0,
+          totalSales: 0,
+          joinedAsSellerOn: new Date().toISOString().split('T')[0],
+        });
+      }
     }
     saveDb();
 
@@ -1491,6 +1534,57 @@ const server = http.createServer(async (req, res) => {
     return sendJSON(res, 200, { success: true, count: users.length, added: addedCount, data: users });
   }
 
+  // Approve requested service for user (Admin): /api/admin/users/:id/approve-service
+  if ((pathname.includes('/admin/users/') && pathname.endsWith('/approve-service')) && req.method === 'POST') {
+    const parts = pathname.split('/');
+    const uId = +parts[parts.length - 2];
+    const body = await parseBody(req);
+    const serviceKey = body.service; // e.g. 'IOT_FARMING' or 'BECOME_SELLER'
+    const user = users.find((u) => u.id === uId);
+    if (!user) {
+      return sendJSON(res, 404, { success: false, message: 'User not found' });
+    }
+    if (!user.serviceApprovals) user.serviceApprovals = {};
+    user.serviceApprovals[serviceKey] = 'APPROVED';
+    if (serviceKey === 'BECOME_SELLER') {
+      user.isSeller = true;
+      let sProf = sellerProfiles.find((s) => s.userId === user.id);
+      if (sProf) {
+        sProf.status = 'APPROVED';
+        sProf.verified = true;
+      } else {
+        sellerProfiles.push({
+          id: sellerProfiles.length + 1,
+          userId: user.id,
+          sellerName: user.name,
+          shopName: `${user.name}'s Farm Store`,
+          description: 'Certified seeds, fresh farm produce, and agricultural equipment.',
+          storeLogoUrl: user.avatarImage || 'https://images.unsplash.com/photo-1595278069441-2cf29f8005a4?w=200',
+          phone: user.phone || '+92 300 1234567',
+          email: user.email,
+          address: user.location,
+          city: 'Hyderabad',
+          province: 'Sindh',
+          location: user.location,
+          sellerType: 'FARMER_SELLER',
+          status: 'APPROVED',
+          verified: true,
+          rating: 5.0,
+          totalSales: 0,
+          joinedAsSellerOn: new Date().toISOString().split('T')[0],
+        });
+      }
+      const pIdx = pendingSellers.findIndex((s) => s.userId === user.id);
+      if (pIdx !== -1) pendingSellers.splice(pIdx, 1);
+    }
+    saveDb();
+    return sendJSON(res, 200, {
+      success: true,
+      message: `${serviceKey} approved successfully for ${user.name}`,
+      data: user,
+    });
+  }
+
   // =========================================================
   // 3. IOT SENSOR TELEMETRY  (/api/iot/**, /iot/**, /crops/**)
   // =========================================================
@@ -1726,6 +1820,12 @@ const server = http.createServer(async (req, res) => {
       approvedSeller.verified = true;
       if (!sellerProfiles.some((s) => s.id === approvedSeller.id || s.userId === approvedSeller.userId)) {
         sellerProfiles.push(approvedSeller);
+      }
+      const u = users.find((usr) => usr.id === approvedSeller.userId || (approvedSeller.email && usr.email.toLowerCase() === approvedSeller.email.toLowerCase()));
+      if (u) {
+        u.isSeller = true;
+        if (!u.serviceApprovals) u.serviceApprovals = {};
+        u.serviceApprovals.BECOME_SELLER = 'APPROVED';
       }
       saveDb();
     }

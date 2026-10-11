@@ -2,6 +2,8 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuthContext } from './context/AuthContext'
 import Layout from './components/layout/Layout'
 import ProtectedRoute from './components/ProtectedRoute'
+import LandingPage from './pages/LandingPage'
+import UserPortalHub from './pages/UserPortalHub'
 import Login from './pages/Login'
 import OAuthCallback from './pages/OAuthCallback'
 import IoTDashboard from './pages/IoTDashboard'
@@ -35,6 +37,7 @@ function App() {
   return (
     <Routes>
       {/* Public Routes */}
+      <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<Login />} />
       <Route path="/oauth2/redirect" element={<OAuthCallback />} />
 
@@ -45,7 +48,8 @@ function App() {
           isAuthenticated ? (
             <Layout>
               <Routes>
-                <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                <Route path="/" element={<Navigate to="/hub" replace />} />
+                <Route path="/hub" element={<UserPortalHub />} />
                 <Route path="/dashboard" element={<IoTDashboard />} />
                 <Route path="/live-monitoring" element={<LiveMonitoring />} />
                 <Route path="/sensor-details" element={<SensorDetails />} />
@@ -85,11 +89,11 @@ function App() {
                 />
 
                 {/* Fallback */}
-                <Route path="*" element={<Navigate to="/dashboard" replace />} />
+                <Route path="*" element={<Navigate to="/hub" replace />} />
               </Routes>
             </Layout>
           ) : (
-            <Navigate to="/login" replace />
+            <Navigate to="/" replace />
           )
         }
       />

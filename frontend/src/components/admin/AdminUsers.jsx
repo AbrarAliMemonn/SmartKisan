@@ -16,7 +16,7 @@ const field = 'input-field'
 
 export default function AdminUsers({ users, loading }) {
   const navigate = useNavigate()
-  const { user: me, adminAddUser, adminUpdateUser, adminDeleteUser } = useAuthContext()
+  const { user: me, adminAddUser, adminUpdateUser, adminDeleteUser, adminApproveService } = useAuthContext()
 
   const [query, setQuery] = useState('')
   const [role, setRole] = useState('ALL')
@@ -27,6 +27,16 @@ export default function AdminUsers({ users, loading }) {
   const [saving, setSaving] = useState(false)
   const [toDelete, setToDelete] = useState(null)
   const [deleting, setDeleting] = useState(false)
+  const [approvingId, setApprovingId] = useState(null)
+
+  const handleApproveService = async (uId, serviceKey) => {
+    setApprovingId(`${uId}:${serviceKey}`)
+    try {
+      await adminApproveService(uId, serviceKey)
+    } finally {
+      setApprovingId(null)
+    }
+  }
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -155,6 +165,7 @@ export default function AdminUsers({ users, loading }) {
                     <th className="px-5 py-3">User</th>
                     <th className="px-5 py-3">Role</th>
                     <th className="px-5 py-3">Type</th>
+                    <th className="px-5 py-3">Requested Services &amp; Approvals</th>
                     <th className="px-5 py-3">Phone</th>
                     <th className="px-5 py-3"><span className="sr-only">Actions</span></th>
                   </tr>
@@ -173,6 +184,59 @@ export default function AdminUsers({ users, loading }) {
                       </td>
                       <td className="px-5 py-3"><Badge tone={(u.role || '').toUpperCase() === 'ADMIN' ? 'red' : 'slate'}>{(u.role || 'USER').toLowerCase()}</Badge></td>
                       <td className="px-5 py-3"><Badge tone={typeTone(u.userType)}>{(u.userType || 'user').toLowerCase()}</Badge></td>
+                      <td className="px-5 py-3">
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          {/* IoT */}
+                          {(u.requestedServices?.includes('IOT_FARMING') || u.serviceApprovals?.IOT_FARMING) && (
+                            u.serviceApprovals?.IOT_FARMING === 'APPROVED' ? (
+                              <span className="inline-flex items-center gap-1 rounded-md bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 ring-1 ring-emerald-600/20 dark:bg-emerald-500/15 dark:text-emerald-300">
+                                📡 IoT (Approved)
+                              </span>
+                            ) : (
+                              <button
+                                onClick={() => handleApproveService(u.id, 'IOT_FARMING')}
+                                disabled={approvingId === `${u.id}:IOT_FARMING`}
+                                className="inline-flex items-center gap-1 rounded-md bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700 ring-1 ring-amber-600/20 hover:bg-amber-100 transition-colors dark:bg-amber-500/20 dark:text-amber-300"
+                                title="Click to grant IoT sensor access"
+                              >
+                                <span>📡 Approve IoT</span>
+                              </button>
+                            )
+                          )}
+
+                          {/* Seller */}
+                          {(u.isSeller || u.requestedServices?.includes('BECOME_SELLER') || u.serviceApprovals?.BECOME_SELLER) && (
+                            (u.isSeller || u.serviceApprovals?.BECOME_SELLER === 'APPROVED') ? (
+                              <span className="inline-flex items-center gap-1 rounded-md bg-green-50 px-2 py-0.5 text-[11px] font-semibold text-green-700 ring-1 ring-green-600/20 dark:bg-green-500/15 dark:text-green-300">
+                                🏪 Seller (Approved)
+                              </span>
+                            ) : (
+                              <button
+                                onClick={() => handleApproveService(u.id, 'BECOME_SELLER')}
+                                disabled={approvingId === `${u.id}:BECOME_SELLER`}
+                                className="inline-flex items-center gap-1 rounded-md bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700 ring-1 ring-amber-600/20 hover:bg-amber-100 transition-colors dark:bg-amber-500/20 dark:text-amber-300"
+                                title="Click to approve seller store"
+                              >
+                                <span>🏪 Approve Seller</span>
+                              </button>
+                            )
+                          )}
+
+                          {/* AI */}
+                          {u.requestedServices?.includes('AI_ADVISORY') && (
+                            <span className="inline-flex items-center gap-1 rounded-md bg-indigo-50 px-2 py-0.5 text-[11px] font-semibold text-indigo-700 ring-1 ring-indigo-600/20 dark:bg-indigo-500/15 dark:text-indigo-300">
+                              🤖 AI Doctor
+                            </span>
+                          )}
+
+                          {/* Buyer */}
+                          {(!u.requestedServices || u.requestedServices.includes('BUY_PRODUCTS')) && (
+                            <span className="inline-flex items-center gap-1 rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-600 dark:bg-white/10 dark:text-slate-300">
+                              🛒 Buyer
+                            </span>
+                          )}
+                        </div>
+                      </td>
                       <td className="px-5 py-3 text-slate-600 dark:text-slate-300">{u.phone || <span className="text-slate-400">—</span>}</td>
                       <td className="px-5 py-3">{actions(u)}</td>
                     </tr>
@@ -193,6 +257,19 @@ export default function AdminUsers({ users, loading }) {
                       <div className="mt-2 flex flex-wrap gap-1.5">
                         <Badge tone={(u.role || '').toUpperCase() === 'ADMIN' ? 'red' : 'slate'}>{(u.role || 'USER').toLowerCase()}</Badge>
                         <Badge tone={typeTone(u.userType)}>{(u.userType || 'user').toLowerCase()}</Badge>
+                        {u.isSeller && <Badge tone="green">seller</Badge>}
+                        {u.requestedServices?.includes('IOT_FARMING') && (
+                          u.serviceApprovals?.IOT_FARMING === 'APPROVED' ? (
+                            <Badge tone="green">IoT</Badge>
+                          ) : (
+                            <button
+                              onClick={() => handleApproveService(u.id, 'IOT_FARMING')}
+                              className="rounded bg-amber-100 px-1.5 py-0.5 text-[11px] font-bold text-amber-800"
+                            >
+                              Approve IoT
+                            </button>
+                          )
+                        )}
                       </div>
                     </div>
                     {actions(u)}

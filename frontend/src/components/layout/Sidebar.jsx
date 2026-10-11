@@ -17,6 +17,8 @@ import {
   ChevronRight,
   Leaf,
   X,
+  Compass,
+  Store,
 } from 'lucide-react'
 import useStore from '../../store/useStore'
 import { useAuthContext } from '../../context/AuthContext'
@@ -28,7 +30,8 @@ const menuGroups = [
   {
     label: 'Overview',
     items: [
-      { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+      { path: '/hub', icon: Compass, label: 'Portal Hub' },
+      { path: '/dashboard', icon: LayoutDashboard, label: 'IoT Dashboard' },
       { path: '/live-monitoring', icon: Radio, label: 'Live Monitoring' },
       { path: '/sensor-details', icon: Gauge, label: 'Sensor Details' },
     ],
@@ -50,8 +53,10 @@ const menuGroups = [
         isActive: (p) =>
           p.startsWith('/marketplace') &&
           !p.startsWith('/marketplace/orders') &&
-          !p.startsWith('/marketplace/wishlist'),
+          !p.startsWith('/marketplace/wishlist') &&
+          !p.startsWith('/marketplace/seller'),
       },
+      { path: '/marketplace/seller', icon: Store, label: 'Seller Center' },
       { path: '/marketplace/orders', icon: PackageCheck, label: 'My Orders' },
       { path: '/marketplace/wishlist', icon: Heart, label: 'Wishlist' },
     ],

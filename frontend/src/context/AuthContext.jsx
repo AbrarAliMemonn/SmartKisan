@@ -519,6 +519,7 @@ const login = async (email, password, options = {}) => {
       role: userData.role || 'USER',
       userType: userData.userType || 'FARMER',
       farmSize: userData.farmSize,
+      requestedServices: userData.requestedServices || ['BUY_PRODUCTS'],
       emailVerified: false,
     })
     return runAuthAction(
@@ -933,6 +934,30 @@ const login = async (email, password, options = {}) => {
     }
   }
 
+  const adminApproveService = async (userId, serviceKey) => {
+    setLoading(true)
+    try {
+      const response = await adminAPI.approveService(userId, serviceKey)
+      const updatedUser = response.data?.data
+      if (updatedUser) {
+        setUsers((prev) => prev.map((u) => (u.id === userId ? updatedUser : u)))
+        cacheUserLocally(updatedUser)
+        if (user?.id === userId) {
+          persistUser(updatedUser)
+        }
+      }
+      toast.success(response.data?.message || `${serviceKey} approved successfully!`)
+      return { success: true }
+    } catch (error) {
+      console.error('Approve service error:', error)
+      const message = getErrorMessage(error, 'Could not approve service')
+      toast.error(message)
+      return { success: false, error: message }
+    } finally {
+      setLoading(false)
+    }
+  }
+
   // =========================================================
   // UPDATE USER PROFILE
   // =========================================================
@@ -1138,6 +1163,7 @@ const login = async (email, password, options = {}) => {
     adminAddUser,
     adminUpdateUser,
     adminDeleteUser,
+    adminApproveService,
 
     // APPROVED seller
     isSeller: hasSellerAccess(user),
