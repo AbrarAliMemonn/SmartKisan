@@ -107,8 +107,6 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true)
   const [users, setUsers] = useState([])
 
-  // Admin-only cache
-  const CACHED_USERS_KEY = 'smartkisan_registered_users'
   const getCachedAvatarKey = (email) =>
     'smartkisan_custom_avatar_' + String(email || '').toLowerCase().trim()
 
@@ -122,24 +120,10 @@ export const AuthProvider = ({ children }) => {
     )
   }
 
-  const cacheUserLocally = (newUser) => {
-    if (!newUser || !newUser.email) return
+  // Security: User records are stored safely in the backend MySQL database, never in frontend localStorage
+  const cacheUserLocally = () => {
     try {
-      const raw = localStorage.getItem(CACHED_USERS_KEY)
-      const list = raw ? JSON.parse(raw) : []
-      const idx = list.findIndex(
-        (u) => (u.email || '').toLowerCase() === (newUser.email || '').toLowerCase()
-      )
-      if (idx !== -1) {
-        list[idx] = { ...list[idx], ...newUser }
-      } else {
-        list.push({
-          id: list.length + 10,
-          createdAt: new Date().toISOString(),
-          ...newUser,
-        })
-      }
-      localStorage.setItem(CACHED_USERS_KEY, JSON.stringify(list))
+      localStorage.removeItem('smartkisan_registered_users')
     } catch (e) {}
   }
 
@@ -757,63 +741,20 @@ const login = async (email, password, options = {}) => {
     try {
       const response = await adminAPI.getAllUsers()
       const serverUsers = Array.isArray(response.data?.data) ? response.data.data : []
+      setUsers(serverUsers)
 
-      let localUsers = []
+      // Clear any legacy client cache so sensitive records never remain in localStorage
       try {
-        const raw = localStorage.getItem(CACHED_USERS_KEY)
-        localUsers = raw ? JSON.parse(raw) : []
+        localStorage.removeItem('smartkisan_registered_users')
       } catch (e) {}
-
-      const userMap = new Map()
-      serverUsers.forEach((u) => {
-        if (u?.email) userMap.set(u.email.toLowerCase(), u)
-      })
-
-      const missingOnServer = []
-
-      localUsers.forEach((lu) => {
-        if (!lu?.email) return
-        const key = lu.email.toLowerCase()
-        if (!userMap.has(key)) {
-          userMap.set(key, lu)
-          missingOnServer.push(lu)
-        } else {
-          const su = userMap.get(key)
-          const customAv = localStorage.getItem(getCachedAvatarKey(key))
-          if (customAv && isPlaceholderAvatar(su.avatar)) {
-            su.avatar = customAv
-            su.avatarImage = customAv
-          }
-        }
-      })
-
-      const mergedList = Array.from(userMap.values())
-      setUsers(mergedList)
-      try {
-        localStorage.setItem(CACHED_USERS_KEY, JSON.stringify(mergedList))
-      } catch (e) {}
-
-      // If any registered users were in local cache but not in backend database, sync them!
-      if (missingOnServer.length > 0 && adminAPI.syncUsers) {
-        adminAPI.syncUsers(missingOnServer).catch(() => {})
-      }
 
       return {
         success: true,
-        data: mergedList,
+        data: serverUsers,
       }
     } catch (error) {
       console.error('Fetch users error:', error)
-      let localUsers = []
-      try {
-        const raw = localStorage.getItem(CACHED_USERS_KEY)
-        localUsers = raw ? JSON.parse(raw) : []
-      } catch (e) {}
-      if (localUsers.length > 0) {
-        setUsers(localUsers)
-      } else {
-        toast.error(getErrorMessage(error, 'Could not load users'))
-      }
+      toast.error(getErrorMessage(error, 'Could not load users from server'))
       return {
         success: false,
       }
@@ -905,14 +846,6 @@ const login = async (email, password, options = {}) => {
       const response = await adminAPI.deleteUser(id)
 
       setUsers((prev) => prev.filter((u) => u.id !== id))
-      try {
-        const raw = localStorage.getItem(CACHED_USERS_KEY)
-        if (raw) {
-          const list = JSON.parse(raw).filter((u) => u.id !== id)
-          localStorage.setItem(CACHED_USERS_KEY, JSON.stringify(list))
-        }
-      } catch (e) {}
-
       toast.success(response.data?.message || 'User deleted successfully')
 
       return {

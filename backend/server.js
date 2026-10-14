@@ -10,8 +10,20 @@ const url = require('url');
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '.env') });
+const db = require('./db.js');
 
 const PORT = process.env.PORT || 8080;
+
+// Security helper: Strip sensitive password data before sending user payload to frontend
+function sanitizeUser(u) {
+  if (!u) return null;
+  const copy = { ...u };
+  delete copy.password;
+  delete copy.passwordHash;
+  delete copy.password_hash;
+  return copy;
+}
 
 // ---------------- Meteorological & Geolocation Data ----------------
 const CITY_COORDS = {
@@ -824,13 +836,57 @@ function saveDb() {
       ),
       'utf8'
     );
+
+    // Sync latest models to MySQL asynchronously in background
+    if (db.isMySqlConnected()) {
+      for (const u of users) {
+        db.upsertUserInMySql(u).catch(() => {});
+      }
+      for (const p of products) {
+        db.upsertProductInMySql(p).catch(() => {});
+      }
+      for (const o of orders) {
+        db.insertOrderInMySql(o).catch(() => {});
+      }
+    }
   } catch (e) {
     console.error('[Database] Failed to write database.json:', e.message);
   }
 }
 
-// Initial ensure save
+// Initial ensure save and sync with MySQL
 saveDb();
+
+(async () => {
+  try {
+    const seedData = {
+      users,
+      products,
+      orders,
+      sellerProfiles,
+      pendingSellers,
+      pendingPayments,
+      paymentAccounts,
+      reviews,
+      chatMessages,
+    };
+    const connected = await db.initDatabase(seedData);
+    if (connected) {
+      const mysqlData = await db.loadAllFromMySql();
+      if (mysqlData) {
+        if (mysqlData.users && mysqlData.users.length) users = mysqlData.users;
+        if (mysqlData.products && mysqlData.products.length) products = mysqlData.products;
+        if (mysqlData.orders && mysqlData.orders.length) orders = mysqlData.orders;
+        if (mysqlData.sellerProfiles && mysqlData.sellerProfiles.length) sellerProfiles = mysqlData.sellerProfiles;
+        if (mysqlData.pendingSellers && mysqlData.pendingSellers.length) pendingSellers = mysqlData.pendingSellers;
+        if (mysqlData.pendingPayments && mysqlData.pendingPayments.length) pendingPayments = mysqlData.pendingPayments;
+        console.log(`[MySQL Database] Synced in-memory models with MySQL tables (${users.length} users, ${products.length} products, ${orders.length} orders)`);
+      }
+    }
+  } catch (err) {
+    console.warn('[MySQL Initialization Notice]', err.message);
+  }
+})();
 
 const iotAlerts = [
   {
@@ -1048,20 +1104,20 @@ const server = http.createServer(async (req, res) => {
       data: {
         token: token,
         refreshToken: 'smartkisan_refresh_' + Date.now(),
-        user: user,
+        user: sanitizeUser(user),
       },
     });
   }
 
   if ((pathname === '/api/auth/profile' || pathname === '/auth/profile') && req.method === 'GET') {
     const currentUser = getUserFromReq(req);
-    return sendJSON(res, 200, { success: true, data: currentUser });
+    return sendJSON(res, 200, { success: true, data: sanitizeUser(currentUser) });
   }
 
   // User Profile (GET)
   if ((pathname === '/api/users/profile' || pathname === '/users/profile' || pathname === '/api/users/me' || pathname === '/users/me' || pathname === '/api/user/profile' || pathname === '/user/profile') && req.method === 'GET') {
     const currentUser = getUserFromReq(req);
-    return sendJSON(res, 200, { success: true, data: currentUser });
+    return sendJSON(res, 200, { success: true, data: sanitizeUser(currentUser) });
   }
 
   // User Profile Update (PUT / POST)
@@ -1088,7 +1144,7 @@ const server = http.createServer(async (req, res) => {
     return sendJSON(res, 200, {
       success: true,
       message: 'Profile updated successfully',
-      data: currentUser,
+      data: sanitizeUser(currentUser),
     });
   }
 
@@ -1109,7 +1165,7 @@ const server = http.createServer(async (req, res) => {
     return sendJSON(res, 200, {
       success: true,
       message: 'Avatar updated successfully',
-      data: currentUser,
+      data: sanitizeUser(currentUser),
     });
   }
 
@@ -1300,7 +1356,7 @@ const server = http.createServer(async (req, res) => {
       data: {
         token: token,
         refreshToken: 'smartkisan_refresh_' + Date.now(),
-        user: user,
+        user: sanitizeUser(user),
       },
     });
   }
@@ -1413,7 +1469,7 @@ const server = http.createServer(async (req, res) => {
   // =========================================================
   // Get all users
   if ((pathname === '/api/admin/users' || pathname === '/admin/users') && req.method === 'GET') {
-    return sendJSON(res, 200, { success: true, data: users });
+    return sendJSON(res, 200, { success: true, data: users.map(sanitizeUser) });
   }
 
   // Create user (Admin)
@@ -1444,7 +1500,7 @@ const server = http.createServer(async (req, res) => {
     return sendJSON(res, 201, {
       success: true,
       message: 'User created successfully',
-      data: newUser,
+      data: sanitizeUser(newUser),
     });
   }
 
@@ -1452,7 +1508,7 @@ const server = http.createServer(async (req, res) => {
   if ((pathname.startsWith('/api/admin/users/') || pathname.startsWith('/admin/users/')) && req.method === 'GET') {
     const uId = +pathname.split('/').pop();
     const user = users.find((u) => u.id === uId) || users[0];
-    return sendJSON(res, 200, { success: true, data: user });
+    return sendJSON(res, 200, { success: true, data: sanitizeUser(user) });
   }
 
   // Update user (Admin)
@@ -1480,7 +1536,7 @@ const server = http.createServer(async (req, res) => {
     return sendJSON(res, 200, {
       success: true,
       message: 'User updated successfully',
-      data: user,
+      data: sanitizeUser(user),
     });
   }
 
