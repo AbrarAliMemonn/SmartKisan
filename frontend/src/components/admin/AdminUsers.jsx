@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Download, Edit2, Eye, Plus, Search, Trash2, Users } from 'lucide-react'
+import { Download, Edit2, Eye, Plus, Search, Trash2, Users, ShieldAlert, Ban, CheckCircle } from 'lucide-react'
 import toast from 'react-hot-toast'
 import Button from '../common/Button'
 import Card from '../common/Card'
@@ -16,7 +16,7 @@ const field = 'input-field'
 
 export default function AdminUsers({ users, loading }) {
   const navigate = useNavigate()
-  const { user: me, adminAddUser, adminUpdateUser, adminDeleteUser, adminApproveService } = useAuthContext()
+  const { user: me, adminAddUser, adminUpdateUser, adminDeleteUser, adminSuspendUser, adminUnsuspendUser, adminApproveService } = useAuthContext()
 
   const [query, setQuery] = useState('')
   const [role, setRole] = useState('ALL')
@@ -28,6 +28,13 @@ export default function AdminUsers({ users, loading }) {
   const [toDelete, setToDelete] = useState(null)
   const [deleting, setDeleting] = useState(false)
   const [approvingId, setApprovingId] = useState(null)
+
+  // Account Suspension state
+  const [suspendModalUser, setSuspendModalUser] = useState(null)
+  const [suspendForm, setSuspendForm] = useState({ type: 'TEMPORARY', days: 7, reason: '' })
+  const [suspending, setSuspending] = useState(false)
+  const [toUnsuspend, setToUnsuspend] = useState(null)
+  const [unsuspending, setUnsuspending] = useState(false)
 
   const handleApproveService = async (uId, serviceKey) => {
     setApprovingId(`${uId}:${serviceKey}`)
@@ -92,6 +99,43 @@ export default function AdminUsers({ users, loading }) {
     else toast.success(`Exported ${filtered.length} users`)
   }
 
+  const handleOpenSuspend = (u) => {
+    setSuspendModalUser(u)
+    setSuspendForm({ type: 'TEMPORARY', days: 7, reason: '' })
+  }
+
+  const handleSuspendSubmit = async (e) => {
+    e.preventDefault()
+    if (!suspendModalUser) return
+    setSuspending(true)
+    try {
+      const payload = {
+        type: suspendForm.type,
+        days: suspendForm.type === 'TEMPORARY' ? Number(suspendForm.days || 7) : undefined,
+        reason: suspendForm.reason.trim() || 'Violated terms of service',
+      }
+      const res = await adminSuspendUser(suspendModalUser.id, payload)
+      if (res?.success) {
+        setSuspendModalUser(null)
+      }
+    } finally {
+      setSuspending(false)
+    }
+  }
+
+  const confirmUnsuspend = async () => {
+    if (!toUnsuspend) return
+    setUnsuspending(true)
+    try {
+      const res = await adminUnsuspendUser(toUnsuspend.id)
+      if (res?.success) {
+        setToUnsuspend(null)
+      }
+    } finally {
+      setUnsuspending(false)
+    }
+  }
+
   const actions = (u) => (
     <div className="flex items-center justify-end gap-0.5">
       <button onClick={() => navigate(`/admin/users/${u.id}`)} className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-white/10 dark:hover:text-white" aria-label={`View ${u.name}`} title="View profile">
@@ -100,6 +144,30 @@ export default function AdminUsers({ users, loading }) {
       <button onClick={() => openEdit(u)} className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-white/10 dark:hover:text-white" aria-label={`Edit ${u.name}`} title="Edit">
         <Edit2 className="h-4 w-4" />
       </button>
+
+      {/* Suspend / Reactivate action */}
+      {me?.id !== u.id && (
+        u.suspended ? (
+          <button
+            onClick={() => setToUnsuspend(u)}
+            className="rounded-lg p-2 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-500/10"
+            aria-label={`Reactivate ${u.name}`}
+            title="Reactivate account"
+          >
+            <CheckCircle className="h-4 w-4" />
+          </button>
+        ) : (
+          <button
+            onClick={() => handleOpenSuspend(u)}
+            className="rounded-lg p-2 text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-500/10"
+            aria-label={`Suspend ${u.name}`}
+            title="Suspend account (temporary or permanent)"
+          >
+            <Ban className="h-4 w-4" />
+          </button>
+        )
+      )}
+
       <button
         onClick={() => setToDelete(u)}
         disabled={me?.id === u.id}
@@ -177,7 +245,15 @@ export default function AdminUsers({ users, loading }) {
                         <div className="flex items-center gap-3">
                           <Avatar name={u.name} />
                           <div className="min-w-0">
-                            <p className="truncate font-semibold text-slate-900 dark:text-white">{u.name}{me?.id === u.id && <span className="ml-2 text-xs font-medium text-slate-400">(you)</span>}</p>
+                            <p className="truncate font-semibold text-slate-900 dark:text-white">
+                              {u.name}
+                              {me?.id === u.id && <span className="ml-2 text-xs font-medium text-slate-400">(you)</span>}
+                              {u.suspended && (
+                                <span className="ml-2 inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-bold text-red-700 dark:bg-red-500/20 dark:text-red-400" title={u.suspensionReason || 'Account suspended'}>
+                                  <Ban size={10} /> Suspended ({u.suspensionType === 'TEMPORARY' ? 'Temp' : 'Perm'})
+                                </span>
+                              )}
+                            </p>
                             <p className="truncate text-xs text-slate-500 dark:text-slate-400">{u.email}</p>
                           </div>
                         </div>
@@ -255,6 +331,11 @@ export default function AdminUsers({ users, loading }) {
                       <p className="truncate font-semibold text-slate-900 dark:text-white">{u.name}</p>
                       <p className="truncate text-sm text-slate-500 dark:text-slate-400">{u.email}</p>
                       <div className="mt-2 flex flex-wrap gap-1.5">
+                        {u.suspended && (
+                          <Badge tone="red">
+                            Suspended ({u.suspensionType === 'TEMPORARY' ? 'Temp' : 'Perm'})
+                          </Badge>
+                        )}
                         <Badge tone={(u.role || '').toUpperCase() === 'ADMIN' ? 'red' : 'slate'}>{(u.role || 'USER').toLowerCase()}</Badge>
                         <Badge tone={typeTone(u.userType)}>{(u.userType || 'user').toLowerCase()}</Badge>
                         {u.isSeller && <Badge tone="green">seller</Badge>}
@@ -350,6 +431,119 @@ export default function AdminUsers({ users, loading }) {
         loading={deleting}
         onConfirm={confirmDelete}
         onClose={() => setToDelete(null)}
+      />
+
+      {/* Suspend User Modal */}
+      <Modal
+        open={Boolean(suspendModalUser)}
+        title={`Suspend Account: ${suspendModalUser?.name || ''}`}
+        onClose={() => setSuspendModalUser(null)}
+      >
+        {suspendModalUser && (
+          <form onSubmit={handleSuspendSubmit} className="space-y-4">
+            <div className="rounded-xl border border-amber-200 bg-amber-50/50 p-3.5 text-xs text-amber-800 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-300">
+              <p className="font-semibold">Account Suspension Policy</p>
+              <p className="mt-1">
+                Suspending this user will prevent them from logging in or conducting transactions. You can lift this suspension at any time.
+              </p>
+            </div>
+
+            <div>
+              <label className="mb-1.5 block text-[13px] font-semibold text-slate-700 dark:text-slate-200">
+                Suspension Type <span className="text-red-500">*</span>
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                <label className={`flex cursor-pointer items-center gap-2 rounded-xl border p-3 text-xs font-semibold transition-all ${
+                  suspendForm.type === 'TEMPORARY'
+                    ? 'border-amber-500 bg-amber-50/40 text-amber-900 ring-2 ring-amber-500/20 dark:border-amber-400 dark:bg-amber-500/10 dark:text-amber-200'
+                    : 'border-slate-200 bg-slate-50/50 text-slate-700 hover:border-slate-300 dark:border-white/10 dark:bg-white/5 dark:text-slate-300'
+                }`}>
+                  <input
+                    type="radio"
+                    name="suspendType"
+                    value="TEMPORARY"
+                    checked={suspendForm.type === 'TEMPORARY'}
+                    onChange={(e) => setSuspendForm({ ...suspendForm, type: e.target.value })}
+                    className="h-4 w-4 text-amber-600 focus:ring-amber-500"
+                  />
+                  <span>⏱️ Temporary</span>
+                </label>
+
+                <label className={`flex cursor-pointer items-center gap-2 rounded-xl border p-3 text-xs font-semibold transition-all ${
+                  suspendForm.type === 'PERMANENT'
+                    ? 'border-red-500 bg-red-50/40 text-red-900 ring-2 ring-red-500/20 dark:border-red-400 dark:bg-red-500/10 dark:text-red-200'
+                    : 'border-slate-200 bg-slate-50/50 text-slate-700 hover:border-slate-300 dark:border-white/10 dark:bg-white/5 dark:text-slate-300'
+                }`}>
+                  <input
+                    type="radio"
+                    name="suspendType"
+                    value="PERMANENT"
+                    checked={suspendForm.type === 'PERMANENT'}
+                    onChange={(e) => setSuspendForm({ ...suspendForm, type: e.target.value })}
+                    className="h-4 w-4 text-red-600 focus:ring-red-500"
+                  />
+                  <span>🚫 Permanent</span>
+                </label>
+              </div>
+            </div>
+
+            {suspendForm.type === 'TEMPORARY' && (
+              <div>
+                <label htmlFor="suspend-days" className="mb-1.5 block text-[13px] font-semibold text-slate-700 dark:text-slate-200">
+                  Suspension Duration
+                </label>
+                <select
+                  id="suspend-days"
+                  value={suspendForm.days}
+                  onChange={(e) => setSuspendForm({ ...suspendForm, days: Number(e.target.value) })}
+                  className={field}
+                >
+                  <option value={3}>3 Days</option>
+                  <option value={7}>7 Days (1 Week)</option>
+                  <option value={14}>14 Days (2 Weeks)</option>
+                  <option value={30}>30 Days (1 Month)</option>
+                  <option value={90}>90 Days (3 Months)</option>
+                </select>
+              </div>
+            )}
+
+            <div>
+              <label htmlFor="suspend-reason" className="mb-1.5 block text-[13px] font-semibold text-slate-700 dark:text-slate-200">
+                Reason for Suspension <span className="text-red-500">*</span>
+              </label>
+              <textarea
+                id="suspend-reason"
+                required
+                rows={3}
+                value={suspendForm.reason}
+                onChange={(e) => setSuspendForm({ ...suspendForm, reason: e.target.value })}
+                placeholder="Explain the reason for this account suspension (shown to user upon login)..."
+                className={`${field} resize-none`}
+              />
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2">
+              <Button type="button" variant="secondary" onClick={() => setSuspendModalUser(null)} disabled={suspending}>
+                Cancel
+              </Button>
+              <Button type="submit" variant="danger" loading={suspending}>
+                Confirm Suspension
+              </Button>
+            </div>
+          </form>
+        )}
+      </Modal>
+
+      {/* Unsuspend Confirm Modal */}
+      <ConfirmModal
+        open={Boolean(toUnsuspend)}
+        tone="primary"
+        title="Reactivate Account"
+        message={toUnsuspend ? `Reactivate account for ${toUnsuspend.name} (${toUnsuspend.email})? The user will immediately be able to log in and use the platform.` : ''}
+        confirmLabel="Reactivate Account"
+        loading={unsuspending}
+        onConfirm={confirmUnsuspend}
+        onClose={() => setToUnsuspend(null)}
       />
     </div>
   )

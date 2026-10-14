@@ -10,4 +10,6 @@ public interface AdminService {
     UserResponse createUser(AdminUserRequest request);
     UserResponse updateUser(Long id, AdminUserRequest request);
     void deleteUser(Long id);
+    UserResponse suspendUser(Long id, com.smartagri.dto.request.SuspendUserRequest request);
+    UserResponse unsuspendUser(Long id);
 }

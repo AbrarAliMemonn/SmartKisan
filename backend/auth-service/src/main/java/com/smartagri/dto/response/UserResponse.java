@@ -23,4 +23,9 @@ public class UserResponse {
     private String avatar;
     private boolean isSeller;
     private Instant joinDate;
+    private boolean enabled;
+    private boolean suspended;
+    private String suspensionType;
+    private Instant suspendedUntil;
+    private String suspensionReason;
 }

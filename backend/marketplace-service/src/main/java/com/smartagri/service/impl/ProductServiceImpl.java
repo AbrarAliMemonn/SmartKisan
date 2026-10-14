@@ -337,6 +337,9 @@ public class ProductServiceImpl implements ProductService {
         if (!product.getSeller().getUserId().equals(userId)) {
             throw new BadRequestException("You do not own this product listing");
         }
+        if (product.getSeller().getStatus() != SellerStatus.APPROVED) {
+            throw new BadRequestException("Your seller account must be approved by an admin");
+        }
         return product;
     }
 

@@ -31,6 +31,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.Locale;
 import java.util.Optional;
 
@@ -116,17 +117,39 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    @Transactional
     public AuthResponse login(LoginRequest request) {
         String email = normalize(request.getEmail());
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new BadCredentialsException("Invalid email or password"));
+
+        if (user.isSuspended()) {
+            if ("TEMPORARY".equalsIgnoreCase(user.getSuspensionType()) && user.getSuspendedUntil() != null) {
+                if (Instant.now().isAfter(user.getSuspendedUntil())) {
+                    // Auto-lift expired suspension
+                    user.setSuspended(false);
+                    user.setSuspensionType(null);
+                    user.setSuspendedUntil(null);
+                    user.setSuspensionReason(null);
+                    userRepository.save(user);
+                } else {
+                    String reason = user.getSuspensionReason() != null ? user.getSuspensionReason() : "Terms violation";
+                    throw new BadRequestException("Your account is temporarily suspended until " 
+                            + user.getSuspendedUntil().toString() + ". Reason: " + reason);
+                }
+            } else {
+                String reason = user.getSuspensionReason() != null ? user.getSuspensionReason() : "Suspended by Admin";
+                throw new BadRequestException("Your account has been permanently suspended by administration. Reason: " + reason);
+            }
+        }
+
         try {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(email, request.getPassword()));
         } catch (AuthenticationException ex) {
             throw new BadCredentialsException("Invalid email or password");
         }
-
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new BadCredentialsException("Invalid email or password"));
 
         if (!user.isEmailVerified()) {
             throw new EmailNotVerifiedException(

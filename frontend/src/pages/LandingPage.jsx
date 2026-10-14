@@ -51,8 +51,8 @@ import {
 import toast from 'react-hot-toast'
 import useStore from '../store/useStore'
 import { useAuthContext } from '../context/AuthContext'
-import { marketplaceAPI } from '../services/api'
-import { productFromResponse, unwrapList } from '../utils/marketplaceMapper'
+import { marketplaceAPI, paymentAccountAPI } from '../services/api'
+import { productFromResponse, unwrapList, paymentAccountFromResponse } from '../utils/marketplaceMapper'
 import { formatPKR } from '../utils/format'
 
 // Fallback seed catalog for offline or initial render
@@ -295,6 +295,8 @@ export default function LandingPage() {
   })
   const [directSubmitting, setDirectSubmitting] = useState(false)
   const [directOrderSuccess, setDirectOrderSuccess] = useState(null)
+  const [sellerAccounts, setSellerAccounts] = useState([])
+  const [sellerAccountsLoading, setSellerAccountsLoading] = useState(false)
 
   const handleBuyNow = (product, e) => {
     if (e) e.stopPropagation()
@@ -312,6 +314,26 @@ export default function LandingPage() {
       paymentProofUrl: '',
     })
     setDirectOrderSuccess(null)
+    setSellerAccounts([])
+    setSellerAccountsLoading(true)
+
+    const sellerIdentifier = product.sellerId || product.sellerUserId || product.seller?.id || product.seller?.userId
+    if (sellerIdentifier) {
+      paymentAccountAPI.getForSeller(sellerIdentifier)
+        .then((res) => {
+          const list = unwrapList(res).map(paymentAccountFromResponse).filter((a) => a.active)
+          setSellerAccounts(list)
+        })
+        .catch((err) => {
+          console.warn('Could not load seller accounts:', err)
+          setSellerAccounts([])
+        })
+        .finally(() => {
+          setSellerAccountsLoading(false)
+        })
+    } else {
+      setSellerAccountsLoading(false)
+    }
   }
 
   const handleReceiptFileChange = (e) => {
@@ -396,6 +418,18 @@ export default function LandingPage() {
     }
     if (!directOrderForm.city.trim()) {
       toast.error('Please enter your city')
+      return
+    }
+    if (directOrderForm.paymentMethod === 'EASYPAISA' && !sellerAccounts.some((a) => a.type === 'EASYPAISA')) {
+      toast.error(`Seller (${directCheckoutProduct.sellerName || 'this seller'}) has not added EasyPaisa details yet. Please choose Cash on Delivery.`)
+      return
+    }
+    if (directOrderForm.paymentMethod === 'JAZZCASH' && !sellerAccounts.some((a) => a.type === 'JAZZCASH')) {
+      toast.error(`Seller (${directCheckoutProduct.sellerName || 'this seller'}) has not added JazzCash details yet. Please choose Cash on Delivery.`)
+      return
+    }
+    if (directOrderForm.paymentMethod === 'BANK' && !sellerAccounts.some((a) => a.type === 'BANK_TRANSFER')) {
+      toast.error(`Seller (${directCheckoutProduct.sellerName || 'this seller'}) has not added Bank Transfer details yet. Please choose Cash on Delivery.`)
       return
     }
     if (directOrderForm.paymentMethod !== 'COD' && !directOrderForm.transactionReference.trim()) {
@@ -1856,163 +1890,215 @@ export default function LandingPage() {
                 </div>
 
                 {/* Payment Method Selector */}
-                <div className="space-y-2.5">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                    Payment Method
-                  </h4>
+                {(() => {
+                  const easypaisaAcc = sellerAccounts.find((a) => a.type === 'EASYPAISA')
+                  const jazzcashAcc = sellerAccounts.find((a) => a.type === 'JAZZCASH')
+                  const bankAcc = sellerAccounts.find((a) => a.type === 'BANK_TRANSFER')
 
-                  <div className="grid grid-cols-2 gap-2">
-                    {/* COD */}
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setDirectOrderForm({
-                          ...directOrderForm,
-                          paymentMethod: 'COD',
-                          transactionReference: '',
-                        })
-                      }
-                      className={`flex flex-col items-start rounded-xl p-3 text-left transition-all border ${
-                        directOrderForm.paymentMethod === 'COD'
-                          ? 'border-green-600 bg-green-50/60 ring-2 ring-green-600/20'
-                          : 'border-slate-200 bg-white hover:bg-slate-50'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between w-full">
-                        <span className="font-bold text-xs sm:text-sm text-slate-900">
-                          Cash on Delivery
-                        </span>
-                        <Truck className="h-4 w-4 text-green-700" />
-                      </div>
-                      <span className="text-[11px] text-slate-500 mt-1">
-                        Pay upon doorstep arrival
-                      </span>
-                    </button>
-
-                    {/* EasyPaisa */}
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setDirectOrderForm({ ...directOrderForm, paymentMethod: 'EASYPAISA' })
-                      }
-                      className={`flex flex-col items-start rounded-xl p-3 text-left transition-all border ${
-                        directOrderForm.paymentMethod === 'EASYPAISA'
-                          ? 'border-green-600 bg-green-50/60 ring-2 ring-green-600/20'
-                          : 'border-slate-200 bg-white hover:bg-slate-50'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between w-full">
-                        <span className="font-bold text-xs sm:text-sm text-slate-900">
-                          EasyPaisa
-                        </span>
-                        <CreditCard className="h-4 w-4 text-emerald-600" />
-                      </div>
-                      <span className="text-[11px] text-slate-500 mt-1">
-                        0300 1234567
-                      </span>
-                    </button>
-
-                    {/* JazzCash */}
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setDirectOrderForm({ ...directOrderForm, paymentMethod: 'JAZZCASH' })
-                      }
-                      className={`flex flex-col items-start rounded-xl p-3 text-left transition-all border ${
-                        directOrderForm.paymentMethod === 'JAZZCASH'
-                          ? 'border-green-600 bg-green-50/60 ring-2 ring-green-600/20'
-                          : 'border-slate-200 bg-white hover:bg-slate-50'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between w-full">
-                        <span className="font-bold text-xs sm:text-sm text-slate-900">
-                          JazzCash
-                        </span>
-                        <CreditCard className="h-4 w-4 text-amber-600" />
-                      </div>
-                      <span className="text-[11px] text-slate-500 mt-1">
-                        0300 7654321
-                      </span>
-                    </button>
-
-                    {/* Bank Transfer */}
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setDirectOrderForm({ ...directOrderForm, paymentMethod: 'BANK' })
-                      }
-                      className={`flex flex-col items-start rounded-xl p-3 text-left transition-all border ${
-                        directOrderForm.paymentMethod === 'BANK'
-                          ? 'border-green-600 bg-green-50/60 ring-2 ring-green-600/20'
-                          : 'border-slate-200 bg-white hover:bg-slate-50'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between w-full">
-                        <span className="font-bold text-xs sm:text-sm text-slate-900">
-                          Bank Transfer
-                        </span>
-                        <Building2 className="h-4 w-4 text-sky-600" />
-                      </div>
-                      <span className="text-[11px] text-slate-500 mt-1">
-                        Meezan Bank Ltd
-                      </span>
-                    </button>
-                  </div>
-
-                  {/* Payment Instructions if Online / Wallet chosen */}
-                  {directOrderForm.paymentMethod !== 'COD' && (
-                    <div className="rounded-xl bg-slate-50 border border-slate-200 p-3.5 space-y-2 text-xs">
-                      <div className="font-semibold text-slate-800">
-                        {directOrderForm.paymentMethod === 'EASYPAISA' && (
-                          <p>
-                            Send payment to EasyPaisa Account:{' '}
-                            <span className="font-bold text-green-700">0300 1234567</span> (Title: SmartKisan Official)
-                          </p>
-                        )}
-                        {directOrderForm.paymentMethod === 'JAZZCASH' && (
-                          <p>
-                            Send payment to JazzCash Account:{' '}
-                            <span className="font-bold text-green-700">0300 7654321</span> (Title: SmartKisan Official)
-                          </p>
-                        )}
-                        {directOrderForm.paymentMethod === 'BANK' && (
-                          <div>
-                            <p>
-                              Bank: <span className="font-bold">Meezan Bank Ltd</span>
-                            </p>
-                            <p>
-                              IBAN:{' '}
-                              <span className="font-bold text-green-700">
-                                PK12MEZN00012345678901
-                              </span>
-                            </p>
-                            <p>Title: SmartKisan Agri Solutions</p>
-                          </div>
+                  return (
+                    <div className="space-y-2.5">
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                          Payment Method (Seller: {directCheckoutProduct.sellerName || 'Agro Hub'})
+                        </h4>
+                        {sellerAccountsLoading && (
+                          <span className="text-[11px] text-slate-400">Loading seller accounts...</span>
                         )}
                       </div>
 
-                      <div>
-                        <label className="block text-[11px] font-bold text-slate-600 mb-1">
-                          Transaction ID / Reference Number <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          required
-                          value={directOrderForm.transactionReference}
-                          onChange={(e) =>
+                      <div className="grid grid-cols-2 gap-2">
+                        {/* COD */}
+                        <button
+                          type="button"
+                          onClick={() =>
                             setDirectOrderForm({
                               ...directOrderForm,
-                              transactionReference: e.target.value,
+                              paymentMethod: 'COD',
+                              transactionReference: '',
                             })
                           }
-                          placeholder="e.g. TRX-984321 or Bank Ref #"
-                          className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-mono text-slate-900 focus:border-green-600 focus:outline-none"
-                        />
+                          className={`flex flex-col items-start rounded-xl p-3 text-left transition-all border ${
+                            directOrderForm.paymentMethod === 'COD'
+                              ? 'border-green-600 bg-green-50/60 ring-2 ring-green-600/20'
+                              : 'border-slate-200 bg-white hover:bg-slate-50'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between w-full">
+                            <span className="font-bold text-xs sm:text-sm text-slate-900">
+                              Cash on Delivery
+                            </span>
+                            <Truck className="h-4 w-4 text-green-700" />
+                          </div>
+                          <span className="text-[11px] text-slate-500 mt-1">
+                            Pay upon doorstep arrival
+                          </span>
+                        </button>
+
+                        {/* EasyPaisa */}
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setDirectOrderForm({ ...directOrderForm, paymentMethod: 'EASYPAISA' })
+                          }
+                          className={`flex flex-col items-start rounded-xl p-3 text-left transition-all border ${
+                            directOrderForm.paymentMethod === 'EASYPAISA'
+                              ? 'border-green-600 bg-green-50/60 ring-2 ring-green-600/20'
+                              : 'border-slate-200 bg-white hover:bg-slate-50'
+                          } ${!easypaisaAcc && !sellerAccountsLoading ? 'opacity-70' : ''}`}
+                        >
+                          <div className="flex items-center justify-between w-full">
+                            <span className="font-bold text-xs sm:text-sm text-slate-900">
+                              EasyPaisa
+                            </span>
+                            <CreditCard className="h-4 w-4 text-emerald-600" />
+                          </div>
+                          <span className="text-[11px] text-slate-500 mt-1 truncate max-w-full">
+                            {easypaisaAcc ? easypaisaAcc.accountNumber : (sellerAccountsLoading ? 'Checking...' : 'Seller account')}
+                          </span>
+                        </button>
+
+                        {/* JazzCash */}
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setDirectOrderForm({ ...directOrderForm, paymentMethod: 'JAZZCASH' })
+                          }
+                          className={`flex flex-col items-start rounded-xl p-3 text-left transition-all border ${
+                            directOrderForm.paymentMethod === 'JAZZCASH'
+                              ? 'border-green-600 bg-green-50/60 ring-2 ring-green-600/20'
+                              : 'border-slate-200 bg-white hover:bg-slate-50'
+                          } ${!jazzcashAcc && !sellerAccountsLoading ? 'opacity-70' : ''}`}
+                        >
+                          <div className="flex items-center justify-between w-full">
+                            <span className="font-bold text-xs sm:text-sm text-slate-900">
+                              JazzCash
+                            </span>
+                            <CreditCard className="h-4 w-4 text-amber-600" />
+                          </div>
+                          <span className="text-[11px] text-slate-500 mt-1 truncate max-w-full">
+                            {jazzcashAcc ? jazzcashAcc.accountNumber : (sellerAccountsLoading ? 'Checking...' : 'Seller account')}
+                          </span>
+                        </button>
+
+                        {/* Bank Transfer */}
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setDirectOrderForm({ ...directOrderForm, paymentMethod: 'BANK' })
+                          }
+                          className={`flex flex-col items-start rounded-xl p-3 text-left transition-all border ${
+                            directOrderForm.paymentMethod === 'BANK'
+                              ? 'border-green-600 bg-green-50/60 ring-2 ring-green-600/20'
+                              : 'border-slate-200 bg-white hover:bg-slate-50'
+                          } ${!bankAcc && !sellerAccountsLoading ? 'opacity-70' : ''}`}
+                        >
+                          <div className="flex items-center justify-between w-full">
+                            <span className="font-bold text-xs sm:text-sm text-slate-900">
+                              Bank Transfer
+                            </span>
+                            <Building2 className="h-4 w-4 text-sky-600" />
+                          </div>
+                          <span className="text-[11px] text-slate-500 mt-1 truncate max-w-full">
+                            {bankAcc ? (bankAcc.bankName || 'Bank Account') : (sellerAccountsLoading ? 'Checking...' : 'Seller Bank')}
+                          </span>
+                        </button>
                       </div>
 
-                      {/* Receipt Picture Upload */}
-                      <div className="pt-2 border-t border-slate-200/80">
-                        <div className="flex items-center justify-between mb-1.5">
+                      {/* Payment Instructions if Online / Wallet chosen */}
+                      {directOrderForm.paymentMethod !== 'COD' && (
+                        <div className="rounded-xl bg-slate-50 border border-slate-200 p-3.5 space-y-2 text-xs">
+                          <div className="font-semibold text-slate-800">
+                            {directOrderForm.paymentMethod === 'EASYPAISA' && (
+                              easypaisaAcc ? (
+                                <div className="space-y-1">
+                                  <p className="text-slate-600">
+                                    Send payment to seller <span className="font-bold text-slate-900">({directCheckoutProduct.sellerName || 'Seller'})</span>:
+                                  </p>
+                                  <p>
+                                    EasyPaisa Number: <span className="font-bold font-mono text-sm text-emerald-700">{easypaisaAcc.accountNumber}</span>
+                                  </p>
+                                  <p className="text-slate-600">
+                                    Account Title: <span className="font-bold text-slate-800">{easypaisaAcc.accountTitle}</span>
+                                  </p>
+                                </div>
+                              ) : (
+                                <div className="rounded-lg bg-amber-50 border border-amber-200 p-2 text-amber-800">
+                                  ⚠️ This seller ({directCheckoutProduct.sellerName || 'seller'}) has not configured EasyPaisa details yet in Seller Central. Please select Cash on Delivery.
+                                </div>
+                              )
+                            )}
+
+                            {directOrderForm.paymentMethod === 'JAZZCASH' && (
+                              jazzcashAcc ? (
+                                <div className="space-y-1">
+                                  <p className="text-slate-600">
+                                    Send payment to seller <span className="font-bold text-slate-900">({directCheckoutProduct.sellerName || 'Seller'})</span>:
+                                  </p>
+                                  <p>
+                                    JazzCash Number: <span className="font-bold font-mono text-sm text-amber-700">{jazzcashAcc.accountNumber}</span>
+                                  </p>
+                                  <p className="text-slate-600">
+                                    Account Title: <span className="font-bold text-slate-800">{jazzcashAcc.accountTitle}</span>
+                                  </p>
+                                </div>
+                              ) : (
+                                <div className="rounded-lg bg-amber-50 border border-amber-200 p-2 text-amber-800">
+                                  ⚠️ This seller ({directCheckoutProduct.sellerName || 'seller'}) has not configured JazzCash details yet in Seller Central. Please select Cash on Delivery.
+                                </div>
+                              )
+                            )}
+
+                            {directOrderForm.paymentMethod === 'BANK' && (
+                              bankAcc ? (
+                                <div className="space-y-1">
+                                  <p className="text-slate-600">
+                                    Transfer to seller <span className="font-bold text-slate-900">({directCheckoutProduct.sellerName || 'Seller'})</span>:
+                                  </p>
+                                  <p>
+                                    Bank: <span className="font-bold text-slate-900">{bankAcc.bankName || 'Bank'}</span>
+                                  </p>
+                                  <p>
+                                    Account Title: <span className="font-bold text-slate-900">{bankAcc.accountTitle}</span>
+                                  </p>
+                                  <p>
+                                    Account Number: <span className="font-bold font-mono text-green-700">{bankAcc.accountNumber}</span>
+                                  </p>
+                                  {bankAcc.iban && (
+                                    <p>
+                                      IBAN: <span className="font-bold font-mono text-green-700">{bankAcc.iban}</span>
+                                    </p>
+                                  )}
+                                </div>
+                              ) : (
+                                <div className="rounded-lg bg-amber-50 border border-amber-200 p-2 text-amber-800">
+                                  ⚠️ This seller ({directCheckoutProduct.sellerName || 'seller'}) has not configured a bank account yet in Seller Central. Please select Cash on Delivery.
+                                </div>
+                              )
+                            )}
+                          </div>
+
+                          <div>
+                            <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                              Transaction ID / Reference Number <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              required
+                              value={directOrderForm.transactionReference}
+                              onChange={(e) =>
+                                setDirectOrderForm({
+                                  ...directOrderForm,
+                                  transactionReference: e.target.value,
+                                })
+                              }
+                              placeholder="e.g. TRX-984321 or Bank Ref #"
+                              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-mono text-slate-900 focus:border-green-600 focus:outline-none"
+                            />
+                          </div>
+
+                          {/* Receipt Picture Upload */}
+                          <div className="pt-2 border-t border-slate-200/80">
+                            <div className="flex items-center justify-between mb-1.5">
                           <label className="flex items-center gap-1.5 text-[11px] font-bold text-slate-700">
                             <Camera className="h-3.5 w-3.5 text-green-700" />
                             <span>Payment Receipt / Screenshot</span>
@@ -2074,6 +2160,7 @@ export default function LandingPage() {
                     </div>
                   )}
                 </div>
+              )})()}
 
                 {/* Total & Submit Button */}
                 <div className="pt-2 border-t border-slate-200">

@@ -41,4 +41,15 @@ public class AdminController {
         adminService.deleteUser(id);
         return ApiResponse.message("User deleted");
     }
+
+    @PostMapping("/{id}/suspend")
+    public ApiResponse<UserResponse> suspendUser(@PathVariable Long id,
+                                                 @Valid @RequestBody com.smartagri.dto.request.SuspendUserRequest request) {
+        return ApiResponse.success("User account suspended", adminService.suspendUser(id, request));
+    }
+
+    @PostMapping("/{id}/unsuspend")
+    public ApiResponse<UserResponse> unsuspendUser(@PathVariable Long id) {
+        return ApiResponse.success("User account reactivated", adminService.unsuspendUser(id));
+    }
 }

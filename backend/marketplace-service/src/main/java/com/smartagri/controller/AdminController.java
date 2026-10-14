@@ -33,6 +33,11 @@ public class AdminController {
 
     // --- Sellers ---
 
+    @GetMapping("/sellers")
+    public ApiResponse<List<SellerProfileResponse>> allSellers() {
+        return ApiResponse.success(sellerService.listAll());
+    }
+
     @GetMapping("/sellers/pending")
     public ApiResponse<List<SellerProfileResponse>> pendingSellers() {
         return ApiResponse.success(sellerService.listPending());
@@ -51,6 +56,11 @@ public class AdminController {
     @PostMapping("/sellers/{id}/suspend")
     public ApiResponse<SellerProfileResponse> suspendSeller(@PathVariable Long id, @RequestBody(required = false) ModerationRequest request) {
         return ApiResponse.success("Seller suspended", sellerService.suspend(id, request != null ? request : new ModerationRequest()));
+    }
+
+    @PostMapping("/sellers/{id}/unsuspend")
+    public ApiResponse<SellerProfileResponse> unsuspendSeller(@PathVariable Long id) {
+        return ApiResponse.success("Seller unsuspended", sellerService.unsuspend(id));
     }
 
     @PostMapping("/sellers/{id}/verify")

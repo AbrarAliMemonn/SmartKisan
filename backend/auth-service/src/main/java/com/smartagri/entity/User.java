@@ -72,6 +72,19 @@ public class User {
     @Builder.Default
     private boolean emailVerified = true;
 
+    @Column(name = "is_suspended", nullable = false)
+    @Builder.Default
+    private boolean suspended = false;
+
+    @Column(name = "suspension_type")
+    private String suspensionType; // TEMPORARY or PERMANENT
+
+    @Column(name = "suspended_until")
+    private Instant suspendedUntil;
+
+    @Column(name = "suspension_reason", length = 500)
+    private String suspensionReason;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private Instant createdAt;

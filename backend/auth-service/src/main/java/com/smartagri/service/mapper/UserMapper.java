@@ -20,6 +20,11 @@ public class UserMapper {
                 .avatar(user.getAvatar())
                 .isSeller(user.isSeller())
                 .joinDate(user.getCreatedAt())
+                .enabled(user.isEnabled())
+                .suspended(user.isSuspended())
+                .suspensionType(user.getSuspensionType())
+                .suspendedUntil(user.getSuspendedUntil())
+                .suspensionReason(user.getSuspensionReason())
                 .build();
     }
 }

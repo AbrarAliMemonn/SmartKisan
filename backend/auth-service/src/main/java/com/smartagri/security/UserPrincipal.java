@@ -30,6 +30,7 @@ public class UserPrincipal implements UserDetails {
     private final UserType userType;
     private final boolean seller;
     private final boolean enabled;
+    private final boolean suspended;
 
     public UserPrincipal(User user) {
         this.id = user.getId();
@@ -40,6 +41,7 @@ public class UserPrincipal implements UserDetails {
         this.userType = user.getUserType();
         this.seller = user.isSeller();
         this.enabled = user.isEnabled();
+        this.suspended = user.isSuspended();
     }
 
     public static UserPrincipal create(User user) {
@@ -72,7 +74,7 @@ public class UserPrincipal implements UserDetails {
     public boolean isAccountNonExpired() { return true; }
 
     @Override
-    public boolean isAccountNonLocked() { return true; }
+    public boolean isAccountNonLocked() { return !suspended; }
 
     @Override
     public boolean isCredentialsNonExpired() { return true; }

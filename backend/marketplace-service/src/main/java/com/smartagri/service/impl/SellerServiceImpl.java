@@ -104,6 +104,11 @@ public class SellerServiceImpl implements SellerService {
     // --- Admin moderation ---
 
     @Override
+    public List<SellerProfileResponse> listAll() {
+        return sellerProfileRepository.findAll().stream().map(this::toResponse).toList();
+    }
+
+    @Override
     public List<SellerProfileResponse> listPending() {
         return sellerProfileRepository.findByStatus(SellerStatus.PENDING).stream().map(this::toResponse).toList();
     }
@@ -132,6 +137,15 @@ public class SellerServiceImpl implements SellerService {
         SellerProfile seller = getSellerOrThrow(sellerId);
         seller.setStatus(SellerStatus.SUSPENDED);
         seller.setModerationReason(request.getReason());
+        return toResponse(sellerProfileRepository.save(seller));
+    }
+
+    @Override
+    @Transactional
+    public SellerProfileResponse unsuspend(Long sellerId) {
+        SellerProfile seller = getSellerOrThrow(sellerId);
+        seller.setStatus(SellerStatus.APPROVED);
+        seller.setModerationReason(null);
         return toResponse(sellerProfileRepository.save(seller));
     }
 

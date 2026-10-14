@@ -14,9 +14,11 @@ public interface SellerService {
     SellerAnalyticsResponse getAnalytics(Long userId);
 
     // --- Admin moderation (spec sections 4, 31) ---
+    List<SellerProfileResponse> listAll();
     List<SellerProfileResponse> listPending();
     SellerProfileResponse approve(Long sellerId);
     SellerProfileResponse reject(Long sellerId, ModerationRequest request);
     SellerProfileResponse suspend(Long sellerId, ModerationRequest request);
+    SellerProfileResponse unsuspend(Long sellerId);
     SellerProfileResponse verify(Long sellerId);
 }

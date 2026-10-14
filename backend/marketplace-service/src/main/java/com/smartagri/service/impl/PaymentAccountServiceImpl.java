@@ -6,13 +6,16 @@ import com.smartagri.entity.PaymentAccount;
 import com.smartagri.entity.PaymentAccountType;
 import com.smartagri.exception.BadRequestException;
 import com.smartagri.exception.ResourceNotFoundException;
+import com.smartagri.entity.SellerProfile;
 import com.smartagri.repository.PaymentAccountRepository;
+import com.smartagri.repository.SellerProfileRepository;
 import com.smartagri.service.PaymentAccountService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -20,6 +23,7 @@ import java.util.List;
 public class PaymentAccountServiceImpl implements PaymentAccountService {
 
     private final PaymentAccountRepository paymentAccountRepository;
+    private final SellerProfileRepository sellerProfileRepository;
 
     @Override
     @Transactional
@@ -62,12 +66,22 @@ public class PaymentAccountServiceImpl implements PaymentAccountService {
     }
 
     @Override
-    public List<PaymentAccountResponse> getActiveAccountsForSeller(Long sellerUserId) {
-        List<PaymentAccount> accounts = paymentAccountRepository.findByOwnerUserIdAndActiveTrue(sellerUserId);
-        if (accounts.isEmpty()) {
-            // Fall back to platform-level accounts so checkout always has somewhere to point the buyer.
-            accounts = paymentAccountRepository.findByOwnerUserIdIsNullAndActiveTrue();
+    public List<PaymentAccountResponse> getActiveAccountsForSeller(Long sellerIdentifier) {
+        if (sellerIdentifier == null) {
+            return List.of();
         }
+        // First try by sellerIdentifier as ownerUserId
+        List<PaymentAccount> accounts = paymentAccountRepository.findByOwnerUserIdAndActiveTrue(sellerIdentifier);
+        
+        // If not found, check if sellerIdentifier is a SellerProfile ID
+        if (accounts.isEmpty()) {
+            Optional<SellerProfile> profile = sellerProfileRepository.findById(sellerIdentifier);
+            if (profile.isPresent() && profile.get().getUserId() != null) {
+                accounts = paymentAccountRepository.findByOwnerUserIdAndActiveTrue(profile.get().getUserId());
+            }
+        }
+        
+        // Each seller has their own unique payment accounts (EasyPaisa, JazzCash, Bank)
         return accounts.stream().map(this::toResponse).toList();
     }
 

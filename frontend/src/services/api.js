@@ -102,6 +102,8 @@ export const adminAPI = {
   createUser: (data) => api.post('/admin/users', data),
   updateUser: (id, data) => api.put(`/admin/users/${id}`, data),
   deleteUser: (id) => api.delete(`/admin/users/${id}`),
+  suspendUser: (id, data) => api.post(`/admin/users/${id}/suspend`, data),
+  unsuspendUser: (id) => api.post(`/admin/users/${id}/unsuspend`),
   syncUsers: (users) => api.post('/admin/users/sync', { users }),
   approveService: (id, service) => api.post(`/admin/users/${id}/approve-service`, { service }),
 }
@@ -232,10 +234,12 @@ export const paymentAccountAPI = {
 // =========================================================
 export const marketplaceAdminAPI = {
   // Sellers
+  getAllSellers: () => api.get('/marketplace/admin/sellers'),
   getPendingSellers: () => api.get('/marketplace/admin/sellers/pending'),
   approveSeller: (id) => api.post(`/marketplace/admin/sellers/${id}/approve`),
   rejectSeller: (id, reason) => api.post(`/marketplace/admin/sellers/${id}/reject`, reason ? { reason } : {}),
   suspendSeller: (id, reason) => api.post(`/marketplace/admin/sellers/${id}/suspend`, reason ? { reason } : {}),
+  unsuspendSeller: (id) => api.post(`/marketplace/admin/sellers/${id}/unsuspend`),
   verifySeller: (id) => api.post(`/marketplace/admin/sellers/${id}/verify`),
 
   // Products

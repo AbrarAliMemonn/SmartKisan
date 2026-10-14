@@ -891,6 +891,46 @@ const login = async (email, password, options = {}) => {
     }
   }
 
+  const adminSuspendUser = async (id, data) => {
+    setLoading(true)
+    try {
+      const response = await adminAPI.suspendUser(id, data)
+      const updated = response.data?.data
+      if (updated) {
+        setUsers((prev) => prev.map((u) => (u.id === id ? { ...u, ...updated } : u)))
+      }
+      toast.success(response.data?.message || 'User suspended successfully')
+      return { success: true, data: updated }
+    } catch (error) {
+      console.error('Admin suspend user error:', error)
+      const message = getErrorMessage(error, 'Could not suspend user')
+      toast.error(message)
+      return { success: false, error: message }
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const adminUnsuspendUser = async (id) => {
+    setLoading(true)
+    try {
+      const response = await adminAPI.unsuspendUser(id)
+      const updated = response.data?.data
+      if (updated) {
+        setUsers((prev) => prev.map((u) => (u.id === id ? { ...u, ...updated } : u)))
+      }
+      toast.success(response.data?.message || 'User reactivated successfully')
+      return { success: true, data: updated }
+    } catch (error) {
+      console.error('Admin unsuspend user error:', error)
+      const message = getErrorMessage(error, 'Could not unsuspend user')
+      toast.error(message)
+      return { success: false, error: message }
+    } finally {
+      setLoading(false)
+    }
+  }
+
   // =========================================================
   // UPDATE USER PROFILE
   // =========================================================
@@ -1096,6 +1136,8 @@ const login = async (email, password, options = {}) => {
     adminAddUser,
     adminUpdateUser,
     adminDeleteUser,
+    adminSuspendUser,
+    adminUnsuspendUser,
     adminApproveService,
 
     // APPROVED seller

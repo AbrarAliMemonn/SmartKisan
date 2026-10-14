@@ -16,6 +16,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.smartagri.dto.request.SuspendUserRequest;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
@@ -84,5 +87,40 @@ public class AdminServiceImpl implements AdminService {
         // user_settings has a FK to users, so it has to go first.
         userSettingsRepository.deleteByUserId(id);
         userRepository.deleteById(id);
+    }
+
+    @Override
+    @Transactional
+    public UserResponse suspendUser(Long id, SuspendUserRequest request) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
+
+        boolean isTemp = "TEMPORARY".equalsIgnoreCase(request.getType());
+        user.setSuspended(true);
+        user.setSuspensionType(isTemp ? "TEMPORARY" : "PERMANENT");
+        user.setSuspensionReason(request.getReason() != null ? request.getReason().trim() : "Violated terms of service");
+
+        if (isTemp) {
+            int days = (request.getDays() != null && request.getDays() > 0) ? request.getDays() : 7;
+            user.setSuspendedUntil(Instant.now().plus(days, ChronoUnit.DAYS));
+        } else {
+            user.setSuspendedUntil(null);
+        }
+
+        return userMapper.toResponse(userRepository.save(user));
+    }
+
+    @Override
+    @Transactional
+    public UserResponse unsuspendUser(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
+
+        user.setSuspended(false);
+        user.setSuspensionType(null);
+        user.setSuspendedUntil(null);
+        user.setSuspensionReason(null);
+
+        return userMapper.toResponse(userRepository.save(user));
     }
 }
