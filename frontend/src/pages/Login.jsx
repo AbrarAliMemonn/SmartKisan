@@ -24,7 +24,8 @@ import toast from 'react-hot-toast'
 import { API_ROOT_URL } from '../utils/constants'
 
 const startGoogleLogin = () => {
-  window.location.href = `${API_ROOT_URL}/api/oauth2/authorization/google`
+  const returnTo = typeof window !== 'undefined' ? encodeURIComponent(`${window.location.origin}/oauth2/redirect`) : ''
+  window.location.href = `${API_ROOT_URL}/api/oauth2/authorization/google?returnTo=${returnTo}`
 }
 
 const initialFormData = {

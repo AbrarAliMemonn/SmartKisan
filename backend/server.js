@@ -1027,6 +1027,83 @@ function parseBody(req) {
   });
 }
 
+// ---------------- Google OAuth2 Configuration & Helpers ----------------
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '';
+const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || '';
+
+function googlePostForm(urlStr, data) {
+  return new Promise((resolve, reject) => {
+    const postData = new URLSearchParams(data).toString();
+    const u = new URL(urlStr);
+    const req = https.request({
+      hostname: u.hostname,
+      port: 443,
+      path: u.pathname + u.search,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Content-Length': Buffer.byteLength(postData),
+        'Accept': 'application/json',
+      },
+      timeout: 12000,
+    }, (res) => {
+      let body = '';
+      res.on('data', chunk => body += chunk);
+      res.on('end', () => {
+        try {
+          const parsed = JSON.parse(body);
+          if (res.statusCode >= 200 && res.statusCode < 300) {
+            resolve(parsed);
+          } else {
+            reject(new Error(parsed.error_description || parsed.error || `HTTP ${res.statusCode}: ${body}`));
+          }
+        } catch (e) {
+          reject(new Error(`Failed to parse Google token response: ${body}`));
+        }
+      });
+    });
+    req.on('error', reject);
+    req.on('timeout', () => { req.destroy(); reject(new Error('Google token exchange timed out')); });
+    req.write(postData);
+    req.end();
+  });
+}
+
+function googleFetchJson(urlStr, headers = {}) {
+  return new Promise((resolve, reject) => {
+    const u = new URL(urlStr);
+    const req = https.request({
+      hostname: u.hostname,
+      port: 443,
+      path: u.pathname + u.search,
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        ...headers,
+      },
+      timeout: 12000,
+    }, (res) => {
+      let body = '';
+      res.on('data', chunk => body += chunk);
+      res.on('end', () => {
+        try {
+          const parsed = JSON.parse(body);
+          if (res.statusCode >= 200 && res.statusCode < 300) {
+            resolve(parsed);
+          } else {
+            reject(new Error(parsed.error_description || parsed.error || `HTTP ${res.statusCode}: ${body}`));
+          }
+        } catch (e) {
+          reject(new Error(`Failed to parse Google userinfo response: ${body}`));
+        }
+      });
+    });
+    req.on('error', reject);
+    req.on('timeout', () => { req.destroy(); reject(new Error('Google userinfo fetch timed out')); });
+    req.end();
+  });
+}
+
 // ---------------- Master Server ----------------
 const server = http.createServer(async (req, res) => {
   // Handle CORS Preflight
@@ -1051,6 +1128,177 @@ const server = http.createServer(async (req, res) => {
       timestamp: new Date().toISOString(),
       services: ['IoT Telemetry', 'Multilingual AI Advisor', 'Marketplace', 'Auth', 'Weather'],
     });
+  }
+
+  // =========================================================
+  // 1A. GOOGLE OAUTH2 FLOW (/api/oauth2/authorization/google & /api/login/oauth2/code/google)
+  // =========================================================
+
+  // 1A.1 Initiation: Redirect user to Google Accounts consent page
+  if (
+    (pathname === '/api/oauth2/authorization/google' ||
+      pathname === '/oauth2/authorization/google' ||
+      pathname === '/api/auth/google' ||
+      pathname === '/auth/google') &&
+    req.method === 'GET'
+  ) {
+    const proto = req.headers['x-forwarded-proto'] || (req.connection && req.connection.encrypted ? 'https' : 'http');
+    const host = req.headers['x-forwarded-host'] || req.headers.host || 'smartkisan-bbjf.onrender.com';
+    const backendOrigin = `${proto}://${host}`;
+
+    // Target frontend page after OAuth completion
+    let returnTo = parsedUrl.query.returnTo || parsedUrl.query.redirect_uri || parsedUrl.query.redirect;
+    if (!returnTo) {
+      const referer = req.headers['referer'] || '';
+      if (referer) {
+        try {
+          const refUrl = new URL(referer);
+          returnTo = `${refUrl.origin}/oauth2/redirect`;
+        } catch (e) {}
+      }
+    }
+    if (!returnTo) {
+      returnTo = process.env.FRONTEND_URL ? `${process.env.FRONTEND_URL}/oauth2/redirect` : 'https://frontend-eosin-xi-45.vercel.app/oauth2/redirect';
+    }
+
+    // Google Callback URL registered in Google Cloud Console
+    const callbackUrl = process.env.GOOGLE_REDIRECT_URI || `${backendOrigin}/api/login/oauth2/code/google`;
+
+    const statePayload = {
+      returnTo,
+      callbackUrl,
+      nonce: crypto.randomBytes(16).toString('hex'),
+      time: Date.now(),
+    };
+    const state = Buffer.from(JSON.stringify(statePayload)).toString('base64url');
+
+    const googleAuthUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
+    googleAuthUrl.searchParams.set('client_id', GOOGLE_CLIENT_ID);
+    googleAuthUrl.searchParams.set('redirect_uri', callbackUrl);
+    googleAuthUrl.searchParams.set('response_type', 'code');
+    googleAuthUrl.searchParams.set('scope', 'openid email profile');
+    googleAuthUrl.searchParams.set('access_type', 'offline');
+    googleAuthUrl.searchParams.set('prompt', 'select_account');
+    googleAuthUrl.searchParams.set('state', state);
+
+    console.log(`[Google OAuth] Initiating login for client ${GOOGLE_CLIENT_ID}. Redirecting to Google auth with callback: ${callbackUrl}`);
+    res.writeHead(302, { Location: googleAuthUrl.toString() });
+    return res.end();
+  }
+
+  // 1A.2 Callback: Google redirects here with ?code=...&state=...
+  if (
+    (pathname === '/api/login/oauth2/code/google' ||
+      pathname === '/login/oauth2/code/google' ||
+      pathname === '/api/oauth2/code/google' ||
+      pathname === '/oauth2/code/google') &&
+    req.method === 'GET'
+  ) {
+    let returnTo = process.env.FRONTEND_URL ? `${process.env.FRONTEND_URL}/oauth2/redirect` : 'https://frontend-eosin-xi-45.vercel.app/oauth2/redirect';
+    let callbackUrlUsed = null;
+
+    if (parsedUrl.query.state) {
+      try {
+        const decoded = JSON.parse(Buffer.from(parsedUrl.query.state, 'base64url').toString('utf8'));
+        if (decoded.returnTo) returnTo = decoded.returnTo;
+        if (decoded.callbackUrl) callbackUrlUsed = decoded.callbackUrl;
+      } catch (e) {
+        console.warn('[Google OAuth] State decode notice:', e.message);
+      }
+    }
+
+    // Ensure returnTo has a valid URL
+    let targetReturnUrl;
+    try {
+      targetReturnUrl = new URL(returnTo);
+    } catch (e) {
+      targetReturnUrl = new URL('https://frontend-eosin-xi-45.vercel.app/oauth2/redirect');
+    }
+
+    // Handle Google cancellation or errors
+    if (parsedUrl.query.error) {
+      console.warn('[Google OAuth Notice from Google]:', parsedUrl.query.error);
+      targetReturnUrl.searchParams.set('error', parsedUrl.query.error_description || parsedUrl.query.error);
+      res.writeHead(302, { Location: targetReturnUrl.toString() });
+      return res.end();
+    }
+
+    const code = parsedUrl.query.code;
+    if (!code) {
+      targetReturnUrl.searchParams.set('error', 'No authorization code received from Google');
+      res.writeHead(302, { Location: targetReturnUrl.toString() });
+      return res.end();
+    }
+
+    const proto = req.headers['x-forwarded-proto'] || (req.connection && req.connection.encrypted ? 'https' : 'http');
+    const host = req.headers['x-forwarded-host'] || req.headers.host || 'smartkisan-bbjf.onrender.com';
+    const callbackUrl = callbackUrlUsed || process.env.GOOGLE_REDIRECT_URI || `${proto}://${host}${pathname}`;
+
+    try {
+      console.log(`[Google OAuth] Exchanging code with redirect_uri: ${callbackUrl}`);
+      const tokenRes = await googlePostForm('https://oauth2.googleapis.com/token', {
+        code,
+        client_id: GOOGLE_CLIENT_ID,
+        client_secret: GOOGLE_CLIENT_SECRET,
+        redirect_uri: callbackUrl,
+        grant_type: 'authorization_code',
+      });
+
+      console.log('[Google OAuth] Token acquired. Fetching Google user profile...');
+      const googleUser = await googleFetchJson('https://www.googleapis.com/oauth2/v3/userinfo', {
+        Authorization: `Bearer ${tokenRes.access_token}`,
+      });
+
+      const email = (googleUser.email || '').toLowerCase().trim();
+      if (!email) {
+        throw new Error('Google account did not return an email address');
+      }
+
+      // Provision or locate user
+      let user = users.find((u) => u.email.toLowerCase() === email);
+      if (!user) {
+        user = {
+          id: users.length > 0 ? Math.max(...users.map((u) => u.id || 0)) + 1 : 1,
+          name: googleUser.name || email.split('@')[0],
+          email: email,
+          role: email.includes('admin') ? 'ADMIN' : 'USER',
+          userType: email.includes('admin') ? 'ADMIN' : 'FARMER',
+          isSeller: false,
+          emailVerified: true,
+          phone: null,
+          location: 'Hyderabad, Sindh, Pakistan',
+          avatar: googleUser.picture || null,
+          avatarImage: googleUser.picture || null,
+          createdAt: new Date().toISOString(),
+        };
+        users.push(user);
+        console.log(`[Google OAuth] Registered new Google user: ${email} (ID: ${user.id})`);
+      } else {
+        user.emailVerified = true;
+        if (googleUser.picture && (!user.avatar || !user.avatarImage)) {
+          user.avatar = googleUser.picture;
+          user.avatarImage = googleUser.picture;
+        }
+        console.log(`[Google OAuth] Existing user logged in via Google: ${email}`);
+      }
+
+      await saveDb();
+
+      const accessToken = 'smartkisan_jwt_token_' + Buffer.from(email).toString('base64');
+      const refreshToken = 'smartkisan_refresh_' + Date.now();
+
+      targetReturnUrl.searchParams.set('token', accessToken);
+      targetReturnUrl.searchParams.set('refreshToken', refreshToken);
+
+      console.log(`[Google OAuth Success] User ${email} authenticated successfully. Redirecting to frontend...`);
+      res.writeHead(302, { Location: targetReturnUrl.toString() });
+      return res.end();
+    } catch (err) {
+      console.error('[Google OAuth Exchange Error]:', err.message);
+      targetReturnUrl.searchParams.set('error', err.message || 'Google authentication exchange failed');
+      res.writeHead(302, { Location: targetReturnUrl.toString() });
+      return res.end();
+    }
   }
 
   // =========================================================

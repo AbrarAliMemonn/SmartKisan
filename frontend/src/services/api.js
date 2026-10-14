@@ -75,8 +75,9 @@ export const authAPI = {
   resetPassword: (data) => api.post('/auth/reset-password', data),
 
   googleLogin: () => {
+    const returnTo = typeof window !== 'undefined' ? encodeURIComponent(`${window.location.origin}/oauth2/redirect`) : ''
     window.location.href =
-      `${API_BASE_URL}/oauth2/authorization/google`
+      `${API_BASE_URL}/oauth2/authorization/google?returnTo=${returnTo}`
   },
 }
 

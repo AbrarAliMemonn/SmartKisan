@@ -13,3 +13,9 @@ services:
         value: m01012002809234@gmail.com
       - key: MAIL_PASSWORD
         value: vvqtqfglovgljecn
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: FRONTEND_URL
+        value: https://frontend-eosin-xi-45.vercel.app
