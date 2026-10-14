@@ -48,7 +48,9 @@ public class SecurityConfig {
     private static final String[] PUBLIC_ENDPOINTS = {
             "/auth/**",
             "/oauth2/**",
+            "/api/oauth2/**",
             "/login/**",
+            "/api/login/**",
             "/actuator/health",
             "/actuator/info"
     };
@@ -133,6 +135,12 @@ public class SecurityConfig {
                 // Google OAuth2 login
                 .oauth2Login(oauth2 ->
                         oauth2
+                                .authorizationEndpoint(authorization ->
+                                        authorization.baseUri("/api/oauth2/authorization")
+                                )
+                                .redirectionEndpoint(redirection ->
+                                        redirection.baseUri("/api/login/oauth2/code/*")
+                                )
                                 .userInfoEndpoint(userInfo ->
                                         userInfo.userService(
                                                 customOAuth2UserService
