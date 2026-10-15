@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Activity, Wifi, WifiOff, Gauge, ShieldCheck, Zap } from 'lucide-react'
+import { Activity, Wifi, WifiOff, Gauge, ShieldCheck, Zap, Cpu } from 'lucide-react'
 import { LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 import StatsCard from '../components/dashboard/StatsCard'
 import SensorCard from '../components/dashboard/SensorCard'
@@ -9,10 +9,12 @@ import Card from '../components/common/Card'
 import { SkeletonCard, SkeletonChart } from '../components/common/Skeleton'
 import { useSensorFeed } from '../hooks/useSensorFeed'
 import { sensorDefinitions } from '../utils/constants'
+import Esp32ConnectModal from '../components/dashboard/Esp32ConnectModal'
 
 export default function IoTDashboard() {
-  const { readings, history, isConnected, isHardwareLive } = useSensorFeed()
+  const { readings, history, isConnected, isHardwareLive, deviceInfo, refetchSensors } = useSensorFeed()
   const [loading, setLoading] = useState(true)
+  const [showEspModal, setShowEspModal] = useState(false)
 
   useEffect(() => {
     const t = setTimeout(() => setLoading(false), 700)
@@ -50,17 +52,34 @@ export default function IoTDashboard() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="page-title">Farm Dashboard</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="page-title">Farm Dashboard</h1>
+            {deviceInfo?.deviceId && (
+              <span className="rounded-md bg-slate-100 dark:bg-white/10 px-2 py-0.5 font-mono text-[11px] font-semibold text-slate-600 dark:text-slate-300">
+                {deviceInfo.deviceId}
+              </span>
+            )}
+          </div>
           <p className="page-subtitle">Real-time sensor monitoring across your fields</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          {/* Connect ESP32 Button */}
+          <button
+            type="button"
+            onClick={() => setShowEspModal(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm transition-all"
+          >
+            <Cpu size={14} />
+            <span>Connect ESP32</span>
+          </button>
+
           <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold ${
             isHardwareLive
               ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300'
               : 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300'
           }`}>
             <span className={`w-2 h-2 rounded-full ${isHardwareLive ? 'bg-emerald-500 animate-ping' : 'bg-blue-500'}`} />
-            {isHardwareLive ? 'Hardware: Live ESP32' : 'Sensors: Simulated Test Data'}
+            {isHardwareLive ? `Hardware: Live ESP32` : 'Sensors: Simulated Test Data'}
           </div>
 
           <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold ${
@@ -165,6 +184,15 @@ export default function IoTDashboard() {
           </button>
         </div>
       </Card>
+
+      {/* ESP32 Hardware Setup Modal */}
+      <Esp32ConnectModal
+        isOpen={showEspModal}
+        onClose={() => setShowEspModal(false)}
+        deviceInfo={deviceInfo}
+        isHardwareLive={isHardwareLive}
+        onRefresh={refetchSensors}
+      />
     </div>
   )
 }

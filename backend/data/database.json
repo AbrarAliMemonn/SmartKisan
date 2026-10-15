@@ -3,8 +3,8 @@
     {
       "id": 1,
       "name": "Abrar Ali memon",
+      "password": "mycustomsecretpassword",
       "email": "abraralimemon23@gmail.com",
-      "password": "password123",
       "role": "ADMIN",
       "userType": "ADMIN",
       "isSeller": true,
@@ -14,13 +14,19 @@
       "avatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150",
       "avatarImage": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150",
       "farmSize": "25 Acres",
+      "allowedServices": [
+        "iot",
+        "marketplace",
+        "chatbot",
+        "weather"
+      ],
       "createdAt": "2026-01-01T00:00:00.000Z"
     },
     {
       "id": 2,
       "name": "System Administrator",
+      "password": "admin123",
       "email": "admin@smartagri.com",
-      "password": "adminpassword123",
       "role": "ADMIN",
       "userType": "ADMIN",
       "isSeller": true,
@@ -30,13 +36,19 @@
       "avatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150",
       "avatarImage": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150",
       "farmSize": "50 Acres",
+      "allowedServices": [
+        "iot",
+        "marketplace",
+        "chatbot",
+        "weather"
+      ],
       "createdAt": "2026-01-01T00:00:00.000Z"
     },
     {
       "id": 3,
       "name": "Muhammad Tariq",
-      "email": "tariq.seeds@gmail.com",
       "password": "password123",
+      "email": "tariq.seeds@gmail.com",
       "role": "USER",
       "userType": "FARMER",
       "isSeller": true,
@@ -46,13 +58,19 @@
       "avatar": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150",
       "avatarImage": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150",
       "farmSize": "15 Acres",
+      "allowedServices": [
+        "iot",
+        "marketplace",
+        "chatbot",
+        "weather"
+      ],
       "createdAt": "2026-02-10T00:00:00.000Z"
     },
     {
       "id": 4,
       "name": "Rasheed Ahmed",
-      "email": "rasheed.farmer@gmail.com",
       "password": "password123",
+      "email": "rasheed.farmer@gmail.com",
       "role": "USER",
       "userType": "FARMER",
       "isSeller": false,
@@ -62,13 +80,19 @@
       "avatar": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150",
       "avatarImage": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150",
       "farmSize": "10 Acres",
+      "allowedServices": [
+        "iot",
+        "marketplace",
+        "chatbot",
+        "weather"
+      ],
       "createdAt": "2026-03-05T00:00:00.000Z"
     },
     {
       "id": 5,
       "name": "Ghulam Mustafa",
-      "email": "mustafa.agro@gmail.com",
       "password": "password123",
+      "email": "mustafa.agro@gmail.com",
       "role": "USER",
       "userType": "FARMER",
       "isSeller": false,
@@ -78,7 +102,35 @@
       "avatar": "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150",
       "avatarImage": "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150",
       "farmSize": "30 Acres",
+      "allowedServices": [
+        "iot",
+        "marketplace",
+        "chatbot",
+        "weather"
+      ],
       "createdAt": "2026-03-12T00:00:00.000Z"
+    },
+    {
+      "id": 6,
+      "name": "Recreated User",
+      "password": "newpassword123",
+      "email": "deletetest_1792042295876@example.com",
+      "role": "USER",
+      "userType": "FARMER",
+      "isSeller": false,
+      "emailVerified": false,
+      "phone": "",
+      "location": "Hyderabad, Sindh, Pakistan",
+      "avatar": "",
+      "avatarImage": "",
+      "farmSize": "",
+      "allowedServices": [
+        "iot",
+        "marketplace",
+        "chatbot",
+        "weather"
+      ],
+      "createdAt": "2026-10-15T05:31:35.000Z"
     }
   ],
   "products": [
@@ -97,10 +149,11 @@
       "reviewsCount": 14,
       "stock": 45,
       "condition": "NEW",
+      "image": "https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=600",
+      "imageUrl": "https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=600",
       "images": [
         "https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=600"
-      ],
-      "isNegotiable": true
+      ]
     },
     {
       "id": 2,
@@ -117,10 +170,11 @@
       "reviewsCount": 28,
       "stock": 120,
       "condition": "NEW",
+      "image": "https://images.unsplash.com/photo-1628352081506-83c43123ed6d?w=600",
+      "imageUrl": "https://images.unsplash.com/photo-1628352081506-83c43123ed6d?w=600",
       "images": [
         "https://images.unsplash.com/photo-1628352081506-83c43123ed6d?w=600"
-      ],
-      "isNegotiable": false
+      ]
     },
     {
       "id": 3,
@@ -137,49 +191,14 @@
       "reviewsCount": 9,
       "stock": 8,
       "condition": "NEW",
+      "image": "https://images.unsplash.com/photo-1563514227147-6d2ff665a6a0?w=600",
+      "imageUrl": "https://images.unsplash.com/photo-1563514227147-6d2ff665a6a0?w=600",
       "images": [
         "https://images.unsplash.com/photo-1563514227147-6d2ff665a6a0?w=600"
-      ],
-      "isNegotiable": true
+      ]
     }
   ],
   "orders": [
-    {
-      "id": 101,
-      "buyerId": 1,
-      "sellerId": 2,
-      "sellerShopName": "Official SmartKisan Direct",
-      "status": "DELIVERED",
-      "subtotal": 18500,
-      "discountAmount": 0,
-      "deliveryCharge": 350,
-      "totalAmount": 18850,
-      "couponCode": "",
-      "deliveryAddress": "Farm #14, National Highway, Tando Allahyar Road",
-      "city": "Hyderabad",
-      "province": "Sindh",
-      "phone": "+92 300 1234567",
-      "buyerName": "Abrar Ali memon",
-      "items": [
-        {
-          "id": 1,
-          "productId": 3,
-          "productTitle": "Automated Drip Irrigation Kit 1-Acre",
-          "price": 18500,
-          "quantity": 1,
-          "unit": "complete kit",
-          "imageUrl": "https://images.unsplash.com/photo-1563514227147-6d2ff665a6a0?w=600"
-        }
-      ],
-      "orderDate": "2026-10-06T12:00:00.000Z",
-      "payment": {
-        "id": 1,
-        "paymentMethod": "CASH_ON_DELIVERY",
-        "paymentStatus": "PAID",
-        "amount": 18850,
-        "paidAt": "2026-10-07T12:00:00.000Z"
-      }
-    },
     {
       "id": 102,
       "buyerId": 1,
@@ -199,21 +218,57 @@
       "items": [
         {
           "id": 2,
-          "productId": 1,
-          "productTitle": "Certified Wheat Seed - Akbar 2019",
-          "price": 4500,
-          "quantity": 2,
           "unit": "50kg bag",
-          "imageUrl": "https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=600"
+          "price": 4500,
+          "imageUrl": "https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=600",
+          "quantity": 2,
+          "productId": 1,
+          "productTitle": "Certified Wheat Seed - Akbar 2019"
         }
       ],
       "orderDate": "2026-10-09T12:00:00.000Z",
       "payment": {
-        "id": 2,
         "paymentMethod": "BANK_TRANSFER",
         "paymentStatus": "VERIFIED",
         "amount": 8750,
-        "paidAt": "2026-10-10T12:00:00.000Z"
+        "transactionReference": "",
+        "paymentProofUrl": ""
+      }
+    },
+    {
+      "id": 101,
+      "buyerId": 1,
+      "sellerId": 2,
+      "sellerShopName": "Official SmartKisan Direct",
+      "status": "DELIVERED",
+      "subtotal": 18500,
+      "discountAmount": 0,
+      "deliveryCharge": 350,
+      "totalAmount": 18850,
+      "couponCode": "",
+      "deliveryAddress": "Farm #14, National Highway, Tando Allahyar Road",
+      "city": "Hyderabad",
+      "province": "Sindh",
+      "phone": "+92 300 1234567",
+      "buyerName": "Abrar Ali memon",
+      "items": [
+        {
+          "id": 1,
+          "unit": "complete kit",
+          "price": 18500,
+          "imageUrl": "https://images.unsplash.com/photo-1563514227147-6d2ff665a6a0?w=600",
+          "quantity": 1,
+          "productId": 3,
+          "productTitle": "Automated Drip Irrigation Kit 1-Acre"
+        }
+      ],
+      "orderDate": "2026-10-06T12:00:00.000Z",
+      "payment": {
+        "paymentMethod": "CASH_ON_DELIVERY",
+        "paymentStatus": "PAID",
+        "amount": 18850,
+        "transactionReference": "",
+        "paymentProofUrl": ""
       }
     }
   ],
@@ -234,7 +289,6 @@
       "sellerType": "FARMER_SELLER",
       "status": "APPROVED",
       "verified": true,
-      "moderationReason": "",
       "rating": 4.9,
       "totalSales": 42,
       "joinedAsSellerOn": "2026-01-15"
@@ -255,7 +309,6 @@
       "sellerType": "ENTERPRISE",
       "status": "APPROVED",
       "verified": true,
-      "moderationReason": "",
       "rating": 5,
       "totalSales": 110,
       "joinedAsSellerOn": "2026-01-01"
@@ -392,6 +445,1516 @@
       "content": "Is this wheat seed available for bulk dispatch to Mirpurkhas?",
       "type": "TEXT",
       "timestamp": "2026-10-10T11:00:00.000Z"
+    }
+  ],
+  "iotDevices": [
+    {
+      "id": 1,
+      "userId": 1,
+      "deviceId": "ESP32_FARM_1",
+      "deviceKey": "sk_dev_1_a8f9b2c3d4e5",
+      "name": "Abrar's Main Field Node",
+      "location": "North Field Acre 1",
+      "crop": "Wheat (گندم)",
+      "status": "ONLINE",
+      "isHardwareLive": true,
+      "lastPing": "2026-10-15T07:01:25.322Z",
+      "zone1Active": true,
+      "zone2Active": false,
+      "currentReadings": {
+        "soilMoisture": 49.3,
+        "temperature": 28.2,
+        "humidity": 64,
+        "lightIntensity": 45000,
+        "rainfall": 0,
+        "waterLevel": 85,
+        "pressure": 1013.2
+      },
+      "history": {
+        "soilMoisture": [
+          {
+            "time": "11:37 AM",
+            "value": 58.5
+          },
+          {
+            "time": "11:38 AM",
+            "value": 58.5
+          },
+          {
+            "time": "11:39 AM",
+            "value": 58.5
+          },
+          {
+            "time": "11:40 AM",
+            "value": 58.5
+          },
+          {
+            "time": "11:41 AM",
+            "value": 58.5
+          },
+          {
+            "time": "11:42 AM",
+            "value": 58.5
+          },
+          {
+            "time": "11:43 AM",
+            "value": 58.5
+          },
+          {
+            "time": "11:44 AM",
+            "value": 58.5
+          },
+          {
+            "time": "11:45 AM",
+            "value": 58.5
+          },
+          {
+            "time": "11:46 AM",
+            "value": 58.5
+          },
+          {
+            "time": "11:47 AM",
+            "value": 58.5
+          },
+          {
+            "time": "11:48 AM",
+            "value": 58.5
+          },
+          {
+            "time": "11:49 AM",
+            "value": 58.5
+          },
+          {
+            "time": "11:50 AM",
+            "value": 58.5
+          },
+          {
+            "time": "11:51 AM",
+            "value": 58.5
+          },
+          {
+            "time": "11:52 AM",
+            "value": 58.5
+          },
+          {
+            "time": "11:53 AM",
+            "value": 58.5
+          },
+          {
+            "time": "11:54 AM",
+            "value": 58.5
+          },
+          {
+            "time": "11:55 AM",
+            "value": 58.5
+          },
+          {
+            "time": "11:56 AM",
+            "value": 58.5
+          },
+          {
+            "time": "11:57 AM",
+            "value": 58.5
+          },
+          {
+            "time": "11:58 AM",
+            "value": 58.5
+          },
+          {
+            "time": "11:59 AM",
+            "value": 58.5
+          },
+          {
+            "time": "12:00 PM",
+            "value": 58.5
+          },
+          {
+            "time": "12:01 PM",
+            "value": 58.5
+          },
+          {
+            "time": "12:01 PM",
+            "value": 49.3
+          }
+        ],
+        "temperature": [
+          {
+            "time": "11:37 AM",
+            "value": 26.4
+          },
+          {
+            "time": "11:38 AM",
+            "value": 26.4
+          },
+          {
+            "time": "11:39 AM",
+            "value": 26.4
+          },
+          {
+            "time": "11:40 AM",
+            "value": 26.4
+          },
+          {
+            "time": "11:41 AM",
+            "value": 26.4
+          },
+          {
+            "time": "11:42 AM",
+            "value": 26.4
+          },
+          {
+            "time": "11:43 AM",
+            "value": 26.4
+          },
+          {
+            "time": "11:44 AM",
+            "value": 26.4
+          },
+          {
+            "time": "11:45 AM",
+            "value": 26.4
+          },
+          {
+            "time": "11:46 AM",
+            "value": 26.4
+          },
+          {
+            "time": "11:47 AM",
+            "value": 26.4
+          },
+          {
+            "time": "11:48 AM",
+            "value": 26.4
+          },
+          {
+            "time": "11:49 AM",
+            "value": 26.4
+          },
+          {
+            "time": "11:50 AM",
+            "value": 26.4
+          },
+          {
+            "time": "11:51 AM",
+            "value": 26.4
+          },
+          {
+            "time": "11:52 AM",
+            "value": 26.4
+          },
+          {
+            "time": "11:53 AM",
+            "value": 26.4
+          },
+          {
+            "time": "11:54 AM",
+            "value": 26.4
+          },
+          {
+            "time": "11:55 AM",
+            "value": 26.4
+          },
+          {
+            "time": "11:56 AM",
+            "value": 26.4
+          },
+          {
+            "time": "11:57 AM",
+            "value": 26.4
+          },
+          {
+            "time": "11:58 AM",
+            "value": 26.4
+          },
+          {
+            "time": "11:59 AM",
+            "value": 26.4
+          },
+          {
+            "time": "12:00 PM",
+            "value": 26.4
+          },
+          {
+            "time": "12:01 PM",
+            "value": 26.4
+          },
+          {
+            "time": "12:01 PM",
+            "value": 28.2
+          }
+        ],
+        "humidity": [
+          {
+            "time": "11:37 AM",
+            "value": 62
+          },
+          {
+            "time": "11:38 AM",
+            "value": 62
+          },
+          {
+            "time": "11:39 AM",
+            "value": 62
+          },
+          {
+            "time": "11:40 AM",
+            "value": 62
+          },
+          {
+            "time": "11:41 AM",
+            "value": 62
+          },
+          {
+            "time": "11:42 AM",
+            "value": 62
+          },
+          {
+            "time": "11:43 AM",
+            "value": 62
+          },
+          {
+            "time": "11:44 AM",
+            "value": 62
+          },
+          {
+            "time": "11:45 AM",
+            "value": 62
+          },
+          {
+            "time": "11:46 AM",
+            "value": 62
+          },
+          {
+            "time": "11:47 AM",
+            "value": 62
+          },
+          {
+            "time": "11:48 AM",
+            "value": 62
+          },
+          {
+            "time": "11:49 AM",
+            "value": 62
+          },
+          {
+            "time": "11:50 AM",
+            "value": 62
+          },
+          {
+            "time": "11:51 AM",
+            "value": 62
+          },
+          {
+            "time": "11:52 AM",
+            "value": 62
+          },
+          {
+            "time": "11:53 AM",
+            "value": 62
+          },
+          {
+            "time": "11:54 AM",
+            "value": 62
+          },
+          {
+            "time": "11:55 AM",
+            "value": 62
+          },
+          {
+            "time": "11:56 AM",
+            "value": 62
+          },
+          {
+            "time": "11:57 AM",
+            "value": 62
+          },
+          {
+            "time": "11:58 AM",
+            "value": 62
+          },
+          {
+            "time": "11:59 AM",
+            "value": 62
+          },
+          {
+            "time": "12:00 PM",
+            "value": 62
+          },
+          {
+            "time": "12:01 PM",
+            "value": 62
+          },
+          {
+            "time": "12:01 PM",
+            "value": 64
+          }
+        ],
+        "lightIntensity": [
+          {
+            "time": "11:37 AM",
+            "value": 45000
+          },
+          {
+            "time": "11:38 AM",
+            "value": 45000
+          },
+          {
+            "time": "11:39 AM",
+            "value": 45000
+          },
+          {
+            "time": "11:40 AM",
+            "value": 45000
+          },
+          {
+            "time": "11:41 AM",
+            "value": 45000
+          },
+          {
+            "time": "11:42 AM",
+            "value": 45000
+          },
+          {
+            "time": "11:43 AM",
+            "value": 45000
+          },
+          {
+            "time": "11:44 AM",
+            "value": 45000
+          },
+          {
+            "time": "11:45 AM",
+            "value": 45000
+          },
+          {
+            "time": "11:46 AM",
+            "value": 45000
+          },
+          {
+            "time": "11:47 AM",
+            "value": 45000
+          },
+          {
+            "time": "11:48 AM",
+            "value": 45000
+          },
+          {
+            "time": "11:49 AM",
+            "value": 45000
+          },
+          {
+            "time": "11:50 AM",
+            "value": 45000
+          },
+          {
+            "time": "11:51 AM",
+            "value": 45000
+          },
+          {
+            "time": "11:52 AM",
+            "value": 45000
+          },
+          {
+            "time": "11:53 AM",
+            "value": 45000
+          },
+          {
+            "time": "11:54 AM",
+            "value": 45000
+          },
+          {
+            "time": "11:55 AM",
+            "value": 45000
+          },
+          {
+            "time": "11:56 AM",
+            "value": 45000
+          },
+          {
+            "time": "11:57 AM",
+            "value": 45000
+          },
+          {
+            "time": "11:58 AM",
+            "value": 45000
+          },
+          {
+            "time": "11:59 AM",
+            "value": 45000
+          },
+          {
+            "time": "12:00 PM",
+            "value": 45000
+          },
+          {
+            "time": "12:01 PM",
+            "value": 45000
+          },
+          {
+            "time": "12:01 PM",
+            "value": 45000
+          }
+        ],
+        "rainfall": [
+          {
+            "time": "11:37 AM",
+            "value": 0
+          },
+          {
+            "time": "11:38 AM",
+            "value": 0
+          },
+          {
+            "time": "11:39 AM",
+            "value": 0
+          },
+          {
+            "time": "11:40 AM",
+            "value": 0
+          },
+          {
+            "time": "11:41 AM",
+            "value": 0
+          },
+          {
+            "time": "11:42 AM",
+            "value": 0
+          },
+          {
+            "time": "11:43 AM",
+            "value": 0
+          },
+          {
+            "time": "11:44 AM",
+            "value": 0
+          },
+          {
+            "time": "11:45 AM",
+            "value": 0
+          },
+          {
+            "time": "11:46 AM",
+            "value": 0
+          },
+          {
+            "time": "11:47 AM",
+            "value": 0
+          },
+          {
+            "time": "11:48 AM",
+            "value": 0
+          },
+          {
+            "time": "11:49 AM",
+            "value": 0
+          },
+          {
+            "time": "11:50 AM",
+            "value": 0
+          },
+          {
+            "time": "11:51 AM",
+            "value": 0
+          },
+          {
+            "time": "11:52 AM",
+            "value": 0
+          },
+          {
+            "time": "11:53 AM",
+            "value": 0
+          },
+          {
+            "time": "11:54 AM",
+            "value": 0
+          },
+          {
+            "time": "11:55 AM",
+            "value": 0
+          },
+          {
+            "time": "11:56 AM",
+            "value": 0
+          },
+          {
+            "time": "11:57 AM",
+            "value": 0
+          },
+          {
+            "time": "11:58 AM",
+            "value": 0
+          },
+          {
+            "time": "11:59 AM",
+            "value": 0
+          },
+          {
+            "time": "12:00 PM",
+            "value": 0
+          },
+          {
+            "time": "12:01 PM",
+            "value": 0
+          },
+          {
+            "time": "12:01 PM",
+            "value": 0
+          }
+        ],
+        "waterLevel": [
+          {
+            "time": "11:37 AM",
+            "value": 85
+          },
+          {
+            "time": "11:38 AM",
+            "value": 85
+          },
+          {
+            "time": "11:39 AM",
+            "value": 85
+          },
+          {
+            "time": "11:40 AM",
+            "value": 85
+          },
+          {
+            "time": "11:41 AM",
+            "value": 85
+          },
+          {
+            "time": "11:42 AM",
+            "value": 85
+          },
+          {
+            "time": "11:43 AM",
+            "value": 85
+          },
+          {
+            "time": "11:44 AM",
+            "value": 85
+          },
+          {
+            "time": "11:45 AM",
+            "value": 85
+          },
+          {
+            "time": "11:46 AM",
+            "value": 85
+          },
+          {
+            "time": "11:47 AM",
+            "value": 85
+          },
+          {
+            "time": "11:48 AM",
+            "value": 85
+          },
+          {
+            "time": "11:49 AM",
+            "value": 85
+          },
+          {
+            "time": "11:50 AM",
+            "value": 85
+          },
+          {
+            "time": "11:51 AM",
+            "value": 85
+          },
+          {
+            "time": "11:52 AM",
+            "value": 85
+          },
+          {
+            "time": "11:53 AM",
+            "value": 85
+          },
+          {
+            "time": "11:54 AM",
+            "value": 85
+          },
+          {
+            "time": "11:55 AM",
+            "value": 85
+          },
+          {
+            "time": "11:56 AM",
+            "value": 85
+          },
+          {
+            "time": "11:57 AM",
+            "value": 85
+          },
+          {
+            "time": "11:58 AM",
+            "value": 85
+          },
+          {
+            "time": "11:59 AM",
+            "value": 85
+          },
+          {
+            "time": "12:00 PM",
+            "value": 85
+          },
+          {
+            "time": "12:01 PM",
+            "value": 85
+          },
+          {
+            "time": "12:01 PM",
+            "value": 85
+          }
+        ],
+        "pressure": [
+          {
+            "time": "11:37 AM",
+            "value": 1013.2
+          },
+          {
+            "time": "11:38 AM",
+            "value": 1013.2
+          },
+          {
+            "time": "11:39 AM",
+            "value": 1013.2
+          },
+          {
+            "time": "11:40 AM",
+            "value": 1013.2
+          },
+          {
+            "time": "11:41 AM",
+            "value": 1013.2
+          },
+          {
+            "time": "11:42 AM",
+            "value": 1013.2
+          },
+          {
+            "time": "11:43 AM",
+            "value": 1013.2
+          },
+          {
+            "time": "11:44 AM",
+            "value": 1013.2
+          },
+          {
+            "time": "11:45 AM",
+            "value": 1013.2
+          },
+          {
+            "time": "11:46 AM",
+            "value": 1013.2
+          },
+          {
+            "time": "11:47 AM",
+            "value": 1013.2
+          },
+          {
+            "time": "11:48 AM",
+            "value": 1013.2
+          },
+          {
+            "time": "11:49 AM",
+            "value": 1013.2
+          },
+          {
+            "time": "11:50 AM",
+            "value": 1013.2
+          },
+          {
+            "time": "11:51 AM",
+            "value": 1013.2
+          },
+          {
+            "time": "11:52 AM",
+            "value": 1013.2
+          },
+          {
+            "time": "11:53 AM",
+            "value": 1013.2
+          },
+          {
+            "time": "11:54 AM",
+            "value": 1013.2
+          },
+          {
+            "time": "11:55 AM",
+            "value": 1013.2
+          },
+          {
+            "time": "11:56 AM",
+            "value": 1013.2
+          },
+          {
+            "time": "11:57 AM",
+            "value": 1013.2
+          },
+          {
+            "time": "11:58 AM",
+            "value": 1013.2
+          },
+          {
+            "time": "11:59 AM",
+            "value": 1013.2
+          },
+          {
+            "time": "12:00 PM",
+            "value": 1013.2
+          },
+          {
+            "time": "12:01 PM",
+            "value": 1013.2
+          },
+          {
+            "time": "12:01 PM",
+            "value": 1013.2
+          }
+        ]
+      },
+      "createdAt": "2026-10-15T07:01:23.639Z"
+    },
+    {
+      "id": 2,
+      "userId": 2,
+      "deviceId": "ESP32_FARM_2",
+      "deviceKey": "sk_dev_2_7f8e9d0c1b2a",
+      "name": "Admin Central Node",
+      "location": "Central Test Zone",
+      "crop": "Cotton",
+      "status": "OFFLINE",
+      "isHardwareLive": false,
+      "lastPing": null,
+      "zone1Active": true,
+      "zone2Active": false,
+      "currentReadings": {
+        "soilMoisture": 58.5,
+        "temperature": 26.4,
+        "humidity": 62,
+        "lightIntensity": 45000,
+        "rainfall": 0,
+        "waterLevel": 85,
+        "pressure": 1013.2
+      },
+      "history": {
+        "soilMoisture": [
+          {
+            "time": "11:37 AM",
+            "value": 58.5
+          },
+          {
+            "time": "11:38 AM",
+            "value": 58.5
+          },
+          {
+            "time": "11:39 AM",
+            "value": 58.5
+          },
+          {
+            "time": "11:40 AM",
+            "value": 58.5
+          },
+          {
+            "time": "11:41 AM",
+            "value": 58.5
+          },
+          {
+            "time": "11:42 AM",
+            "value": 58.5
+          },
+          {
+            "time": "11:43 AM",
+            "value": 58.5
+          },
+          {
+            "time": "11:44 AM",
+            "value": 58.5
+          },
+          {
+            "time": "11:45 AM",
+            "value": 58.5
+          },
+          {
+            "time": "11:46 AM",
+            "value": 58.5
+          },
+          {
+            "time": "11:47 AM",
+            "value": 58.5
+          },
+          {
+            "time": "11:48 AM",
+            "value": 58.5
+          },
+          {
+            "time": "11:49 AM",
+            "value": 58.5
+          },
+          {
+            "time": "11:50 AM",
+            "value": 58.5
+          },
+          {
+            "time": "11:51 AM",
+            "value": 58.5
+          },
+          {
+            "time": "11:52 AM",
+            "value": 58.5
+          },
+          {
+            "time": "11:53 AM",
+            "value": 58.5
+          },
+          {
+            "time": "11:54 AM",
+            "value": 58.5
+          },
+          {
+            "time": "11:55 AM",
+            "value": 58.5
+          },
+          {
+            "time": "11:56 AM",
+            "value": 58.5
+          },
+          {
+            "time": "11:57 AM",
+            "value": 58.5
+          },
+          {
+            "time": "11:58 AM",
+            "value": 58.5
+          },
+          {
+            "time": "11:59 AM",
+            "value": 58.5
+          },
+          {
+            "time": "12:00 PM",
+            "value": 58.5
+          },
+          {
+            "time": "12:01 PM",
+            "value": 58.5
+          }
+        ],
+        "temperature": [
+          {
+            "time": "11:37 AM",
+            "value": 26.4
+          },
+          {
+            "time": "11:38 AM",
+            "value": 26.4
+          },
+          {
+            "time": "11:39 AM",
+            "value": 26.4
+          },
+          {
+            "time": "11:40 AM",
+            "value": 26.4
+          },
+          {
+            "time": "11:41 AM",
+            "value": 26.4
+          },
+          {
+            "time": "11:42 AM",
+            "value": 26.4
+          },
+          {
+            "time": "11:43 AM",
+            "value": 26.4
+          },
+          {
+            "time": "11:44 AM",
+            "value": 26.4
+          },
+          {
+            "time": "11:45 AM",
+            "value": 26.4
+          },
+          {
+            "time": "11:46 AM",
+            "value": 26.4
+          },
+          {
+            "time": "11:47 AM",
+            "value": 26.4
+          },
+          {
+            "time": "11:48 AM",
+            "value": 26.4
+          },
+          {
+            "time": "11:49 AM",
+            "value": 26.4
+          },
+          {
+            "time": "11:50 AM",
+            "value": 26.4
+          },
+          {
+            "time": "11:51 AM",
+            "value": 26.4
+          },
+          {
+            "time": "11:52 AM",
+            "value": 26.4
+          },
+          {
+            "time": "11:53 AM",
+            "value": 26.4
+          },
+          {
+            "time": "11:54 AM",
+            "value": 26.4
+          },
+          {
+            "time": "11:55 AM",
+            "value": 26.4
+          },
+          {
+            "time": "11:56 AM",
+            "value": 26.4
+          },
+          {
+            "time": "11:57 AM",
+            "value": 26.4
+          },
+          {
+            "time": "11:58 AM",
+            "value": 26.4
+          },
+          {
+            "time": "11:59 AM",
+            "value": 26.4
+          },
+          {
+            "time": "12:00 PM",
+            "value": 26.4
+          },
+          {
+            "time": "12:01 PM",
+            "value": 26.4
+          }
+        ],
+        "humidity": [
+          {
+            "time": "11:37 AM",
+            "value": 62
+          },
+          {
+            "time": "11:38 AM",
+            "value": 62
+          },
+          {
+            "time": "11:39 AM",
+            "value": 62
+          },
+          {
+            "time": "11:40 AM",
+            "value": 62
+          },
+          {
+            "time": "11:41 AM",
+            "value": 62
+          },
+          {
+            "time": "11:42 AM",
+            "value": 62
+          },
+          {
+            "time": "11:43 AM",
+            "value": 62
+          },
+          {
+            "time": "11:44 AM",
+            "value": 62
+          },
+          {
+            "time": "11:45 AM",
+            "value": 62
+          },
+          {
+            "time": "11:46 AM",
+            "value": 62
+          },
+          {
+            "time": "11:47 AM",
+            "value": 62
+          },
+          {
+            "time": "11:48 AM",
+            "value": 62
+          },
+          {
+            "time": "11:49 AM",
+            "value": 62
+          },
+          {
+            "time": "11:50 AM",
+            "value": 62
+          },
+          {
+            "time": "11:51 AM",
+            "value": 62
+          },
+          {
+            "time": "11:52 AM",
+            "value": 62
+          },
+          {
+            "time": "11:53 AM",
+            "value": 62
+          },
+          {
+            "time": "11:54 AM",
+            "value": 62
+          },
+          {
+            "time": "11:55 AM",
+            "value": 62
+          },
+          {
+            "time": "11:56 AM",
+            "value": 62
+          },
+          {
+            "time": "11:57 AM",
+            "value": 62
+          },
+          {
+            "time": "11:58 AM",
+            "value": 62
+          },
+          {
+            "time": "11:59 AM",
+            "value": 62
+          },
+          {
+            "time": "12:00 PM",
+            "value": 62
+          },
+          {
+            "time": "12:01 PM",
+            "value": 62
+          }
+        ],
+        "lightIntensity": [
+          {
+            "time": "11:37 AM",
+            "value": 45000
+          },
+          {
+            "time": "11:38 AM",
+            "value": 45000
+          },
+          {
+            "time": "11:39 AM",
+            "value": 45000
+          },
+          {
+            "time": "11:40 AM",
+            "value": 45000
+          },
+          {
+            "time": "11:41 AM",
+            "value": 45000
+          },
+          {
+            "time": "11:42 AM",
+            "value": 45000
+          },
+          {
+            "time": "11:43 AM",
+            "value": 45000
+          },
+          {
+            "time": "11:44 AM",
+            "value": 45000
+          },
+          {
+            "time": "11:45 AM",
+            "value": 45000
+          },
+          {
+            "time": "11:46 AM",
+            "value": 45000
+          },
+          {
+            "time": "11:47 AM",
+            "value": 45000
+          },
+          {
+            "time": "11:48 AM",
+            "value": 45000
+          },
+          {
+            "time": "11:49 AM",
+            "value": 45000
+          },
+          {
+            "time": "11:50 AM",
+            "value": 45000
+          },
+          {
+            "time": "11:51 AM",
+            "value": 45000
+          },
+          {
+            "time": "11:52 AM",
+            "value": 45000
+          },
+          {
+            "time": "11:53 AM",
+            "value": 45000
+          },
+          {
+            "time": "11:54 AM",
+            "value": 45000
+          },
+          {
+            "time": "11:55 AM",
+            "value": 45000
+          },
+          {
+            "time": "11:56 AM",
+            "value": 45000
+          },
+          {
+            "time": "11:57 AM",
+            "value": 45000
+          },
+          {
+            "time": "11:58 AM",
+            "value": 45000
+          },
+          {
+            "time": "11:59 AM",
+            "value": 45000
+          },
+          {
+            "time": "12:00 PM",
+            "value": 45000
+          },
+          {
+            "time": "12:01 PM",
+            "value": 45000
+          }
+        ],
+        "rainfall": [
+          {
+            "time": "11:37 AM",
+            "value": 0
+          },
+          {
+            "time": "11:38 AM",
+            "value": 0
+          },
+          {
+            "time": "11:39 AM",
+            "value": 0
+          },
+          {
+            "time": "11:40 AM",
+            "value": 0
+          },
+          {
+            "time": "11:41 AM",
+            "value": 0
+          },
+          {
+            "time": "11:42 AM",
+            "value": 0
+          },
+          {
+            "time": "11:43 AM",
+            "value": 0
+          },
+          {
+            "time": "11:44 AM",
+            "value": 0
+          },
+          {
+            "time": "11:45 AM",
+            "value": 0
+          },
+          {
+            "time": "11:46 AM",
+            "value": 0
+          },
+          {
+            "time": "11:47 AM",
+            "value": 0
+          },
+          {
+            "time": "11:48 AM",
+            "value": 0
+          },
+          {
+            "time": "11:49 AM",
+            "value": 0
+          },
+          {
+            "time": "11:50 AM",
+            "value": 0
+          },
+          {
+            "time": "11:51 AM",
+            "value": 0
+          },
+          {
+            "time": "11:52 AM",
+            "value": 0
+          },
+          {
+            "time": "11:53 AM",
+            "value": 0
+          },
+          {
+            "time": "11:54 AM",
+            "value": 0
+          },
+          {
+            "time": "11:55 AM",
+            "value": 0
+          },
+          {
+            "time": "11:56 AM",
+            "value": 0
+          },
+          {
+            "time": "11:57 AM",
+            "value": 0
+          },
+          {
+            "time": "11:58 AM",
+            "value": 0
+          },
+          {
+            "time": "11:59 AM",
+            "value": 0
+          },
+          {
+            "time": "12:00 PM",
+            "value": 0
+          },
+          {
+            "time": "12:01 PM",
+            "value": 0
+          }
+        ],
+        "waterLevel": [
+          {
+            "time": "11:37 AM",
+            "value": 85
+          },
+          {
+            "time": "11:38 AM",
+            "value": 85
+          },
+          {
+            "time": "11:39 AM",
+            "value": 85
+          },
+          {
+            "time": "11:40 AM",
+            "value": 85
+          },
+          {
+            "time": "11:41 AM",
+            "value": 85
+          },
+          {
+            "time": "11:42 AM",
+            "value": 85
+          },
+          {
+            "time": "11:43 AM",
+            "value": 85
+          },
+          {
+            "time": "11:44 AM",
+            "value": 85
+          },
+          {
+            "time": "11:45 AM",
+            "value": 85
+          },
+          {
+            "time": "11:46 AM",
+            "value": 85
+          },
+          {
+            "time": "11:47 AM",
+            "value": 85
+          },
+          {
+            "time": "11:48 AM",
+            "value": 85
+          },
+          {
+            "time": "11:49 AM",
+            "value": 85
+          },
+          {
+            "time": "11:50 AM",
+            "value": 85
+          },
+          {
+            "time": "11:51 AM",
+            "value": 85
+          },
+          {
+            "time": "11:52 AM",
+            "value": 85
+          },
+          {
+            "time": "11:53 AM",
+            "value": 85
+          },
+          {
+            "time": "11:54 AM",
+            "value": 85
+          },
+          {
+            "time": "11:55 AM",
+            "value": 85
+          },
+          {
+            "time": "11:56 AM",
+            "value": 85
+          },
+          {
+            "time": "11:57 AM",
+            "value": 85
+          },
+          {
+            "time": "11:58 AM",
+            "value": 85
+          },
+          {
+            "time": "11:59 AM",
+            "value": 85
+          },
+          {
+            "time": "12:00 PM",
+            "value": 85
+          },
+          {
+            "time": "12:01 PM",
+            "value": 85
+          }
+        ],
+        "pressure": [
+          {
+            "time": "11:37 AM",
+            "value": 1013.2
+          },
+          {
+            "time": "11:38 AM",
+            "value": 1013.2
+          },
+          {
+            "time": "11:39 AM",
+            "value": 1013.2
+          },
+          {
+            "time": "11:40 AM",
+            "value": 1013.2
+          },
+          {
+            "time": "11:41 AM",
+            "value": 1013.2
+          },
+          {
+            "time": "11:42 AM",
+            "value": 1013.2
+          },
+          {
+            "time": "11:43 AM",
+            "value": 1013.2
+          },
+          {
+            "time": "11:44 AM",
+            "value": 1013.2
+          },
+          {
+            "time": "11:45 AM",
+            "value": 1013.2
+          },
+          {
+            "time": "11:46 AM",
+            "value": 1013.2
+          },
+          {
+            "time": "11:47 AM",
+            "value": 1013.2
+          },
+          {
+            "time": "11:48 AM",
+            "value": 1013.2
+          },
+          {
+            "time": "11:49 AM",
+            "value": 1013.2
+          },
+          {
+            "time": "11:50 AM",
+            "value": 1013.2
+          },
+          {
+            "time": "11:51 AM",
+            "value": 1013.2
+          },
+          {
+            "time": "11:52 AM",
+            "value": 1013.2
+          },
+          {
+            "time": "11:53 AM",
+            "value": 1013.2
+          },
+          {
+            "time": "11:54 AM",
+            "value": 1013.2
+          },
+          {
+            "time": "11:55 AM",
+            "value": 1013.2
+          },
+          {
+            "time": "11:56 AM",
+            "value": 1013.2
+          },
+          {
+            "time": "11:57 AM",
+            "value": 1013.2
+          },
+          {
+            "time": "11:58 AM",
+            "value": 1013.2
+          },
+          {
+            "time": "11:59 AM",
+            "value": 1013.2
+          },
+          {
+            "time": "12:00 PM",
+            "value": 1013.2
+          },
+          {
+            "time": "12:01 PM",
+            "value": 1013.2
+          }
+        ]
+      },
+      "createdAt": "2026-10-15T07:01:23.644Z"
     }
   ]
 }

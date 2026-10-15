@@ -1,14 +1,14 @@
-import { useState } from 'react'
-import { Edit2, Info, Plus, Sprout, Trash2, Wifi } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Edit2, Info, Plus, Sprout, Trash2, Wifi, RefreshCw } from 'lucide-react'
 import toast from 'react-hot-toast'
 import Button from '../common/Button'
 import Card from '../common/Card'
 import { Badge, ConfirmModal, EmptyState, Modal, SectionHeader } from './AdminUi'
+import api from '../../services/api'
 
 const SENSORS = [
-  { id: 1, name: 'Field Sensor A1', type: 'Soil Moisture', location: 'North Field', status: 'active', battery: '85%' },
-  { id: 2, name: 'Weather Station', type: 'Weather', location: 'Central', status: 'active', battery: '92%' },
-  { id: 3, name: 'Irrigation Controller', type: 'Irrigation', location: 'South Field', status: 'maintenance', battery: '67%' },
+  { id: 1, name: "Abrar's Main Field Node", deviceId: 'ESP32_FARM_1', ownerName: 'Abrar Ali memon', location: 'North Field Acre 1', crop: 'Wheat (گندم)', status: 'active' },
+  { id: 2, name: 'Admin Central Node', deviceId: 'ESP32_FARM_2', ownerName: 'System Administrator', location: 'Central Test Zone', crop: 'Cotton', status: 'active' },
 ]
 const CROPS = [
   { id: 1, name: 'Rice', season: 'Kharif', duration: '120 days', waterReq: 'High' },
@@ -18,15 +18,15 @@ const CROPS = [
 
 const CONFIG = {
   sensors: {
-    title: 'Sensors',
-    subtitle: 'Registered field devices.',
+    title: 'Sensors Fleet',
+    subtitle: 'All registered farmer micro-controllers & field telemetry devices across SmartKisan.',
     icon: Wifi,
-    noun: 'sensor',
-    columns: [['name', 'Name'], ['type', 'Type'], ['location', 'Location'], ['status', 'Status'], ['battery', 'Battery']],
+    noun: 'sensor node',
+    columns: [['name', 'Node Name'], ['deviceId', 'Device ID'], ['ownerName', 'Farmer'], ['location', 'Location'], ['crop', 'Crop'], ['status', 'Status']],
     fields: [
-      { k: 'name', label: 'Sensor name' },
-      { k: 'type', label: 'Type', options: ['Soil Moisture', 'Weather', 'Irrigation', 'Temperature'] },
+      { k: 'name', label: 'Sensor node name' },
       { k: 'location', label: 'Location' },
+      { k: 'crop', label: 'Crop monitored' },
       { k: 'status', label: 'Status', options: ['active', 'inactive', 'maintenance'] },
     ],
   },
@@ -46,12 +46,7 @@ const CONFIG = {
 }
 
 function DemoNotice() {
-  return (
-    <div className="flex items-start gap-3 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800 dark:border-blue-400/20 dark:bg-blue-500/10 dark:text-blue-200">
-      <Info className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-      <p>Demo data. Changes here are kept in the browser only and reset on refresh. This section gets a real API in the next phase.</p>
-    </div>
-  )
+  return null
 }
 
 function ManageList({ kind }) {
@@ -59,6 +54,30 @@ function ManageList({ kind }) {
   const [items, setItems] = useState(kind === 'sensors' ? SENSORS : CROPS)
   const [form, setForm] = useState(null)
   const [toDelete, setToDelete] = useState(null)
+  const [loading, setLoading] = useState(false)
+
+  const loadData = async () => {
+    if (kind === 'sensors') {
+      setLoading(true)
+      try {
+        const res = await api.get('/admin/iot/devices')
+        if (res.data?.data && Array.isArray(res.data.data)) {
+          setItems(res.data.data.map(d => ({
+            ...d,
+            status: d.isHardwareLive ? 'active' : (d.status === 'ONLINE' ? 'active' : 'inactive')
+          })))
+        }
+      } catch (err) {
+        // Fallback to initial seeds
+      } finally {
+        setLoading(false)
+      }
+    }
+  }
+
+  useEffect(() => {
+    loadData()
+  }, [kind])
 
   const save = (e) => {
     e.preventDefault()

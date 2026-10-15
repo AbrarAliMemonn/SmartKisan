@@ -342,37 +342,28 @@ const history = {
 let zone1Active = true;
 let zone2Active = false;
 
-// Populate initial 24 historical points
-for (let i = 24; i >= 0; i--) {
-  const d = new Date(Date.now() - i * 60000);
-  const timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  Object.keys(sensorReadings).forEach((k) => {
-    history[k].push({ time: timeStr, value: sensorReadings[k] });
-  });
-}
-
-// Background simulation loop for live demo
-setInterval(() => {
-  if (isHardwareLive && lastHardwarePing && Date.now() - lastHardwarePing > 30000) {
-    isHardwareLive = false;
-    console.log('[IoT Service] Resumed simulated telemetry (no hardware in 30s).');
-  }
-
-  if (!isHardwareLive) {
-    sensorReadings.soilMoisture = Math.max(10, Math.min(95, +(sensorReadings.soilMoisture + (Math.random() - 0.5) * 0.8).toFixed(1)));
-    sensorReadings.temperature = Math.max(10, Math.min(48, +(sensorReadings.temperature + (Math.random() - 0.5) * 0.4).toFixed(1)));
-    sensorReadings.humidity = Math.max(20, Math.min(99, +(sensorReadings.humidity + (Math.random() - 0.5) * 0.9).toFixed(1)));
-    sensorReadings.lightIntensity = Math.max(0, Math.min(95000, Math.round(sensorReadings.lightIntensity + (Math.random() - 0.5) * 350)));
-    sensorReadings.waterLevel = Math.max(5, Math.min(100, +(sensorReadings.waterLevel + (Math.random() - 0.5) * 0.2).toFixed(1)));
-    sensorReadings.pressure = Math.max(970, Math.min(1040, +(sensorReadings.pressure + (Math.random() - 0.5) * 0.3).toFixed(1)));
-
-    const nowStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    Object.keys(sensorReadings).forEach((k) => {
-      history[k].push({ time: nowStr, value: sensorReadings[k] });
-      if (history[k].length > 30) history[k].shift();
+function buildInitialSensorHistory(initialReadings) {
+  const h = {
+    soilMoisture: [],
+    temperature: [],
+    humidity: [],
+    lightIntensity: [],
+    rainfall: [],
+    waterLevel: [],
+    pressure: [],
+  };
+  for (let i = 24; i >= 0; i--) {
+    const d = new Date(Date.now() - i * 60000);
+    const timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    Object.keys(initialReadings).forEach((k) => {
+      h[k].push({ time: timeStr, value: initialReadings[k] });
     });
   }
-}, 3000);
+  return h;
+}
+
+// Populate initial global historical points
+Object.assign(history, buildInitialSensorHistory(sensorReadings));
 
 // ---------------- Persistent File Database Storage ----------------
 const DB_FILE = path.join(__dirname, 'data', 'database.json');
@@ -816,6 +807,124 @@ let paymentAccounts = (dbData && Array.isArray(dbData.paymentAccounts)) ? dbData
   },
 ];
 
+// ---------------- Multi-Tenant IoT Devices Fleet ----------------
+let iotDevices = (dbData && Array.isArray(dbData.iotDevices) && dbData.iotDevices.length)
+  ? dbData.iotDevices
+  : [
+      {
+        id: 1,
+        userId: 1,
+        deviceId: 'ESP32_FARM_1',
+        deviceKey: 'sk_dev_1_a8f9b2c3d4e5',
+        name: "Abrar's Main Field Node",
+        location: 'North Field Acre 1',
+        crop: 'Wheat (گندم)',
+        status: 'OFFLINE',
+        isHardwareLive: false,
+        lastPing: null,
+        zone1Active: true,
+        zone2Active: false,
+        currentReadings: { ...sensorReadings },
+        history: buildInitialSensorHistory(sensorReadings),
+        createdAt: new Date().toISOString(),
+      },
+      {
+        id: 2,
+        userId: 2,
+        deviceId: 'ESP32_FARM_2',
+        deviceKey: 'sk_dev_2_7f8e9d0c1b2a',
+        name: 'Admin Central Node',
+        location: 'Central Test Zone',
+        crop: 'Cotton',
+        status: 'OFFLINE',
+        isHardwareLive: false,
+        lastPing: null,
+        zone1Active: true,
+        zone2Active: false,
+        currentReadings: { ...sensorReadings },
+        history: buildInitialSensorHistory(sensorReadings),
+        createdAt: new Date().toISOString(),
+      },
+    ];
+
+function getOrCreateUserDevice(user) {
+  if (!user || !user.id) return iotDevices[0];
+  let dev = iotDevices.find((d) => d.userId === user.id);
+  if (!dev) {
+    const defaultReadings = {
+      soilMoisture: 45.0,
+      temperature: 28.0,
+      humidity: 60.0,
+      lightIntensity: 45000,
+      rainfall: 0.0,
+      waterLevel: 80.0,
+      pressure: 1013.0,
+    };
+    dev = {
+      id: iotDevices.length + 1,
+      userId: user.id,
+      deviceId: `ESP32_FARM_${user.id}`,
+      deviceKey: `sk_dev_${user.id}_` + crypto.randomBytes(6).toString('hex'),
+      name: `${user.name || 'Farmer'}'s Field Node`,
+      location: user.location || 'Field Zone A',
+      crop: user.farmSize ? `Wheat (${user.farmSize})` : 'Wheat',
+      status: 'OFFLINE',
+      isHardwareLive: false,
+      lastPing: null,
+      zone1Active: true,
+      zone2Active: false,
+      currentReadings: defaultReadings,
+      history: buildInitialSensorHistory(defaultReadings),
+      createdAt: new Date().toISOString(),
+    };
+    iotDevices.push(dev);
+    try { saveDb(); } catch (e) {}
+    if (db && typeof db.upsertIotDeviceInMySql === 'function') {
+      db.upsertIotDeviceInMySql(dev).catch(() => {});
+    }
+  }
+  return dev;
+}
+
+// Multi-tenant background simulation & watchdog loop
+setInterval(() => {
+  const now = Date.now();
+  for (const dev of iotDevices) {
+    if (dev.isHardwareLive && dev.lastPing) {
+      const diff = now - new Date(dev.lastPing).getTime();
+      if (diff > 35000) {
+        dev.isHardwareLive = false;
+        dev.status = 'OFFLINE';
+        console.log(`[IoT Service] Device ${dev.deviceId} (Farmer #${dev.userId}) offline (no hardware telemetry in 35s).`);
+      }
+    }
+
+    if (!dev.isHardwareLive) {
+      const cr = dev.currentReadings;
+      cr.soilMoisture = Math.max(10, Math.min(95, +(cr.soilMoisture + (Math.random() - 0.5) * 0.4).toFixed(1)));
+      cr.temperature = Math.max(10, Math.min(48, +(cr.temperature + (Math.random() - 0.5) * 0.2).toFixed(1)));
+      cr.humidity = Math.max(20, Math.min(99, +(cr.humidity + (Math.random() - 0.5) * 0.5).toFixed(1)));
+      cr.lightIntensity = Math.max(0, Math.min(95000, Math.round(cr.lightIntensity + (Math.random() - 0.5) * 200)));
+      cr.waterLevel = Math.max(5, Math.min(100, +(cr.waterLevel + (Math.random() - 0.5) * 0.1).toFixed(1)));
+      cr.pressure = Math.max(970, Math.min(1040, +(cr.pressure + (Math.random() - 0.5) * 0.1).toFixed(1)));
+
+      const nowStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      Object.keys(cr).forEach((k) => {
+        if (!dev.history[k]) dev.history[k] = [];
+        dev.history[k].push({ time: nowStr, value: cr[k] });
+        if (dev.history[k].length > 30) dev.history[k].shift();
+      });
+    }
+  }
+
+  // Global reference for legacy chatbot & weather
+  if (iotDevices[0]) {
+    Object.assign(sensorReadings, iotDevices[0].currentReadings);
+    isHardwareLive = Boolean(iotDevices[0].isHardwareLive);
+    lastHardwarePing = iotDevices[0].lastPing;
+  }
+}, 3000);
+
 function saveDb() {
   try {
     const dir = path.dirname(DB_FILE);
@@ -834,6 +943,7 @@ function saveDb() {
           paymentAccounts,
           reviews,
           chatMessages,
+          iotDevices,
         },
         null,
         2
@@ -845,6 +955,11 @@ function saveDb() {
     if (db.isMySqlConnected()) {
       for (const u of users) {
         db.upsertUserInMySql(u).catch(() => {});
+      }
+      for (const d of iotDevices) {
+        if (typeof db.upsertIotDeviceInMySql === 'function') {
+          db.upsertIotDeviceInMySql(d).catch(() => {});
+        }
       }
       for (const p of products) {
         db.upsertProductInMySql(p).catch(() => {});
@@ -2112,33 +2227,118 @@ const server = http.createServer(async (req, res) => {
 
   // =========================================================
   // 3. IOT SENSOR TELEMETRY  (/api/iot/**, /iot/**, /crops/**)
+  // Multi-tenant: Each farmer has their own ESP32 device & credentials
   // =========================================================
+
+  // Get current farmer's sensor readings & hardware live status
   if ((pathname === '/api/iot/sensors' || pathname === '/iot/sensors') && req.method === 'GET') {
+    const currentUser = getUserFromReq(req);
+    const userDevice = currentUser ? getOrCreateUserDevice(currentUser) : iotDevices[0];
+
     return sendJSON(res, 200, {
-      isHardwareLive,
-      lastHardwarePing,
-      readings: sensorReadings,
-      mode: isHardwareLive ? 'LIVE_HARDWARE' : 'SIMULATED_DUMMY',
-      zone1Pump: zone1Active,
-      zone2Pump: zone2Active,
-      timestamp: new Date(),
+      success: true,
+      deviceId: userDevice.deviceId,
+      deviceName: userDevice.name,
+      deviceKey: userDevice.deviceKey, // Returned only to the authenticated owner
+      farmerId: userDevice.userId,
+      farmerName: currentUser ? currentUser.name : 'Demo Farmer',
+      isHardwareLive: Boolean(userDevice.isHardwareLive),
+      lastHardwarePing: userDevice.lastPing,
+      status: userDevice.isHardwareLive ? 'ONLINE' : (userDevice.status || 'OFFLINE'),
+      readings: userDevice.currentReadings,
+      mode: userDevice.isHardwareLive ? 'LIVE_HARDWARE' : 'SIMULATED_TEST',
+      zone1Pump: Boolean(userDevice.zone1Active),
+      zone2Pump: Boolean(userDevice.zone2Active),
+      timestamp: new Date().toISOString(),
     });
   }
 
+  // Get single sensor for current farmer
   if ((pathname.startsWith('/api/iot/sensors/') || pathname.startsWith('/iot/sensors/')) && req.method === 'GET') {
     const sKey = pathname.split('/').pop();
-    const val = sensorReadings[sKey] !== undefined ? sensorReadings[sKey] : 50;
+    const currentUser = getUserFromReq(req);
+    const userDevice = currentUser ? getOrCreateUserDevice(currentUser) : iotDevices[0];
+    const val = userDevice.currentReadings[sKey] !== undefined ? userDevice.currentReadings[sKey] : 50;
     return sendJSON(res, 200, {
       success: true,
+      deviceId: userDevice.deviceId,
       sensorId: sKey,
       currentValue: val,
       status: 'HEALTHY',
-      readings: history[sKey] || [],
+      readings: userDevice.history[sKey] || [],
     });
   }
 
+  // Get rolling historical readings for current farmer's sensors
   if ((pathname === '/api/iot/history' || pathname === '/iot/history') && req.method === 'GET') {
-    return sendJSON(res, 200, history);
+    const currentUser = getUserFromReq(req);
+    const userDevice = currentUser ? getOrCreateUserDevice(currentUser) : iotDevices[0];
+    return sendJSON(res, 200, userDevice.history);
+  }
+
+  // List all devices owned by current farmer
+  if ((pathname === '/api/iot/devices' || pathname === '/iot/devices') && req.method === 'GET') {
+    const currentUser = getUserFromReq(req);
+    if (!currentUser) {
+      return sendJSON(res, 401, { success: false, error: 'Authentication required' });
+    }
+    const myDevices = iotDevices.filter((d) => d.userId === currentUser.id);
+    if (!myDevices.length) {
+      myDevices.push(getOrCreateUserDevice(currentUser));
+    }
+    return sendJSON(res, 200, { success: true, data: myDevices });
+  }
+
+  // Reset or regenerate device key for farmer's device
+  if ((pathname === '/api/iot/devices/reset-key' || pathname === '/iot/devices/reset-key') && req.method === 'POST') {
+    const currentUser = getUserFromReq(req);
+    if (!currentUser) {
+      return sendJSON(res, 401, { success: false, error: 'Authentication required' });
+    }
+    const body = await parseBody(req);
+    const targetDevId = body.deviceId;
+    const dev = iotDevices.find((d) => d.userId === currentUser.id && (!targetDevId || d.deviceId === targetDevId));
+    if (!dev) {
+      return sendJSON(res, 404, { success: false, error: 'Device not found' });
+    }
+    dev.deviceKey = `sk_dev_${currentUser.id}_` + crypto.randomBytes(6).toString('hex');
+    saveDb();
+    if (db && typeof db.upsertIotDeviceInMySql === 'function') {
+      db.upsertIotDeviceInMySql(dev).catch(() => {});
+    }
+    return sendJSON(res, 200, {
+      success: true,
+      message: 'Secret Device Key regenerated successfully',
+      deviceKey: dev.deviceKey,
+      deviceId: dev.deviceId,
+    });
+  }
+
+  // Admin Fleet Monitoring: List all farmer devices across the system
+  if ((pathname === '/api/admin/iot/devices' || pathname === '/admin/iot/devices') && req.method === 'GET') {
+    const currentUser = getUserFromReq(req);
+    if (!currentUser || (currentUser.role !== 'ADMIN' && currentUser.email !== 'abraralimemon23@gmail.com')) {
+      return sendJSON(res, 403, { success: false, error: 'Admin access required' });
+    }
+    const fleet = iotDevices.map((d) => {
+      const owner = users.find((u) => u.id === d.userId);
+      return {
+        id: d.id,
+        deviceId: d.deviceId,
+        name: d.name,
+        userId: d.userId,
+        ownerName: owner?.name || 'Unknown Farmer',
+        ownerEmail: owner?.email || '',
+        location: d.location,
+        crop: d.crop,
+        status: d.isHardwareLive ? 'ONLINE' : (d.status || 'OFFLINE'),
+        isHardwareLive: Boolean(d.isHardwareLive),
+        lastPing: d.lastPing,
+        currentReadings: d.currentReadings,
+        createdAt: d.createdAt,
+      };
+    });
+    return sendJSON(res, 200, { success: true, data: fleet });
   }
 
   if ((pathname === '/api/iot/alerts' || pathname === '/iot/alerts') && req.method === 'GET') {
@@ -2146,52 +2346,106 @@ const server = http.createServer(async (req, res) => {
   }
 
   if ((pathname === '/api/iot/irrigation/status' || pathname === '/iot/irrigation/status') && req.method === 'GET') {
+    const currentUser = getUserFromReq(req);
+    const userDevice = currentUser ? getOrCreateUserDevice(currentUser) : iotDevices[0];
     return sendJSON(res, 200, {
-      zone1Active,
-      zone2Active,
+      zone1Active: Boolean(userDevice.zone1Active),
+      zone2Active: Boolean(userDevice.zone2Active),
       mode: 'AUTOMATIC_AI',
+      deviceId: userDevice.deviceId,
       lastIrrigation: new Date(Date.now() - 4 * 3600000).toISOString(),
     });
   }
 
+  // =========================================================
+  // Hardware Ingestion Endpoint
+  // Physical ESP32 / Arduino / Gateway POSTs live telemetry here
+  // Authentication via deviceKey in body or X-Device-Key header
+  // =========================================================
   if ((pathname === '/api/iot/telemetry' || pathname === '/iot/telemetry') && req.method === 'POST') {
     const body = await parseBody(req);
-    isHardwareLive = true;
-    lastHardwarePing = Date.now();
+    const key = (body.deviceKey || req.headers['x-device-key'] || '').trim();
+    const dId = (body.deviceId || body.hardwareId || req.headers['x-device-id'] || '').trim();
 
-    if (body.soilMoisture !== undefined) sensorReadings.soilMoisture = +body.soilMoisture;
-    if (body.temperature !== undefined) sensorReadings.temperature = +body.temperature;
-    if (body.humidity !== undefined) sensorReadings.humidity = +body.humidity;
-    if (body.lightIntensity !== undefined) sensorReadings.lightIntensity = +body.lightIntensity;
-    if (body.rainfall !== undefined) sensorReadings.rainfall = +body.rainfall;
-    if (body.waterLevel !== undefined) sensorReadings.waterLevel = +body.waterLevel;
-    if (body.pressure !== undefined) sensorReadings.pressure = +body.pressure;
+    let targetDevice = null;
+    if (key) {
+      targetDevice = iotDevices.find((d) => d.deviceKey === key);
+    }
+    if (!targetDevice && dId) {
+      targetDevice = iotDevices.find((d) => d.deviceId.toLowerCase() === dId.toLowerCase());
+    }
+    // Backward compatibility for legacy tests without deviceKey
+    if (!targetDevice && !key && !dId) {
+      targetDevice = iotDevices[0];
+    }
+
+    if (!targetDevice) {
+      return sendJSON(res, 401, {
+        status: 'ERROR',
+        message: 'Device not recognized or invalid deviceKey. Please register your ESP32 in SmartKisan Dashboard.',
+      });
+    }
+
+    // Mark device live & record timestamp
+    targetDevice.isHardwareLive = true;
+    targetDevice.lastPing = new Date().toISOString();
+    targetDevice.status = 'ONLINE';
+
+    const cr = targetDevice.currentReadings;
+    if (body.soilMoisture !== undefined) cr.soilMoisture = +body.soilMoisture;
+    if (body.temperature !== undefined) cr.temperature = +body.temperature;
+    if (body.humidity !== undefined) cr.humidity = +body.humidity;
+    if (body.lightIntensity !== undefined) cr.lightIntensity = +body.lightIntensity;
+    if (body.rainfall !== undefined) cr.rainfall = +body.rainfall;
+    if (body.waterLevel !== undefined) cr.waterLevel = +body.waterLevel;
+    if (body.pressure !== undefined) cr.pressure = +body.pressure;
 
     const nowStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    Object.keys(sensorReadings).forEach((k) => {
-      history[k].push({ time: nowStr, value: sensorReadings[k] });
-      if (history[k].length > 30) history[k].shift();
+    Object.keys(cr).forEach((k) => {
+      if (!targetDevice.history[k]) targetDevice.history[k] = [];
+      targetDevice.history[k].push({ time: nowStr, value: cr[k] });
+      if (targetDevice.history[k].length > 30) targetDevice.history[k].shift();
     });
 
-    console.log('[IoT Telemetry] Received hardware payload:', body);
+    saveDb();
+
+    // Async persist to MySQL if connected
+    if (db && typeof db.upsertIotDeviceInMySql === 'function') {
+      db.upsertIotDeviceInMySql(targetDevice).catch(() => {});
+    }
+    if (db && typeof db.insertIotTelemetryInMySql === 'function') {
+      db.insertIotTelemetryInMySql({
+        deviceId: targetDevice.deviceId,
+        userId: targetDevice.userId,
+        ...cr,
+      }).catch(() => {});
+    }
+
+    console.log(`[IoT Hardware Ingestion] Telemetry recorded for device ${targetDevice.deviceId} (Farmer ID: ${targetDevice.userId})`);
     return sendJSON(res, 200, {
       status: 'SUCCESS',
-      message: 'Telemetry ingested successfully from hardware node.',
+      message: `Live telemetry ingested successfully for device ${targetDevice.deviceId}`,
+      deviceId: targetDevice.deviceId,
+      farmerId: targetDevice.userId,
       mode: 'LIVE_HARDWARE',
-      current: sensorReadings,
+      current: targetDevice.currentReadings,
     });
   }
 
+  // Toggle irrigation pumps for current farmer's device
   if ((pathname === '/api/iot/irrigation/toggle' || pathname === '/iot/irrigation/toggle') && req.method === 'POST') {
+    const currentUser = getUserFromReq(req);
+    const userDevice = currentUser ? getOrCreateUserDevice(currentUser) : iotDevices[0];
     const body = await parseBody(req);
     const zone = body.zone || 'zone1';
-    if (zone === 'zone1') zone1Active = !zone1Active;
-    if (zone === 'zone2') zone2Active = !zone2Active;
+    if (zone === 'zone1') userDevice.zone1Active = !userDevice.zone1Active;
+    if (zone === 'zone2') userDevice.zone2Active = !userDevice.zone2Active;
+    saveDb();
     return sendJSON(res, 200, {
       success: true,
-      message: `Pumps updated`,
-      zone1Active,
-      zone2Active,
+      message: `Pumps updated for device ${userDevice.deviceId}`,
+      zone1Active: userDevice.zone1Active,
+      zone2Active: userDevice.zone2Active,
     });
   }
 

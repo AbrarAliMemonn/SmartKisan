@@ -249,6 +249,40 @@ async function createTables() {
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       INDEX idx_otps_email_purpose (email, purpose)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;`,
+
+    `CREATE TABLE IF NOT EXISTS iot_devices (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      user_id INT NOT NULL,
+      device_id VARCHAR(100) NOT NULL UNIQUE,
+      device_key VARCHAR(255) NOT NULL UNIQUE,
+      name VARCHAR(255) NOT NULL,
+      location VARCHAR(255) DEFAULT 'Field Zone A',
+      crop VARCHAR(100) DEFAULT 'Wheat',
+      status VARCHAR(50) DEFAULT 'OFFLINE',
+      is_hardware_live BOOLEAN DEFAULT FALSE,
+      last_ping TIMESTAMP NULL DEFAULT NULL,
+      current_readings JSON DEFAULT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      INDEX idx_iot_devices_user (user_id),
+      INDEX idx_iot_devices_key (device_key)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;`,
+
+    `CREATE TABLE IF NOT EXISTS iot_telemetry (
+      id BIGINT AUTO_INCREMENT PRIMARY KEY,
+      device_id VARCHAR(100) NOT NULL,
+      user_id INT NOT NULL,
+      soil_moisture DECIMAL(5,2) DEFAULT NULL,
+      temperature DECIMAL(5,2) DEFAULT NULL,
+      humidity DECIMAL(5,2) DEFAULT NULL,
+      light_intensity DECIMAL(8,2) DEFAULT NULL,
+      rainfall DECIMAL(5,2) DEFAULT NULL,
+      water_level DECIMAL(5,2) DEFAULT NULL,
+      pressure DECIMAL(6,2) DEFAULT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      INDEX idx_iot_telemetry_device (device_id),
+      INDEX idx_iot_telemetry_user (user_id),
+      INDEX idx_iot_telemetry_created (created_at)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;`,
   ];
 
   for (const q of queries) {
@@ -681,6 +715,8 @@ async function deleteUserFromMySql(userId, email) {
   try {
     const cleanEmail = (email || '').toLowerCase().trim();
     if (userId) {
+      try { await pool.query('DELETE FROM iot_telemetry WHERE user_id = ?', [userId]); } catch (e) {}
+      try { await pool.query('DELETE FROM iot_devices WHERE user_id = ?', [userId]); } catch (e) {}
       try { await pool.query('DELETE FROM user_settings WHERE user_id = ?', [userId]); } catch (e) {}
       try { await pool.query('DELETE FROM payment_accounts WHERE user_id = ?', [userId]); } catch (e) {}
       try { await pool.query('DELETE FROM pending_sellers WHERE user_id = ? OR email = ?', [userId, cleanEmail]); } catch (e) {}
@@ -691,9 +727,68 @@ async function deleteUserFromMySql(userId, email) {
       try { await pool.query('DELETE FROM seller_profiles WHERE email = ?', [cleanEmail]); } catch (e) {}
       try { await pool.query('DELETE FROM users WHERE email = ?', [cleanEmail]); } catch (e) {}
     }
-    console.log(`[MySQL Database] Permanently deleted user (${userId || cleanEmail}) from database.`);
+    console.log(`[MySQL Database] Permanently deleted user (${userId || cleanEmail}) and linked IoT devices from database.`);
   } catch (err) {
     console.error('[MySQL User Delete Error]', err.message);
+  }
+}
+
+// Persist IoT device to MySQL
+async function upsertIotDeviceInMySql(d) {
+  if (!pool || !isConnected || !d) return;
+  try {
+    await pool.query(
+      `INSERT INTO iot_devices (id, user_id, device_id, device_key, name, location, crop, status, is_hardware_live, last_ping, current_readings)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+       ON DUPLICATE KEY UPDATE
+         name=VALUES(name),
+         device_key=VALUES(device_key),
+         location=VALUES(location),
+         crop=VALUES(crop),
+         status=VALUES(status),
+         is_hardware_live=VALUES(is_hardware_live),
+         last_ping=VALUES(last_ping),
+         current_readings=VALUES(current_readings)`,
+      [
+        d.id || null,
+        d.userId || 1,
+        d.deviceId,
+        d.deviceKey,
+        d.name || 'Field Sensor Node',
+        d.location || 'Field Zone A',
+        d.crop || 'Wheat',
+        d.status || 'OFFLINE',
+        Boolean(d.isHardwareLive),
+        d.lastPing ? new Date(d.lastPing) : null,
+        JSON.stringify(d.currentReadings || {}),
+      ]
+    );
+  } catch (err) {
+    console.error('[MySQL IoT Device Upsert Error]', err.message);
+  }
+}
+
+// Persist IoT telemetry entry to MySQL
+async function insertIotTelemetryInMySql(t) {
+  if (!pool || !isConnected || !t) return;
+  try {
+    await pool.query(
+      `INSERT INTO iot_telemetry (device_id, user_id, soil_moisture, temperature, humidity, light_intensity, rainfall, water_level, pressure)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        t.deviceId,
+        t.userId || 1,
+        t.soilMoisture !== undefined ? t.soilMoisture : null,
+        t.temperature !== undefined ? t.temperature : null,
+        t.humidity !== undefined ? t.humidity : null,
+        t.lightIntensity !== undefined ? t.lightIntensity : null,
+        t.rainfall !== undefined ? t.rainfall : null,
+        t.waterLevel !== undefined ? t.waterLevel : null,
+        t.pressure !== undefined ? t.pressure : null,
+      ]
+    );
+  } catch (err) {
+    console.error('[MySQL Telemetry Insert Error]', err.message);
   }
 }
 
@@ -706,5 +801,7 @@ module.exports = {
   deleteUserFromMySql,
   upsertProductInMySql,
   insertOrderInMySql,
+  upsertIotDeviceInMySql,
+  insertIotTelemetryInMySql,
   isMySqlConnected: () => isConnected,
 };
