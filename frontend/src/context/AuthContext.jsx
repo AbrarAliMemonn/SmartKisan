@@ -610,20 +610,23 @@ const login = async (email, password, options = {}) => {
 
   const deleteMyAccount = async () => {
     try {
-      if (user?.id) {
-        try {
-          await userAPI.deleteAccount()
-        } catch (err) {
-          if (err.response?.status === 404) {
-            await adminAPI.deleteUser(user.id)
-          } else {
-            throw err
-          }
+      try {
+        await userAPI.deleteAccount()
+      } catch (err) {
+        if (err.response?.status === 404 && user?.id) {
+          await adminAPI.deleteUser(user.id)
+        } else {
+          throw err
         }
+      }
+      if (user?.email) {
+        try {
+          localStorage.removeItem(getCachedAvatarKey(user.email))
+        } catch (e) {}
       }
       clearSession()
       setUsers([])
-      toast.success('Your account has been deleted successfully')
+      toast.success('Your account has been permanently deleted from database')
       window.location.href = '/login'
       return { success: true }
     } catch (error) {

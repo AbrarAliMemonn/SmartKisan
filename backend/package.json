@@ -1,0 +1,23 @@
+{
+  "name": "smartkisan-backend",
+  "version": "1.0.0",
+  "description": "SmartKisan Unified Cloud API Service (IoT Telemetry, Multilingual AgricultureBot, Marketplace, Weather, and Admin)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "smart-agriculture",
+    "iot",
+    "marketplace",
+    "ai-chatbot"
+  ],
+  "author": "SmartKisan",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^18.0.7",
+    "mysql2": "^3.24.5",
+    "nodemailer": "^10.1.0"
+  }
+}
