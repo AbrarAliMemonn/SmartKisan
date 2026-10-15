@@ -45,4 +45,10 @@ public class UserController {
                                                               @AuthenticationPrincipal UserPrincipal principal) {
         return ApiResponse.success("Settings updated", userService.updateSettings(principal.getId(), request));
     }
+
+    @DeleteMapping("/account")
+    public ApiResponse<Void> deleteAccount(@AuthenticationPrincipal UserPrincipal principal) {
+        userService.deleteAccount(principal.getId());
+        return ApiResponse.message("Account deleted successfully");
+    }
 }

@@ -96,6 +96,7 @@ export const userAPI = {
     api.post('/users/avatar', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     }),
+  deleteAccount: () => api.delete('/users/account'),
 }
 
 // =========================================================

@@ -605,6 +605,36 @@ const login = async (email, password, options = {}) => {
   }
 
   // =========================================================
+  // DELETE MY ACCOUNT
+  // =========================================================
+
+  const deleteMyAccount = async () => {
+    try {
+      if (user?.id) {
+        try {
+          await userAPI.deleteAccount()
+        } catch (err) {
+          if (err.response?.status === 404) {
+            await adminAPI.deleteUser(user.id)
+          } else {
+            throw err
+          }
+        }
+      }
+      clearSession()
+      setUsers([])
+      toast.success('Your account has been deleted successfully')
+      window.location.href = '/login'
+      return { success: true }
+    } catch (error) {
+      console.error('Delete account error:', error)
+      const msg = getErrorMessage(error, 'Failed to delete account')
+      toast.error(msg)
+      return { success: false, error: msg }
+    }
+  }
+
+  // =========================================================
   // BECOME SELLER
   // =========================================================
 
@@ -1128,6 +1158,7 @@ const login = async (email, password, options = {}) => {
     changePassword,
     uploadAvatar,
     updateSettings,
+    deleteMyAccount,
 
     becomeSeller,
     fetchMySellerProfile,

@@ -12,4 +12,5 @@ public interface UserService {
     void changePassword(Long userId, ChangePasswordRequest request);
     UserResponse uploadAvatar(Long userId, MultipartFile file);
     UserSettingsResponse updateSettings(Long userId, UpdateSettingsRequest request);
+    void deleteAccount(Long userId);
 }

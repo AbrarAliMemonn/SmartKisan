@@ -6,6 +6,7 @@ import toast from 'react-hot-toast'
 import Card from '../components/common/Card'
 import Button from '../components/common/Button'
 import useStore from '../store/useStore'
+import { useAuthContext } from '../context/AuthContext'
 
 function Toggle({ checked, onChange }) {
   return (
@@ -31,6 +32,9 @@ function Toggle({ checked, onChange }) {
 
 export default function Settings() {
   const { darkMode, toggleDarkMode, addNotification } = useStore()
+  const { user, deleteMyAccount } = useAuthContext()
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [deleting, setDeleting] = useState(false)
   const [prefs, setPrefs] = useState(() => {
     try {
       const saved = localStorage.getItem('user_notification_prefs')
@@ -278,14 +282,63 @@ export default function Settings() {
         <Button
           variant="danger"
           size="sm"
-          onClick={() =>
-            toast.error('Account deletion is disabled in this demo')
-          }
+          onClick={() => setShowDeleteModal(true)}
         >
           <Trash2 className="h-4 w-4" />
           Delete Account
         </Button>
       </Card>
+
+      {/* Delete Account Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md overflow-hidden rounded-2xl bg-white p-6 shadow-2xl ring-1 ring-slate-900/5 dark:bg-night-raised dark:ring-white/10">
+            <div className="mb-4 flex items-center gap-3">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-red-100 text-red-600 dark:bg-red-500/20 dark:text-red-400">
+                <Trash2 size={24} />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+                  Permanently Delete Account?
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  {user?.email}
+                </p>
+              </div>
+            </div>
+
+            <p className="mb-6 text-sm leading-relaxed text-slate-600 dark:text-slate-300">
+              Are you sure you want to delete your account? All your farm data, sensor history, orders, and preferences will be permanently erased. This action <strong>cannot be undone</strong>.
+            </p>
+
+            <div className="flex justify-end gap-3">
+              <Button
+                variant="secondary"
+                disabled={deleting}
+                onClick={() => setShowDeleteModal(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="danger"
+                loading={deleting}
+                disabled={deleting}
+                onClick={async () => {
+                  setDeleting(true)
+                  try {
+                    await deleteMyAccount()
+                  } finally {
+                    setDeleting(false)
+                    setShowDeleteModal(false)
+                  }
+                }}
+              >
+                Yes, Delete My Account
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
