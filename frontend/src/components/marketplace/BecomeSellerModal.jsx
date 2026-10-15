@@ -86,7 +86,7 @@ export default function BecomeSellerModal({ onClose, onSubmit }) {
                 Become a Seller
               </h2>
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                Set up your marketplace seller profile
+                Submit your application to become a seller (Requires Admin Approval)
               </p>
             </div>
           </div>
@@ -108,15 +108,13 @@ export default function BecomeSellerModal({ onClose, onSubmit }) {
           className="flex-1 space-y-5 overflow-y-auto px-5 py-5"
         >
           {/* Info banner */}
-          <div className="flex items-start gap-3 rounded-xl border border-green-100 bg-green-50/60 p-3.5 dark:border-green-500/20 dark:bg-green-500/5">
+          <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50/70 p-3.5 dark:border-amber-500/20 dark:bg-amber-500/5">
             <Info
               size={16}
-              className="mt-0.5 shrink-0 text-green-600 dark:text-green-400"
+              className="mt-0.5 shrink-0 text-amber-600 dark:text-amber-400"
             />
-            <p className="text-xs leading-relaxed text-green-900/80 dark:text-green-200/90">
-              Set up your seller profile to start listing produce, seeds,
-              equipment, and other agricultural products on the SmartKisan
-              Marketplace.
+            <p className="text-xs leading-relaxed text-amber-900/90 dark:text-amber-200/90">
+              Submit your farm or store details to apply as a seller. An <strong>Admin must approve your application</strong> before your seller account is activated and you can start listing and selling products.
             </p>
           </div>
 
@@ -292,7 +290,7 @@ export default function BecomeSellerModal({ onClose, onSubmit }) {
             disabled={submitting}
             onClick={handleSubmit}
           >
-            Create Seller Profile
+            Submit for Admin Approval
           </Button>
         </div>
       </div>

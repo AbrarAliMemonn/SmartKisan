@@ -54,7 +54,7 @@ const menuGroups = [
           !p.startsWith('/marketplace/wishlist') &&
           !p.startsWith('/marketplace/seller'),
       },
-      { path: '/marketplace/seller', icon: Store, label: 'Seller Center' },
+      { path: '/marketplace/seller', icon: Store, label: 'Seller Center', sellerOnly: true },
       { path: '/marketplace/orders', icon: PackageCheck, label: 'My Orders' },
       { path: '/marketplace/wishlist', icon: Heart, label: 'Wishlist' },
     ],
@@ -75,8 +75,19 @@ const menuGroups = [
 
 export default function Sidebar() {
   const { sidebarOpen, toggleSidebar, mobileSidebarOpen, closeMobileSidebar } = useStore()
-  const { isAdmin } = useAuthContext()
+  const { user, isAdmin, isSeller, hasSellerApplication } = useAuthContext()
   const { pathname } = useLocation()
+
+  // Only show Seller Center to users who applied to become a seller (or are approved sellers / admin)
+  const canAccessSellerCenter = Boolean(
+    isAdmin ||
+    isSeller ||
+    hasSellerApplication ||
+    user?.sellerProfile ||
+    user?.requestedServices?.includes('BECOME_SELLER') ||
+    (user?.serviceApprovals?.BECOME_SELLER && user?.serviceApprovals?.BECOME_SELLER !== 'NONE') ||
+    user?.isSeller
+  )
 
   const collapsed = !sidebarOpen
 
@@ -120,7 +131,11 @@ export default function Sidebar() {
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto px-3 py-3" aria-label="Main navigation">
         {menuGroups.map((group) => {
-          const items = group.items.filter((item) => !(item.adminOnly && !isAdmin))
+          const items = group.items.filter((item) => {
+            if (item.adminOnly && !isAdmin) return false
+            if (item.sellerOnly && !canAccessSellerCenter) return false
+            return true
+          })
           if (items.length === 0) return null
 
           return (

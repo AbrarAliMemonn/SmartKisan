@@ -21,8 +21,8 @@ const PAGE_SIZE = 12
 
 // Seller button copy, driven purely by user.sellerProfile.status.
 const SELLER_BUTTON = {
-  PENDING: 'Application Pending',
-  APPROVED: 'Seller Dashboard',
+  PENDING: 'Application Pending (Under Review)',
+  APPROVED: 'Seller Central',
   REJECTED: 'Application Rejected',
   SUSPENDED: 'Seller Suspended',
 }
@@ -75,8 +75,8 @@ export default function Marketplace() {
   const isApprovedSeller = sellerStatus === 'APPROVED'
 
   const sellerButtonLabel = hasSellerProfile
-    ? SELLER_BUTTON[sellerStatus] || 'Seller Dashboard'
-    : 'Start Selling'
+    ? SELLER_BUTTON[sellerStatus] || 'Seller Central'
+    : 'Become a Seller'
 
   const handleSellerButton = () => {
     // No profile at all -> the only path that opens registration.

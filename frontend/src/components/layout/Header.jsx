@@ -29,7 +29,7 @@ const SEARCH_TARGETS = [
   { label: 'My Orders', path: '/marketplace/orders', hint: 'Track your purchases', words: 'order tracking delivery' },
   { label: 'Wishlist', path: '/marketplace/wishlist', hint: 'Products you saved', words: 'saved favourites' },
   { label: 'Cart', path: '/marketplace/cart', hint: 'Review items before checkout', words: 'basket checkout' },
-  { label: 'Seller Dashboard', path: '/marketplace/seller', hint: 'Listings, orders and payments', words: 'sell listings payouts' },
+  { label: 'Seller Dashboard', path: '/marketplace/seller', hint: 'Listings, orders and payments', words: 'sell listings payouts', sellerOnly: true },
   { label: 'AI Chatbot', path: '/chatbot', hint: 'Ask the farming assistant', words: 'help advice assistant' },
   { label: 'Profile', path: '/profile', hint: 'Your account details', words: 'account password avatar' },
   { label: 'Settings', path: '/settings', hint: 'Theme, alerts and units', words: 'preferences dark mode notifications' },
@@ -43,7 +43,7 @@ const iconBtn =
 
 export default function Header() {
   const navigate = useNavigate()
-  const { logout, user, isAdmin } = useAuthContext()
+  const { logout, user, isAdmin, isSeller, hasSellerApplication } = useAuthContext()
   const {
     toggleMobileSidebar,
     notifications,
@@ -53,6 +53,16 @@ export default function Header() {
     cartItems,
     wishlist,
   } = useStore()
+
+  const canAccessSellerCenter = Boolean(
+    isAdmin ||
+    isSeller ||
+    hasSellerApplication ||
+    user?.sellerProfile ||
+    user?.requestedServices?.includes('BECOME_SELLER') ||
+    (user?.serviceApprovals?.BECOME_SELLER && user?.serviceApprovals?.BECOME_SELLER !== 'NONE') ||
+    user?.isSeller
+  )
 
   const [showNotifications, setShowNotifications] = useState(false)
   const [showProfile, setShowProfile] = useState(false)
@@ -72,10 +82,11 @@ export default function Header() {
 
   const results = useMemo(() => {
     const q = query.trim().toLowerCase()
-    return SEARCH_TARGETS.filter((t) => !(t.adminOnly && !isAdmin)).filter(
-      (t) => !q || `${t.label} ${t.hint} ${t.words}`.toLowerCase().includes(q)
-    )
-  }, [query, isAdmin])
+    return SEARCH_TARGETS
+      .filter((t) => !(t.adminOnly && !isAdmin))
+      .filter((t) => !(t.sellerOnly && !canAccessSellerCenter))
+      .filter((t) => !q || `${t.label} ${t.hint} ${t.words}`.toLowerCase().includes(q))
+  }, [query, isAdmin, canAccessSellerCenter])
 
   // Outside click closes every popover
   useEffect(() => {
