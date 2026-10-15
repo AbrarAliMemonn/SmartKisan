@@ -681,15 +681,15 @@ async function deleteUserFromMySql(userId, email) {
   try {
     const cleanEmail = (email || '').toLowerCase().trim();
     if (userId) {
-      await pool.query('DELETE FROM user_settings WHERE user_id = ?', [userId]);
-      await pool.query('DELETE FROM payment_accounts WHERE user_id = ?', [userId]);
-      await pool.query('DELETE FROM pending_sellers WHERE user_id = ? OR email = ?', [userId, cleanEmail]);
-      await pool.query('DELETE FROM seller_profiles WHERE user_id = ? OR email = ?', [userId, cleanEmail]);
-      await pool.query('DELETE FROM users WHERE id = ? OR email = ?', [userId, cleanEmail]);
+      try { await pool.query('DELETE FROM user_settings WHERE user_id = ?', [userId]); } catch (e) {}
+      try { await pool.query('DELETE FROM payment_accounts WHERE user_id = ?', [userId]); } catch (e) {}
+      try { await pool.query('DELETE FROM pending_sellers WHERE user_id = ? OR email = ?', [userId, cleanEmail]); } catch (e) {}
+      try { await pool.query('DELETE FROM seller_profiles WHERE user_id = ? OR email = ?', [userId, cleanEmail]); } catch (e) {}
+      try { await pool.query('DELETE FROM users WHERE id = ? OR email = ?', [userId, cleanEmail]); } catch (e) {}
     } else if (cleanEmail) {
-      await pool.query('DELETE FROM pending_sellers WHERE email = ?', [cleanEmail]);
-      await pool.query('DELETE FROM seller_profiles WHERE email = ?', [cleanEmail]);
-      await pool.query('DELETE FROM users WHERE email = ?', [cleanEmail]);
+      try { await pool.query('DELETE FROM pending_sellers WHERE email = ?', [cleanEmail]); } catch (e) {}
+      try { await pool.query('DELETE FROM seller_profiles WHERE email = ?', [cleanEmail]); } catch (e) {}
+      try { await pool.query('DELETE FROM users WHERE email = ?', [cleanEmail]); } catch (e) {}
     }
     console.log(`[MySQL Database] Permanently deleted user (${userId || cleanEmail}) from database.`);
   } catch (err) {
