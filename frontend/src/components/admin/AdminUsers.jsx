@@ -136,49 +136,71 @@ export default function AdminUsers({ users, loading }) {
     }
   }
 
-  const actions = (u) => (
-    <div className="flex items-center justify-end gap-0.5">
-      <button onClick={() => navigate(`/admin/users/${u.id}`)} className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-white/10 dark:hover:text-white" aria-label={`View ${u.name}`} title="View profile">
-        <Eye className="h-4 w-4" />
-      </button>
-      <button onClick={() => openEdit(u)} className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-white/10 dark:hover:text-white" aria-label={`Edit ${u.name}`} title="Edit">
-        <Edit2 className="h-4 w-4" />
-      </button>
+  const isMe = (u) => {
+    if (!me) return false
+    if (me.id && u.id && String(me.id) === String(u.id)) return true
+    if (me.email && u.email && me.email.toLowerCase() === u.email.toLowerCase()) return true
+    return false
+  }
 
-      {/* Suspend / Reactivate action */}
-      {me?.id !== u.id && (
-        u.suspended ? (
-          <button
-            onClick={() => setToUnsuspend(u)}
-            className="rounded-lg p-2 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-500/10"
-            aria-label={`Reactivate ${u.name}`}
-            title="Reactivate account"
-          >
-            <CheckCircle className="h-4 w-4" />
-          </button>
-        ) : (
-          <button
-            onClick={() => handleOpenSuspend(u)}
-            className="rounded-lg p-2 text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-500/10"
-            aria-label={`Suspend ${u.name}`}
-            title="Suspend account (temporary or permanent)"
-          >
-            <Ban className="h-4 w-4" />
-          </button>
-        )
-      )}
+  const actions = (u) => {
+    const isSelf = isMe(u)
+    return (
+      <div className="flex items-center justify-end gap-1.5">
+        <button
+          onClick={() => navigate(`/admin/users/${u.id}`)}
+          className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-50 dark:border-white/10 dark:bg-white/5 dark:text-slate-200 dark:hover:bg-white/10"
+          title="View full user details"
+        >
+          <Eye className="h-3.5 w-3.5 text-slate-500" />
+          <span className="hidden xl:inline">View</span>
+        </button>
 
-      <button
-        onClick={() => setToDelete(u)}
-        disabled={me?.id === u.id}
-        className="rounded-lg p-2 text-slate-400 hover:bg-red-50 hover:text-red-600 disabled:pointer-events-none disabled:opacity-30 dark:hover:bg-red-500/10 dark:hover:text-red-400"
-        aria-label={`Delete ${u.name}`}
-        title={me?.id === u.id ? 'You cannot delete your own account' : 'Delete'}
-      >
-        <Trash2 className="h-4 w-4" />
-      </button>
-    </div>
-  )
+        <button
+          onClick={() => openEdit(u)}
+          className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-50 dark:border-white/10 dark:bg-white/5 dark:text-slate-200 dark:hover:bg-white/10"
+          title="Edit user details"
+        >
+          <Edit2 className="h-3.5 w-3.5 text-slate-500" />
+          <span className="hidden xl:inline">Edit</span>
+        </button>
+
+        {/* Suspend / Reactivate action */}
+        {!isSelf && (
+          u.suspended ? (
+            <button
+              onClick={() => setToUnsuspend(u)}
+              className="inline-flex items-center gap-1 rounded-lg border border-emerald-300 bg-emerald-50 px-2.5 py-1.5 text-xs font-bold text-emerald-700 shadow-sm hover:bg-emerald-100 transition-colors dark:border-emerald-500/30 dark:bg-emerald-500/20 dark:text-emerald-300 cursor-pointer"
+              title="Click to reactivate this account"
+            >
+              <CheckCircle className="h-3.5 w-3.5" />
+              <span>Reactivate</span>
+            </button>
+          ) : (
+            <button
+              onClick={() => handleOpenSuspend(u)}
+              className="inline-flex items-center gap-1 rounded-lg border border-amber-300 bg-amber-50 px-2.5 py-1.5 text-xs font-bold text-amber-800 shadow-sm hover:bg-amber-100 transition-colors dark:border-amber-500/30 dark:bg-amber-500/20 dark:text-amber-300 cursor-pointer"
+              title="Suspend this user (temporary or permanent)"
+            >
+              <Ban className="h-3.5 w-3.5" />
+              <span>Suspend</span>
+            </button>
+          )
+        )}
+
+        {/* Delete user action */}
+        <button
+          onClick={() => setToDelete(u)}
+          disabled={isSelf}
+          className="inline-flex items-center gap-1 rounded-lg border border-red-300 bg-red-50 px-2.5 py-1.5 text-xs font-bold text-red-700 shadow-sm hover:bg-red-100 transition-colors disabled:pointer-events-none disabled:opacity-30 dark:border-red-500/30 dark:bg-red-500/20 dark:text-red-400 cursor-pointer"
+          title={isSelf ? 'You cannot delete your own account' : `Delete ${u.name}`}
+        >
+          <Trash2 className="h-3.5 w-3.5" />
+          <span>Delete</span>
+        </button>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-5">
@@ -235,7 +257,7 @@ export default function AdminUsers({ users, loading }) {
                     <th className="px-5 py-3">Type</th>
                     <th className="px-5 py-3">Requested Services &amp; Approvals</th>
                     <th className="px-5 py-3">Phone</th>
-                    <th className="px-5 py-3"><span className="sr-only">Actions</span></th>
+                    <th className="px-5 py-3 text-right font-semibold">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-white/10">

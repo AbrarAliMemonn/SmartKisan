@@ -1952,6 +1952,75 @@ const server = http.createServer(async (req, res) => {
     return sendJSON(res, 404, { success: false, message: 'User not found' });
   }
 
+  // Suspend User (Admin): /api/admin/users/:id/suspend
+  if (((pathname.includes('/admin/users/') || pathname.includes('/users/')) && pathname.endsWith('/suspend')) && req.method === 'POST') {
+    const parts = pathname.split('/');
+    const uId = +parts[parts.length - 2];
+    const user = users.find((u) => u.id === uId);
+    if (!user) {
+      return sendJSON(res, 404, { success: false, message: 'User not found' });
+    }
+    const body = await parseBody(req);
+    const suspendType = (body.type || 'TEMPORARY').toUpperCase();
+    const days = Number(body.days || 7);
+    const reason = (body.reason || 'Account suspended by administrator.').trim();
+
+    user.suspended = true;
+    user.isSuspended = true;
+    user.status = 'SUSPENDED';
+    user.suspensionType = suspendType;
+    user.suspensionReason = reason;
+    user.suspendedAt = new Date().toISOString();
+    user.suspendedUntil = suspendType === 'TEMPORARY' ? new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString() : null;
+
+    // Also suspend their seller profile if any
+    const sProf = sellerProfiles.find((s) => s.userId === uId);
+    if (sProf) {
+      sProf.status = 'SUSPENDED';
+      sProf.moderationReason = reason;
+    }
+
+    saveDb();
+    console.log(`[Admin] User ${user.email} (ID: ${user.id}) suspended (${suspendType})`);
+    return sendJSON(res, 200, {
+      success: true,
+      message: `User ${user.name} has been ${suspendType.toLowerCase()}ly suspended.`,
+      data: sanitizeUser(user),
+    });
+  }
+
+  // Unsuspend / Reactivate User (Admin): /api/admin/users/:id/unsuspend
+  if (((pathname.includes('/admin/users/') || pathname.includes('/users/')) && pathname.endsWith('/unsuspend')) && req.method === 'POST') {
+    const parts = pathname.split('/');
+    const uId = +parts[parts.length - 2];
+    const user = users.find((u) => u.id === uId);
+    if (!user) {
+      return sendJSON(res, 404, { success: false, message: 'User not found' });
+    }
+
+    user.suspended = false;
+    user.isSuspended = false;
+    user.status = 'ACTIVE';
+    delete user.suspensionType;
+    delete user.suspensionReason;
+    delete user.suspendedAt;
+    delete user.suspendedUntil;
+
+    // Restore seller profile if was suspended
+    const sProf = sellerProfiles.find((s) => s.userId === uId);
+    if (sProf && sProf.status === 'SUSPENDED') {
+      sProf.status = 'APPROVED';
+    }
+
+    saveDb();
+    console.log(`[Admin] User ${user.email} (ID: ${user.id}) reactivated`);
+    return sendJSON(res, 200, {
+      success: true,
+      message: `User ${user.name} has been reactivated successfully.`,
+      data: sanitizeUser(user),
+    });
+  }
+
   // Sync users from client cache (Admin or automatic background sync)
   if ((pathname === '/api/admin/users/sync' || pathname === '/admin/users/sync') && req.method === 'POST') {
     const body = await parseBody(req);

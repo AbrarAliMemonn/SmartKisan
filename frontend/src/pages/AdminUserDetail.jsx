@@ -1,8 +1,8 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
   ArrowLeft, Mail, Phone, MapPin, Calendar, BadgeCheck,
-  Map, Wifi, Sprout, Activity, Battery, Ban, CheckCircle, AlertTriangle,
+  Map, Wifi, Sprout, Activity, Battery, Ban, CheckCircle, AlertTriangle, Trash2,
 } from 'lucide-react'
 import Card from '../components/common/Card'
 import Button from '../components/common/Button'
@@ -18,13 +18,15 @@ const userTypeBadge = {
 export default function AdminUserDetail() {
   const { userId } = useParams()
   const navigate = useNavigate()
-  const { user: me, users, fetchUsers, adminSuspendUser, adminUnsuspendUser } = useAuthContext()
+  const { user: me, users, fetchUsers, adminDeleteUser, adminSuspendUser, adminUnsuspendUser } = useAuthContext()
 
   const [showSuspendModal, setShowSuspendModal] = useState(false)
   const [suspendForm, setSuspendForm] = useState({ type: 'TEMPORARY', days: 7, reason: '' })
   const [suspending, setSuspending] = useState(false)
   const [showUnsuspendConfirm, setShowUnsuspendConfirm] = useState(false)
   const [unsuspending, setUnsuspending] = useState(false)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
     fetchUsers()
@@ -68,6 +70,20 @@ export default function AdminUserDetail() {
     }
   }
 
+  const handleConfirmDelete = async () => {
+    if (!targetUser) return
+    setDeleting(true)
+    try {
+      const res = await adminDeleteUser(targetUser.id)
+      if (res?.success) {
+        setShowDeleteModal(false)
+        navigate('/admin?section=users')
+      }
+    } finally {
+      setDeleting(false)
+    }
+  }
+
   if (!targetUser) {
     return (
       <div className="space-y-6">
@@ -91,7 +107,7 @@ export default function AdminUserDetail() {
         </Button>
 
         {me?.id !== targetUser.id && (
-          <div>
+          <div className="flex flex-wrap items-center gap-2">
             {targetUser.suspended ? (
               <Button
                 variant="primary"
@@ -103,17 +119,26 @@ export default function AdminUserDetail() {
               </Button>
             ) : (
               <Button
-                variant="danger"
+                variant="secondary"
                 size="sm"
                 onClick={() => {
                   setSuspendForm({ type: 'TEMPORARY', days: 7, reason: '' })
                   setShowSuspendModal(true)
                 }}
-                leftIcon={<Ban className="h-4 w-4" />}
+                leftIcon={<Ban className="h-4 w-4 text-amber-500" />}
               >
                 Suspend Account
               </Button>
             )}
+
+            <Button
+              variant="danger"
+              size="sm"
+              onClick={() => setShowDeleteModal(true)}
+              leftIcon={<Trash2 className="h-4 w-4" />}
+            >
+              Delete User
+            </Button>
           </div>
         )}
       </div>
@@ -476,6 +501,18 @@ export default function AdminUserDetail() {
         loading={unsuspending}
         onConfirm={handleConfirmUnsuspend}
         onClose={() => setShowUnsuspendConfirm(false)}
+      />
+
+      {/* Delete User Confirm Modal */}
+      <ConfirmModal
+        open={showDeleteModal}
+        tone="danger"
+        title="Permanently Delete User"
+        message={`Are you sure you want to permanently delete ${targetUser.name} (${targetUser.email})? This removes the user and all associated records permanently from the MySQL database. This action cannot be undone.`}
+        confirmLabel="Delete User Permanently"
+        loading={deleting}
+        onConfirm={handleConfirmDelete}
+        onClose={() => setShowDeleteModal(false)}
       />
     </div>
   )
