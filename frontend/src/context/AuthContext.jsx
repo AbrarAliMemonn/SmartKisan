@@ -7,6 +7,7 @@ import React, {
 } from 'react'
 import toast from 'react-hot-toast'
 import { authAPI, userAPI, adminAPI, marketplaceAPI } from '../services/api'
+import SessionExpiredModal from '../components/common/SessionExpiredModal'
 
 const AuthContext = createContext()
 
@@ -106,6 +107,10 @@ export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [loading, setLoading] = useState(true)
   const [users, setUsers] = useState([])
+  const [sessionExpired, setSessionExpired] = useState(false)
+
+  // 5 Minutes Inactivity Timeout: 5 * 60 * 1000 ms
+  const INACTIVITY_TIMEOUT_MS = 5 * 60 * 1000
 
   const getCachedAvatarKey = (email) =>
     'smartkisan_custom_avatar_' + String(email || '').toLowerCase().trim()
@@ -166,10 +171,83 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('token')
     localStorage.removeItem('refreshToken')
     localStorage.removeItem('user')
+    localStorage.removeItem('smartkisan_last_activity')
 
     setUser(null)
     setIsAuthenticated(false)
   }, [])
+
+  // =========================================================
+  // INACTIVITY SESSION EXPIRATION (5 MINUTES)
+  // =========================================================
+
+  const handleInactivityExpire = useCallback(() => {
+    // Only expire if session token is actually present
+    if (!localStorage.getItem('token')) return
+
+    clearSession()
+    setSessionExpired(true)
+
+    toast.error(
+      'Your session has expired due to 5 minutes of inactivity. Please log in again to continue.',
+      {
+        duration: 8000,
+        id: 'session-expired-inactivity',
+      }
+    )
+  }, [clearSession])
+
+  useEffect(() => {
+    if (!isAuthenticated) return
+
+    const initialTime = Date.now()
+    if (!localStorage.getItem('smartkisan_last_activity')) {
+      localStorage.setItem('smartkisan_last_activity', String(initialTime))
+    }
+
+    let lastThrottledTime = initialTime
+
+    const recordActivity = () => {
+      const now = Date.now()
+      // Throttle updates to at most once every 2 seconds
+      if (now - lastThrottledTime > 2000) {
+        lastThrottledTime = now
+        localStorage.setItem('smartkisan_last_activity', String(now))
+      }
+    }
+
+    const events = ['mousedown', 'mousemove', 'keydown', 'scroll', 'touchstart', 'click']
+    events.forEach((event) => {
+      window.addEventListener(event, recordActivity, { passive: true })
+    })
+
+    // Periodic check every 4 seconds
+    const intervalId = setInterval(() => {
+      const storedActive = Number(localStorage.getItem('smartkisan_last_activity') || initialTime)
+      if (Date.now() - storedActive >= INACTIVITY_TIMEOUT_MS) {
+        handleInactivityExpire()
+      }
+    }, 4000)
+
+    // Check on tab visibility restoration
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        const storedActive = Number(localStorage.getItem('smartkisan_last_activity') || initialTime)
+        if (Date.now() - storedActive >= INACTIVITY_TIMEOUT_MS) {
+          handleInactivityExpire()
+        }
+      }
+    }
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+
+    return () => {
+      events.forEach((event) => {
+        window.removeEventListener(event, recordActivity)
+      })
+      clearInterval(intervalId)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
+  }, [isAuthenticated, handleInactivityExpire, INACTIVITY_TIMEOUT_MS])
 
   // =========================================================
   // FETCH SELLER PROFILE
@@ -261,6 +339,10 @@ export const AuthProvider = ({ children }) => {
       persistUser(userToRestore)
 
       setIsAuthenticated(true)
+      setSessionExpired(false)
+      if (!localStorage.getItem('smartkisan_last_activity')) {
+        localStorage.setItem('smartkisan_last_activity', String(Date.now()))
+      }
 
       // -----------------------------------------------------
       // IMPORTANT:
@@ -394,6 +476,8 @@ export const AuthProvider = ({ children }) => {
     }
 
     setIsAuthenticated(true)
+    setSessionExpired(false)
+    localStorage.setItem('smartkisan_last_activity', String(Date.now()))
 
     // Fetch seller profile too, so seller access works right after login.
     let finalUser = userData
@@ -1188,6 +1272,15 @@ const login = async (email, password, options = {}) => {
   }
 
   return (
-    <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+    <AuthContext.Provider value={value}>
+      {children}
+      <SessionExpiredModal
+        isOpen={sessionExpired}
+        onLogin={() => {
+          setSessionExpired(false)
+          window.location.href = '/login'
+        }}
+      />
+    </AuthContext.Provider>
   )
 }
