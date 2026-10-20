@@ -205,13 +205,6 @@ export default function Login() {
     const handleGoogleLogin = () => {
     try {
       setOauthLoading(true)
-      // Check if client ID or environment is available
-      const configuredClientId = (import.meta.env.VITE_GOOGLE_CLIENT_ID || '').trim()
-      if (!configuredClientId) {
-        setOauthLoading(false)
-        toast.error('Google Sign-In is temporarily unconfigured. Please sign in with email and password.')
-        return
-      }
       startGoogleLogin()
     } catch (error) {
       console.error('Google OAuth error:', error)
