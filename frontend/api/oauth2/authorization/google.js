@@ -8,7 +8,7 @@ export default function handler(req, res) {
     return res.status(200).end();
   }
 
-  const CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '';
+  const CLIENT_ID = (process.env.GOOGLE_CLIENT_ID || '').trim();
 
   const proto = req.headers['x-forwarded-proto'] || 'https';
   const host = req.headers['x-forwarded-host'] || req.headers.host || 'frontend-eosin-xi-45.vercel.app';
@@ -27,6 +27,13 @@ export default function handler(req, res) {
   }
   if (!returnTo) {
     returnTo = `${origin}/oauth2/redirect`;
+  }
+
+  // If Client ID is completely missing, redirect back to login with a friendly message instead of broken Google page
+  if (!CLIENT_ID) {
+    console.error('[Google OAuth] Google Client ID is not configured.');
+    res.writeHead(302, { Location: `${origin}/login?error=Google+Sign-In+is+not+configured.+Please+log+in+with+your+email+and+password.` });
+    return res.end();
   }
 
   // Google OAuth2 callback URL

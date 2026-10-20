@@ -438,3 +438,13 @@
     scrollbar-width: none;
   }
 }
+
+/* RTL and Urdu Localization Typography */
+[dir="rtl"] {
+  font-family: 'Noto Sans Arabic', 'Noto Nastaliq Urdu', system-ui, -apple-system, sans-serif;
+  letter-spacing: normal;
+}
+
+.font-urdu {
+  font-family: 'Noto Sans Arabic', 'Noto Nastaliq Urdu', system-ui, -apple-system, sans-serif;
+}

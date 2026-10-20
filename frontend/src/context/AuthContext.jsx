@@ -109,8 +109,8 @@ export const AuthProvider = ({ children }) => {
   const [users, setUsers] = useState([])
   const [sessionExpired, setSessionExpired] = useState(false)
 
-  // 5 Minutes Inactivity Timeout: 5 * 60 * 1000 ms
-  const INACTIVITY_TIMEOUT_MS = 5 * 60 * 1000
+  // Extended session threshold: 14 days
+  const SESSION_TIMEOUT_MS = 14 * 24 * 60 * 60 * 1000
 
   const getCachedAvatarKey = (email) =>
     'smartkisan_custom_avatar_' + String(email || '').toLowerCase().trim()
@@ -178,23 +178,19 @@ export const AuthProvider = ({ children }) => {
   }, [])
 
   // =========================================================
-  // INACTIVITY SESSION EXPIRATION (5 MINUTES)
+  // EXTENDED SESSION LIFETIME (14 DAYS)
   // =========================================================
 
-  const handleInactivityExpire = useCallback(() => {
-    // Only expire if session token is actually present
+  const handleSessionExpire = useCallback(() => {
     if (!localStorage.getItem('token')) return
 
     clearSession()
     setSessionExpired(true)
 
-    toast.error(
-      'Your session has expired due to 5 minutes of inactivity. Please log in again to continue.',
-      {
-        duration: 8000,
-        id: 'session-expired-inactivity',
-      }
-    )
+    toast.error('Your session has expired. Please log in again to continue.', {
+      duration: 6000,
+      id: 'session-expired',
+    })
   }, [clearSession])
 
   useEffect(() => {
@@ -209,45 +205,32 @@ export const AuthProvider = ({ children }) => {
 
     const recordActivity = () => {
       const now = Date.now()
-      // Throttle updates to at most once every 2 seconds
-      if (now - lastThrottledTime > 2000) {
+      if (now - lastThrottledTime > 60000) { // Throttle activity updates to once per minute
         lastThrottledTime = now
         localStorage.setItem('smartkisan_last_activity', String(now))
       }
     }
 
-    const events = ['mousedown', 'mousemove', 'keydown', 'scroll', 'touchstart', 'click']
+    const events = ['mousedown', 'keydown', 'touchstart']
     events.forEach((event) => {
       window.addEventListener(event, recordActivity, { passive: true })
     })
 
-    // Periodic check every 4 seconds
+    // Infrequent check (every 30 minutes) for 14-day expiry
     const intervalId = setInterval(() => {
       const storedActive = Number(localStorage.getItem('smartkisan_last_activity') || initialTime)
-      if (Date.now() - storedActive >= INACTIVITY_TIMEOUT_MS) {
-        handleInactivityExpire()
+      if (Date.now() - storedActive >= SESSION_TIMEOUT_MS) {
+        handleSessionExpire()
       }
-    }, 4000)
-
-    // Check on tab visibility restoration
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        const storedActive = Number(localStorage.getItem('smartkisan_last_activity') || initialTime)
-        if (Date.now() - storedActive >= INACTIVITY_TIMEOUT_MS) {
-          handleInactivityExpire()
-        }
-      }
-    }
-    document.addEventListener('visibilitychange', handleVisibilityChange)
+    }, 30 * 60 * 1000)
 
     return () => {
       events.forEach((event) => {
         window.removeEventListener(event, recordActivity)
       })
       clearInterval(intervalId)
-      document.removeEventListener('visibilitychange', handleVisibilityChange)
     }
-  }, [isAuthenticated, handleInactivityExpire, INACTIVITY_TIMEOUT_MS])
+  }, [isAuthenticated, handleSessionExpire, SESSION_TIMEOUT_MS])
 
   // =========================================================
   // FETCH SELLER PROFILE

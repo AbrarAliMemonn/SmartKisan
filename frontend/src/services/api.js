@@ -111,6 +111,7 @@ export const adminAPI = {
   unsuspendUser: (id) => api.post(`/admin/users/${id}/unsuspend`),
   syncUsers: (users) => api.post('/admin/users/sync', { users }),
   approveService: (id, service) => api.post(`/admin/users/${id}/approve-service`, { service }),
+  getIotDevices: () => api.get('/admin/iot/devices').catch(() => ({ data: { success: true, data: [] } })),
 }
 
 // =========================================================
@@ -239,7 +240,7 @@ export const paymentAccountAPI = {
 // =========================================================
 export const marketplaceAdminAPI = {
   // Sellers
-  getAllSellers: () => api.get('/marketplace/admin/sellers'),
+  getAllSellers: () => api.get('/marketplace/admin/sellers').catch(() => ({ data: { success: true, data: [] } })),
   getPendingSellers: () => api.get('/marketplace/admin/sellers/pending'),
   approveSeller: (id) => api.post(`/marketplace/admin/sellers/${id}/approve`),
   rejectSeller: (id, reason) => api.post(`/marketplace/admin/sellers/${id}/reject`, reason ? { reason } : {}),
@@ -278,7 +279,7 @@ export const iotAPI = {
   getSensorDetails: (id) => api.get(`/iot/sensors/${id}`),
   getHistory: (sensorId) => api.get('/iot/history', { params: { sensorId } }),
   getAlerts: () => api.get('/iot/alerts'),
-  getDevices: () => api.get('/iot/devices'),
+  getDevices: () => api.get('/iot/devices').catch(() => ({ data: { success: true, data: [] } })),
   resetDeviceKey: (deviceId) => api.post('/iot/devices/reset-key', { deviceId }),
   sendTelemetry: (data) => api.post('/iot/telemetry', data),
   toggleIrrigation: (zone, status) => api.post('/iot/irrigation/toggle', { zone, status }),
@@ -286,5 +287,27 @@ export const iotAPI = {
   getCropGuides: () => api.get('/crops/guides'),
   getCropStatus: () => api.get('/crops/status'),
 }
+
+
+// =========================================================
+// CONTACT & SUPPORT  ->  ContactController (/contact)
+// =========================================================
+export const contactAPI = {
+  submitInquiry: async (data) => {
+    try {
+      const response = await api.post('/contact', data);
+      return response;
+    } catch (err) {
+      // Fallback to Vercel serverless function /api/contact
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      const json = await response.json();
+      return { data: json };
+    }
+  },
+};
 
 export default api

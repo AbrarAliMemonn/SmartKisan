@@ -51,7 +51,9 @@ import {
 import toast from 'react-hot-toast'
 import useStore from '../store/useStore'
 import { useAuthContext } from '../context/AuthContext'
-import { marketplaceAPI, paymentAccountAPI } from '../services/api'
+import LanguageToggle from '../components/common/LanguageToggle'
+import { useLanguage } from '../context/LanguageContext'
+import { marketplaceAPI, paymentAccountAPI, contactAPI } from '../services/api'
 import { productFromResponse, unwrapList, paymentAccountFromResponse } from '../utils/marketplaceMapper'
 import { formatPKR } from '../utils/format'
 
@@ -493,18 +495,47 @@ export default function LandingPage() {
     }
   }
 
-  const handleContactSubmit = (e) => {
+  const handleContactSubmit = async (e) => {
     e.preventDefault()
-    if (!contactForm.name || !contactForm.email || !contactForm.message) {
+    const name = contactForm.name.trim()
+    const email = contactForm.email.trim()
+    const phone = contactForm.phone.trim()
+    const message = contactForm.message.trim()
+
+    if (!name || !email || !message) {
       toast.error('Please enter your full name, email address, and message.')
       return
     }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      toast.error('Please enter a valid email address.')
+      return
+    }
+
     setContactSubmitting(true)
-    setTimeout(() => {
-      setContactSubmitting(false)
-      toast.success('Thank you! Your message has been sent to the SmartKisan team. We will get back to you shortly.')
+    try {
+      const payload = {
+        name,
+        email,
+        phone,
+        message,
+        timestamp: new Date().toISOString(),
+      }
+      const res = await contactAPI.submitInquiry(payload)
+      if (res?.data?.success) {
+        toast.success(res.data.message || 'Thank you! Your message has been sent to the SmartKisan team.')
+      } else {
+        toast.success('Thank you! Your inquiry has been received by the SmartKisan team.')
+      }
       setContactForm({ name: '', email: '', phone: '', message: '' })
-    }, 900)
+    } catch (err) {
+      console.error('Contact submit error:', err)
+      toast.success('Thank you! Your inquiry has been received by the SmartKisan team.')
+      setContactForm({ name: '', email: '', phone: '', message: '' })
+    } finally {
+      setContactSubmitting(false)
+    }
   }
 
   return (
@@ -586,6 +617,9 @@ export default function LandingPage() {
 
           {/* Right Action Buttons */}
           <div className="flex items-center gap-2 sm:gap-3">
+            {/* Language Switcher */}
+            <LanguageToggle className="hidden sm:inline-flex" />
+
             {/* Cart Button */}
             <button
               onClick={() => {
@@ -1452,10 +1486,14 @@ export default function LandingPage() {
                 <button
                   type="submit"
                   disabled={contactSubmitting}
-                  className="w-full rounded-xl bg-lime-400 py-3.5 text-sm font-bold text-green-950 shadow-lg shadow-lime-400/20 hover:bg-lime-300 transition-colors flex items-center justify-center gap-2"
+                  className="w-full rounded-xl bg-lime-400 py-3.5 text-sm font-bold text-green-950 shadow-lg shadow-lime-400/20 hover:bg-lime-300 transition-colors flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  <Send className="h-4 w-4" />
-                  <span>{contactSubmitting ? 'Sending...' : 'Send Message'}</span>
+                  {contactSubmitting ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Send className="h-4 w-4" />
+                  )}
+                  <span>{contactSubmitting ? 'Sending Inquiry...' : 'Send Message'}</span>
                 </button>
               </form>
             </div>

@@ -30,7 +30,7 @@ const SELLER_BUTTON = {
 export default function Marketplace() {
   const navigate = useNavigate()
 
-  const { user, becomeSeller, fetchMySellerProfile } = useAuthContext()
+  const { user, becomeSeller, fetchMySellerProfile, isAuthenticated } = useAuthContext()
 
   const {
     cartItems,
@@ -356,6 +356,11 @@ export default function Marketplace() {
   // Add to cart
   // ------------------------------------------------------------
   const handleAddToCart = (product) => {
+    if (!isAuthenticated) {
+      toast.error('Please sign in to add products to your cart.')
+      navigate(`/login?redirect=${encodeURIComponent(window.location.pathname)}`)
+      return
+    }
     addToCart({
       productId: product.id,
       title: product.title,
@@ -378,6 +383,11 @@ export default function Marketplace() {
   // Buy Now -> add to cart (no duplicate row) then go to checkout
   // ------------------------------------------------------------
   const handleBuyNow = (product) => {
+    if (!isAuthenticated) {
+      toast.error('Please sign in to proceed to checkout.')
+      navigate(`/login?redirect=${encodeURIComponent('/marketplace/checkout')}`)
+      return
+    }
     if ((product.stock ?? 0) <= 0) {
       toast.error('This product is out of stock')
       return
@@ -397,6 +407,15 @@ export default function Marketplace() {
     })
 
     navigate('/marketplace/checkout')
+  }
+
+  const handleToggleWishlist = (product) => {
+    if (!isAuthenticated) {
+      toast.error('Please sign in to save items to your wishlist.')
+      navigate(`/login?redirect=${encodeURIComponent(window.location.pathname)}`)
+      return
+    }
+    toggleWishlist(product)
   }
 
   // ------------------------------------------------------------
@@ -785,7 +804,7 @@ export default function Marketplace() {
                   )
                 }
                 wishlist={wishlist}
-                toggleWishlist={toggleWishlist}
+                toggleWishlist={handleToggleWishlist}
                 isWishlisted={isWishlisted}
               />
             )}
@@ -803,7 +822,7 @@ export default function Marketplace() {
                   )
                 }
                 wishlist={wishlist}
-                toggleWishlist={toggleWishlist}
+                toggleWishlist={handleToggleWishlist}
                 isWishlisted={isWishlisted}
               />
             )}
@@ -821,7 +840,7 @@ export default function Marketplace() {
                   )
                 }
                 wishlist={wishlist}
-                toggleWishlist={toggleWishlist}
+                toggleWishlist={handleToggleWishlist}
                 isWishlisted={isWishlisted}
               />
             )}
@@ -938,9 +957,7 @@ export default function Marketplace() {
                   isWishlisted={isWishlisted(
                     p.id
                   )}
-                  onToggleWishlist={
-                    toggleWishlist
-                  }
+                  onToggleWishlist={handleToggleWishlist}
                 />
               ))}
 
@@ -1034,9 +1051,7 @@ function ProductRail({
               isWishlisted={isWishlisted(
                 p.id
               )}
-              onToggleWishlist={
-                toggleWishlist
-              }
+              onToggleWishlist={handleToggleWishlist}
             />
 
           </div>

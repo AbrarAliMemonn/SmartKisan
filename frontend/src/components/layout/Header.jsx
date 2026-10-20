@@ -17,6 +17,7 @@ import {
 import { useNavigate } from 'react-router-dom'
 import useStore from '../../store/useStore'
 import { useAuthContext } from '../../context/AuthContext'
+import LanguageToggle from '../common/LanguageToggle'
 
 // Pages the quick-search can jump to
 const SEARCH_TARGETS = [
@@ -43,7 +44,7 @@ const iconBtn =
 
 export default function Header() {
   const navigate = useNavigate()
-  const { logout, user, isAdmin, isSeller, hasSellerApplication } = useAuthContext()
+  const { logout, user, isAdmin, isSeller, hasSellerApplication, isAuthenticated } = useAuthContext()
   const {
     toggleMobileSidebar,
     notifications,
@@ -282,6 +283,8 @@ export default function Header() {
             )}
           </button>
 
+          <LanguageToggle className="hidden sm:inline-flex" />
+
           <button
             onClick={toggleDarkMode}
             className={iconBtn}
@@ -365,7 +368,16 @@ export default function Header() {
 
           <span className="mx-1 hidden h-6 w-px bg-slate-200 sm:block dark:bg-white/10" aria-hidden="true" />
 
-          {/* Profile */}
+          {/* Profile or Sign In */}
+          {!isAuthenticated ? (
+            <button
+              onClick={() => navigate(`/login?redirect=${encodeURIComponent(window.location.pathname)}`)}
+              className="flex items-center gap-1.5 rounded-xl bg-green-700 px-3.5 py-2 text-xs font-bold text-white shadow-sm hover:bg-green-800 transition-colors"
+            >
+              <UserCircle size={15} />
+              <span>Sign In</span>
+            </button>
+          ) : (
           <div className="relative" ref={profileRef}>
             <button
               onClick={() => {
@@ -436,6 +448,7 @@ export default function Header() {
               </div>
             )}
           </div>
+          )}
         </div>
       </div>
 

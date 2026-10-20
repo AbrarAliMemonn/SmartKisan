@@ -1,0 +1,19 @@
+{
+  "short_name": "SmartKisan",
+  "name": "SmartKisan: Pakistan's Smart IoT Agriculture Platform",
+  "description": "Real-time IoT farm monitoring, AI Crop Doctor in local languages, and zero-commission direct marketplace for Pakistani farmers.",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "type": "image/svg+xml",
+      "sizes": "192x192 512x512 any",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#236e46",
+  "background_color": "#f6f8f6",
+  "orientation": "portrait-primary",
+  "categories": ["agriculture", "business", "utilities"]
+}

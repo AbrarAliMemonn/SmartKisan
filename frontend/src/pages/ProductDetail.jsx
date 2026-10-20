@@ -11,6 +11,7 @@ import Loader from '../components/common/Loader'
 import ProductCard from '../components/marketplace/ProductCard'
 import ProductChatModal from '../components/marketplace/ProductChatModal'
 import useStore from '../store/useStore'
+import { useAuthContext } from '../context/AuthContext'
 import { marketplaceAPI } from '../services/api'
 import { productFromResponse, unwrapList, unwrapOne } from '../utils/marketplaceMapper'
 import { formatPKR } from '../utils/format'
@@ -32,6 +33,7 @@ export default function ProductDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { addToCart, toggleWishlist, isWishlisted } = useStore()
+  const { isAuthenticated } = useAuthContext()
 
   const [product, setProduct] = useState(null)
   const [related, setRelated] = useState([])
@@ -103,6 +105,11 @@ export default function ProductDetail() {
     : 0
 
   const handleAddToCart = (goToCart = false) => {
+    if (!isAuthenticated) {
+      toast.error(goToCart ? 'Please sign in to proceed to checkout.' : 'Please sign in to add products to your cart.')
+      navigate(`/login?redirect=${encodeURIComponent(window.location.pathname)}`)
+      return
+    }
     addToCart({
       productId: product.id,
       title: product.title,
@@ -308,7 +315,14 @@ export default function ProductDetail() {
               <Zap size={16} /> Buy Now
             </Button>
             <button
-              onClick={() => toggleWishlist(product)}
+              onClick={() => {
+              if (!isAuthenticated) {
+                toast.error('Please sign in to save items to your wishlist.')
+                navigate(`/login?redirect=${encodeURIComponent(window.location.pathname)}`)
+                return
+              }
+              toggleWishlist(product)
+            }}
               className="rounded-xl border border-slate-200 p-3 transition-colors hover:bg-slate-50 dark:border-white/10 dark:hover:bg-white/5"
               title="Save to wishlist"
             >

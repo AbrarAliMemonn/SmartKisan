@@ -25,7 +25,8 @@ import { API_ROOT_URL } from '../utils/constants'
 
 const startGoogleLogin = () => {
   const returnTo = typeof window !== 'undefined' ? encodeURIComponent(`${window.location.origin}/oauth2/redirect`) : ''
-  window.location.href = `${API_ROOT_URL}/api/oauth2/authorization/google?returnTo=${returnTo}`
+  const baseUrl = API_ROOT_URL || (typeof window !== 'undefined' ? window.location.origin : '')
+  window.location.href = `${baseUrl}/api/oauth2/authorization/google?returnTo=${returnTo}`
 }
 
 const initialFormData = {
@@ -159,6 +160,24 @@ export default function Login() {
 
   const busy = loading || submitting || oauthLoading
 
+  // Catch OAuth or server redirect errors from query parameters
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search)
+      const urlError = params.get('error')
+      if (urlError) {
+        const decoded = decodeURIComponent(urlError).replace(/\+/g, ' ')
+        toast.error(decoded, { id: 'oauth-url-error', duration: 6000 })
+        setFormError(decoded)
+        // Clean URL without reloading
+        const cleanUrl = window.location.pathname + (params.get('redirect') ? `?redirect=${params.get('redirect')}` : '')
+        window.history.replaceState({}, document.title, cleanUrl)
+      }
+    } catch (e) {
+      console.warn('Failed to parse query params:', e)
+    }
+  }, [])
+
   // Resend countdown
   useEffect(() => {
     if (cooldown <= 0) return undefined
@@ -183,14 +202,21 @@ export default function Login() {
     }))
   }
 
-  const handleGoogleLogin = () => {
+    const handleGoogleLogin = () => {
     try {
       setOauthLoading(true)
+      // Check if client ID or environment is available
+      const configuredClientId = (import.meta.env.VITE_GOOGLE_CLIENT_ID || '').trim()
+      if (!configuredClientId) {
+        setOauthLoading(false)
+        toast.error('Google Sign-In is temporarily unconfigured. Please sign in with email and password.')
+        return
+      }
       startGoogleLogin()
     } catch (error) {
       console.error('Google OAuth error:', error)
       setOauthLoading(false)
-      toast.error('Unable to start Google login')
+      toast.error('Unable to start Google login. Please use email and password.')
     }
   }
 

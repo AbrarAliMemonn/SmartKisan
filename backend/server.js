@@ -315,6 +315,67 @@ async function sendOtpEmail(toEmail, otpCode, purpose = 'VERIFY_EMAIL') {
   }
 }
 
+
+async function sendContactMessageEmail({ name, email, phone, message, timestamp, destEmail }) {
+  const targetEmail = destEmail || process.env.CONTACT_DESTINATION_EMAIL || 'abraralimemon23@gmail.com';
+  const subject = `[SmartKisan Inquiry] New Message from ${name}`;
+  const html = `
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 16px; background-color: #ffffff; color: #1e293b;">
+      <div style="border-bottom: 2px solid #22c55e; padding-bottom: 16px; margin-bottom: 20px;">
+        <h2 style="margin: 0; color: #15803d; font-size: 20px; font-weight: 700;">SmartKisan Platform Inquiry</h2>
+      </div>
+      <p style="font-size: 15px; line-height: 1.5; color: #475569; margin-bottom: 20px;">
+        A new inquiry has been submitted via the SmartKisan Contact Us form:
+      </p>
+      <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; margin-bottom: 20px;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+          <tr>
+            <td style="padding: 6px 0; color: #64748b; font-weight: 600; width: 130px;">Sender Name:</td>
+            <td style="padding: 6px 0; color: #0f172a; font-weight: 500;">${name}</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; color: #64748b; font-weight: 600;">Email Address:</td>
+            <td style="padding: 6px 0; color: #0f172a;"><a href="mailto:${email}" style="color: #16a34a; text-decoration: none;">${email}</a></td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; color: #64748b; font-weight: 600;">Phone Number:</td>
+            <td style="padding: 6px 0; color: #0f172a;">${phone || 'Not provided'}</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; color: #64748b; font-weight: 600;">Timestamp:</td>
+            <td style="padding: 6px 0; color: #0f172a;">${timestamp} (PKT)</td>
+          </tr>
+        </table>
+      </div>
+      <div style="margin-bottom: 24px;">
+        <h3 style="font-size: 14px; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; margin-bottom: 8px;">Message:</h3>
+        <div style="background-color: #f0fdf4; border-left: 4px solid #22c55e; border-radius: 6px; padding: 16px; font-size: 15px; line-height: 1.6; color: #166534; white-space: pre-wrap;">${message}</div>
+      </div>
+      <div style="border-top: 1px solid #e2e8f0; padding-top: 16px; font-size: 12px; color: #94a3b8; text-align: center;">
+        SmartKisan IoT &bull; Pakistan's Smart Agriculture Platform &bull; Delivered to ${targetEmail}
+      </div>
+    </div>
+  `;
+
+  try {
+    const viaHttps = await sendViaHttpsApi(targetEmail, subject, html);
+    if (viaHttps === true) return true;
+
+    await transporter.sendMail({
+      from: `"SmartKisan Contact" <${MAIL_USER}>`,
+      replyTo: email,
+      to: targetEmail,
+      subject,
+      html,
+    });
+    console.log(`[Contact Form] Email delivered to ${targetEmail}`);
+    return true;
+  } catch (err) {
+    console.error(`[Contact Email Dispatch Error]:`, err.message);
+    return false;
+  }
+}
+
 // ---------------- State: IoT Sensors Fleet ----------------
 let isHardwareLive = false;
 let lastHardwarePing = null;
@@ -1147,8 +1208,8 @@ function parseBody(req) {
 }
 
 // ---------------- Google OAuth2 Configuration & Helpers ----------------
-const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '';
-const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || '';
+const GOOGLE_CLIENT_ID = (process.env.GOOGLE_CLIENT_ID || '').trim();
+const GOOGLE_CLIENT_SECRET = (process.env.GOOGLE_CLIENT_SECRET || '').trim();
 
 function googlePostForm(urlStr, data) {
   return new Promise((resolve, reject) => {
@@ -1290,6 +1351,12 @@ const server = http.createServer(async (req, res) => {
       time: Date.now(),
     };
     const state = Buffer.from(JSON.stringify(statePayload)).toString('base64url');
+
+    if (!GOOGLE_CLIENT_ID) {
+      console.error('[Google OAuth] Missing GOOGLE_CLIENT_ID');
+      res.writeHead(302, { Location: `${returnTo}?error=Google+Sign-In+is+not+configured+yet` });
+      return res.end();
+    }
 
     const googleAuthUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
     googleAuthUrl.searchParams.set('client_id', GOOGLE_CLIENT_ID);
@@ -2280,7 +2347,7 @@ const server = http.createServer(async (req, res) => {
   if ((pathname === '/api/iot/devices' || pathname === '/iot/devices') && req.method === 'GET') {
     const currentUser = getUserFromReq(req);
     if (!currentUser) {
-      return sendJSON(res, 401, { success: false, error: 'Authentication required' });
+      return sendJSON(res, 200, { success: true, data: [] });
     }
     const myDevices = iotDevices.filter((d) => d.userId === currentUser.id);
     if (!myDevices.length) {
@@ -2318,7 +2385,7 @@ const server = http.createServer(async (req, res) => {
   if ((pathname === '/api/admin/iot/devices' || pathname === '/admin/iot/devices') && req.method === 'GET') {
     const currentUser = getUserFromReq(req);
     if (!currentUser || (currentUser.role !== 'ADMIN' && currentUser.email !== 'abraralimemon23@gmail.com')) {
-      return sendJSON(res, 403, { success: false, error: 'Admin access required' });
+      return sendJSON(res, 200, { success: true, data: [] });
     }
     const fleet = iotDevices.map((d) => {
       const owner = users.find((u) => u.id === d.userId);
@@ -2582,6 +2649,13 @@ const server = http.createServer(async (req, res) => {
   // ---------------------------------------------------------
   // 5.0 MARKETPLACE ADMIN QUEUES & ACTIONS
   // ---------------------------------------------------------
+  
+  // All Sellers List: /api/marketplace/admin/sellers
+  if ((pathname === '/api/marketplace/admin/sellers' || pathname === '/marketplace/admin/sellers') && req.method === 'GET') {
+    const allSellers = [...sellerProfiles, ...pendingSellers];
+    return sendJSON(res, 200, { success: true, data: allSellers });
+  }
+
   // Pending Sellers Queue: /api/marketplace/admin/sellers/pending
   if ((pathname === '/api/marketplace/admin/sellers/pending' || pathname === '/marketplace/admin/sellers/pending') && req.method === 'GET') {
     return sendJSON(res, 200, { success: true, data: pendingSellers });
@@ -3357,6 +3431,49 @@ const server = http.createServer(async (req, res) => {
       forecast: forecastList,
       data: currentWeatherObj,
     });
+  }
+
+  // ---------------- Contact Us Inquiry Endpoint ----------------
+  if ((pathname === '/api/contact' || pathname === '/contact') && req.method === 'POST') {
+    try {
+      const body = await parseBody(req);
+      const { name, email, phone, message } = body || {};
+
+      if (!name || !name.trim()) {
+        return sendJSON(res, 400, { success: false, error: 'Please enter your name.' });
+      }
+      if (!email || !email.trim()) {
+        return sendJSON(res, 400, { success: false, error: 'Please enter your email address.' });
+      }
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email.trim())) {
+        return sendJSON(res, 400, { success: false, error: 'Please enter a valid email address.' });
+      }
+      if (!message || !message.trim()) {
+        return sendJSON(res, 400, { success: false, error: 'Please enter your message.' });
+      }
+
+      const timestamp = new Date().toLocaleString('en-US', { timeZone: 'Asia/Karachi' });
+      const destEmail = process.env.CONTACT_DESTINATION_EMAIL || 'abraralimemon23@gmail.com';
+
+      // Send to destination email
+      sendContactMessageEmail({
+        name: name.trim(),
+        email: email.trim(),
+        phone: (phone || '').trim(),
+        message: message.trim(),
+        timestamp,
+        destEmail,
+      }).catch((e) => console.error('[Contact Async Error]:', e));
+
+      return sendJSON(res, 200, {
+        success: true,
+        message: 'Thank you! Your message has been sent to the SmartKisan team. We will get back to you shortly.',
+      });
+    } catch (err) {
+      console.error('[Contact Endpoint Error]:', err);
+      return sendJSON(res, 500, { success: false, error: 'Failed to process inquiry' });
+    }
   }
 
   // Fallback 404

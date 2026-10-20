@@ -8,8 +8,8 @@ export default async function handler(req, res) {
     return res.status(200).end();
   }
 
-  const CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '';
-  const CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || '';
+  const CLIENT_ID = (process.env.GOOGLE_CLIENT_ID || '').trim();
+  const CLIENT_SECRET = (process.env.GOOGLE_CLIENT_SECRET || '').trim();
   const BACKEND_URL = process.env.VITE_API_URL || 'https://smartkisan-bbjf.onrender.com/api';
 
   const proto = req.headers['x-forwarded-proto'] || 'https';

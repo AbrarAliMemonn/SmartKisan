@@ -1,101 +1,249 @@
+import { lazy, Suspense } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuthContext } from './context/AuthContext'
 import Layout from './components/layout/Layout'
 import ProtectedRoute from './components/ProtectedRoute'
-import LandingPage from './pages/LandingPage'
-import Login from './pages/Login'
-import OAuthCallback from './pages/OAuthCallback'
-import IoTDashboard from './pages/IoTDashboard'
-import AdminPanel from './pages/AdminPanel'
-import AdminUserDetail from './pages/AdminUserDetail'
-import CropGuide from './pages/CropGuide'
-import LiveWeather from './pages/LiveWeather'
-import Marketplace from './pages/Marketplace'
-import ProductDetail from './pages/ProductDetail'
-import Cart from './pages/Cart'
-import Checkout from './pages/Checkout'
-import MyOrders from './pages/MyOrders'
-import OrderDetails from './pages/OrderDetails'
-import Wishlist from './pages/Wishlist'
-import SellerDashboard from './pages/SellerDashboard'
-import SellerStore from './pages/SellerStore'
-import LiveMonitoring from './pages/LiveMonitoring'
-import SensorDetails from './pages/SensorDetails'
-import AIChatbot from './pages/AIChatbot'
-import UserProfile from './pages/UserProfile'
-import Settings from './pages/Settings'
 import Loader from './components/common/Loader'
 
+// Lazy-loaded page components for optimal bundle splitting
+const LandingPage = lazy(() => import('./pages/LandingPage'))
+const Login = lazy(() => import('./pages/Login'))
+const OAuthCallback = lazy(() => import('./pages/OAuthCallback'))
+const IoTDashboard = lazy(() => import('./pages/IoTDashboard'))
+const AdminPanel = lazy(() => import('./pages/AdminPanel'))
+const AdminUserDetail = lazy(() => import('./pages/AdminUserDetail'))
+const CropGuide = lazy(() => import('./pages/CropGuide'))
+const LiveWeather = lazy(() => import('./pages/LiveWeather'))
+const Marketplace = lazy(() => import('./pages/Marketplace'))
+const ProductDetail = lazy(() => import('./pages/ProductDetail'))
+const Cart = lazy(() => import('./pages/Cart'))
+const Checkout = lazy(() => import('./pages/Checkout'))
+const MyOrders = lazy(() => import('./pages/MyOrders'))
+const OrderDetails = lazy(() => import('./pages/OrderDetails'))
+const Wishlist = lazy(() => import('./pages/Wishlist'))
+const SellerDashboard = lazy(() => import('./pages/SellerDashboard'))
+const SellerStore = lazy(() => import('./pages/SellerStore'))
+const LiveMonitoring = lazy(() => import('./pages/LiveMonitoring'))
+const SensorDetails = lazy(() => import('./pages/SensorDetails'))
+const AIChatbot = lazy(() => import('./pages/AIChatbot'))
+const UserProfile = lazy(() => import('./pages/UserProfile'))
+const Settings = lazy(() => import('./pages/Settings'))
+
+function PageFallback() {
+  return <Loader fullScreen label="Loading SmartKisan..." />
+}
+
 function App() {
-  const { isAuthenticated, loading } = useAuthContext()
+  const { loading } = useAuthContext()
 
   if (loading) {
-    return <Loader fullScreen />
+    return <Loader fullScreen label="Initializing SmartKisan session..." />
   }
 
   return (
-    <Routes>
-      {/* Public Routes */}
-      <Route path="/" element={<LandingPage />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/oauth2/redirect" element={<OAuthCallback />} />
+    <Suspense fallback={<PageFallback />}>
+      <Routes>
+        {/* =========================================================
+            PUBLIC ROUTES - Accessible without authentication
+            ========================================================= */}
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/oauth2/redirect" element={<OAuthCallback />} />
 
-      {/* Protected Routes - Only accessible when authenticated */}
-      <Route
-        path="/*"
-        element={
-          isAuthenticated ? (
+        {/* Public Marketplace & Knowledge Tools */}
+        <Route
+          path="/marketplace"
+          element={
             <Layout>
-              <Routes>
-                <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                <Route path="/dashboard" element={<IoTDashboard />} />
-                <Route path="/live-monitoring" element={<LiveMonitoring />} />
-                <Route path="/sensor-details" element={<SensorDetails />} />
-                <Route path="/chatbot" element={<AIChatbot />} />
-                <Route path="/profile" element={<UserProfile />} />
-                <Route path="/settings" element={<Settings />} />
-                <Route path="/crop-guide" element={<CropGuide />} />
-                <Route path="/weather" element={<LiveWeather />} />
-
-                {/* Marketplace */}
-                <Route path="/marketplace" element={<Marketplace />} />
-                <Route path="/marketplace/product/:id" element={<ProductDetail />} />
-                <Route path="/marketplace/cart" element={<Cart />} />
-                <Route path="/marketplace/checkout" element={<Checkout />} />
-                <Route path="/marketplace/orders" element={<MyOrders />} />
-                <Route path="/marketplace/orders/:id" element={<OrderDetails />} />
-                <Route path="/marketplace/wishlist" element={<Wishlist />} />
-                <Route path="/marketplace/seller" element={<SellerDashboard />} />
-                <Route path="/marketplace/seller/:id" element={<SellerStore />} />
-
-                {/* Admin Only Routes */}
-                <Route
-                  path="/admin"
-                  element={
-                    <ProtectedRoute requiredRole="admin">
-                      <AdminPanel />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/admin/users/:userId"
-                  element={
-                    <ProtectedRoute requiredRole="admin">
-                      <AdminUserDetail />
-                    </ProtectedRoute>
-                  }
-                />
-
-                {/* Fallback */}
-                <Route path="*" element={<Navigate to="/dashboard" replace />} />
-              </Routes>
+              <Marketplace />
             </Layout>
-          ) : (
-            <Navigate to="/" replace />
-          )
-        }
-      />
-    </Routes>
+          }
+        />
+        <Route
+          path="/marketplace/product/:id"
+          element={
+            <Layout>
+              <ProductDetail />
+            </Layout>
+          }
+        />
+        <Route
+          path="/weather"
+          element={
+            <Layout>
+              <LiveWeather />
+            </Layout>
+          }
+        />
+        <Route
+          path="/crop-guide"
+          element={
+            <Layout>
+              <CropGuide />
+            </Layout>
+          }
+        />
+
+        {/* =========================================================
+            PROTECTED ROUTES - Require authentication (redirects to /login?redirect=...)
+            ========================================================= */}
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <IoTDashboard />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/live-monitoring"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <LiveMonitoring />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/sensor-details"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <SensorDetails />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/chatbot"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <AIChatbot />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/marketplace/cart"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <Cart />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/marketplace/checkout"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <Checkout />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/marketplace/orders"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <MyOrders />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/marketplace/orders/:id"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <OrderDetails />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/marketplace/wishlist"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <Wishlist />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/marketplace/seller"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <SellerDashboard />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/marketplace/seller/:id"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <SellerStore />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <UserProfile />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/settings"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <Settings />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Admin Only Routes */}
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <Layout>
+                <AdminPanel />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/users/:userId"
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <Layout>
+                <AdminUserDetail />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Fallback */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </Suspense>
   )
 }
 
