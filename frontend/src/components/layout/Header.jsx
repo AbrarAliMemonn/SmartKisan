@@ -17,7 +17,6 @@ import {
 import { useNavigate } from 'react-router-dom'
 import useStore from '../../store/useStore'
 import { useAuthContext } from '../../context/AuthContext'
-import LanguageToggle from '../common/LanguageToggle'
 
 // Pages the quick-search can jump to
 const SEARCH_TARGETS = [
@@ -282,8 +281,6 @@ export default function Header() {
               </span>
             )}
           </button>
-
-          <LanguageToggle className="hidden sm:inline-flex" />
 
           <button
             onClick={toggleDarkMode}

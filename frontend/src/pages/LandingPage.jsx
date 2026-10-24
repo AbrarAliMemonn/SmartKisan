@@ -51,8 +51,6 @@ import {
 import toast from 'react-hot-toast'
 import useStore from '../store/useStore'
 import { useAuthContext } from '../context/AuthContext'
-import LanguageToggle from '../components/common/LanguageToggle'
-import { useLanguage } from '../context/LanguageContext'
 import { marketplaceAPI, paymentAccountAPI, contactAPI } from '../services/api'
 import { productFromResponse, unwrapList, paymentAccountFromResponse } from '../utils/marketplaceMapper'
 import { formatPKR } from '../utils/format'
@@ -617,8 +615,6 @@ export default function LandingPage() {
 
           {/* Right Action Buttons */}
           <div className="flex items-center gap-2 sm:gap-3">
-            {/* Language Switcher */}
-            <LanguageToggle className="hidden sm:inline-flex" />
 
             {/* Cart Button */}
             <button
