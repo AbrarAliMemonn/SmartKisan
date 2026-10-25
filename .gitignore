@@ -32,7 +32,9 @@ target/
 node_modules/
 **/node_modules/
 frontend/dist/
+frontend/build/
 dist/
+build/
 dist-ssr/
 *.local
 npm-debug.log*
