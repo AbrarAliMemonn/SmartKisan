@@ -1330,7 +1330,7 @@ const server = http.createServer(async (req, res) => {
     return sendJSON(res, 200, {
       status: 'UP',
       name: 'SmartKisan Unified Cloud API',
-      version: '1.0.0',
+      version: '1.1.0-iot-tb',
       timestamp: new Date().toISOString(),
       services: ['IoT Telemetry', 'Multilingual AI Advisor', 'Marketplace', 'Auth', 'Weather'],
     });
