@@ -22,7 +22,7 @@ export default function Esp32ConnectModal({ isOpen, onClose, deviceInfo, isHardw
     : 'https://smartkisan-bbjf.onrender.com/api/iot/telemetry'
 
   const deviceId = deviceInfo?.deviceId || 'ESP32_FARM_1'
-  const deviceKey = deviceInfo?.deviceKey || deviceInfo?.token || 'gv031CJtWA7mauVredG4'
+  const deviceKey = deviceInfo?.deviceKey || deviceInfo?.token || 'tb_iT_6Twb5WgcZp5l3odn8qvu7PQCAgknZNPVgYPCVoktl6F2GkaV3auCQhi-_CFVevryhqQ1u8B6U7_bF55bDug'
 
   const copyToClipboard = (text, type) => {
     navigator.clipboard.writeText(text)

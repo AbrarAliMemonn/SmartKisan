@@ -876,8 +876,8 @@ let iotDevices = (dbData && Array.isArray(dbData.iotDevices) && dbData.iotDevice
         id: 1,
         userId: 1,
         deviceId: 'ESP32_FARM_1',
-        deviceKey: 'gv031CJtWA7mauVredG4',
-        token: 'gv031CJtWA7mauVredG4',
+        deviceKey: 'tb_iT_6Twb5WgcZp5l3odn8qvu7PQCAgknZNPVgYPCVoktl6F2GkaV3auCQhi-_CFVevryhqQ1u8B6U7_bF55bDug',
+        token: 'tb_iT_6Twb5WgcZp5l3odn8qvu7PQCAgknZNPVgYPCVoktl6F2GkaV3auCQhi-_CFVevryhqQ1u8B6U7_bF55bDug',
         name: "Abrar's Main Field Node",
         location: 'North Field Acre 1',
         crop: 'Wheat (گندم)',
@@ -2419,8 +2419,8 @@ const server = http.createServer(async (req, res) => {
         id: d.id,
         deviceId: d.deviceId,
         name: d.name,
-        deviceKey: d.deviceKey || d.token || 'gv031CJtWA7mauVredG4',
-        token: d.token || d.deviceKey || 'gv031CJtWA7mauVredG4',
+        deviceKey: d.deviceKey || d.token || 'tb_iT_6Twb5WgcZp5l3odn8qvu7PQCAgknZNPVgYPCVoktl6F2GkaV3auCQhi-_CFVevryhqQ1u8B6U7_bF55bDug',
+        token: d.token || d.deviceKey || 'tb_iT_6Twb5WgcZp5l3odn8qvu7PQCAgknZNPVgYPCVoktl6F2GkaV3auCQhi-_CFVevryhqQ1u8B6U7_bF55bDug',
         userId: d.userId,
         ownerName: owner?.name || 'Abrar Ali memon',
         ownerEmail: owner?.email || 'abraralimemon23@gmail.com',
@@ -2641,7 +2641,7 @@ const server = http.createServer(async (req, res) => {
     }
     // Auto-bind fallback: If key provided or default to node 0
     if (!targetDevice) {
-      if (key === 'gv031CJtWA7mauVredG4' || (!key && !dId)) {
+      if (key === 'tb_iT_6Twb5WgcZp5l3odn8qvu7PQCAgknZNPVgYPCVoktl6F2GkaV3auCQhi-_CFVevryhqQ1u8B6U7_bF55bDug' || key === 'gv031CJtWA7mauVredG4' || (!key && !dId)) {
         targetDevice = iotDevices[0];
       } else if (iotDevices[0] && key) {
         // Link this token to the primary node

@@ -76,7 +76,7 @@ function AdminSensorsFleet() {
     setForm({
       name: `Farm Node ${devices.length + 1}`,
       deviceId: `ESP32_FARM_${devices.length + 1}`,
-      token: 'gv031CJtWA7mauVredG4',
+      token: 'tb_iT_6Twb5WgcZp5l3odn8qvu7PQCAgknZNPVgYPCVoktl6F2GkaV3auCQhi-_CFVevryhqQ1u8B6U7_bF55bDug',
       location: 'North Field Acre 1',
       crop: 'Wheat (گندم)',
       soilPin: 34,
@@ -237,7 +237,7 @@ function AdminSensorsFleet() {
           </div>
           <div className="mt-2">
             <div className="font-mono text-sm font-bold text-blue-900 dark:text-blue-200 truncate">
-              {devices[0]?.token || 'gv031CJtWA7mauVredG4'}
+              {devices[0]?.token || 'tb_iT_6Twb5WgcZp5l3odn8qvu7PQCAgknZNPVgYPCVoktl6F2GkaV3auCQhi-_CFVevryhqQ1u8B6U7_bF55bDug'}
             </div>
           </div>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
@@ -291,7 +291,7 @@ function AdminSensorsFleet() {
             const cr = dev.currentReadings || {}
             const pins = dev.pins || { soilPin: 34, rainPin: 35, waterPin: 32, dhtPin: 4, dhtType: 'DHT11' }
             const isLive = Boolean(dev.isHardwareLive)
-            const tokenVal = dev.token || dev.deviceKey || 'gv031CJtWA7mauVredG4'
+            const tokenVal = dev.token || dev.deviceKey || 'tb_iT_6Twb5WgcZp5l3odn8qvu7PQCAgknZNPVgYPCVoktl6F2GkaV3auCQhi-_CFVevryhqQ1u8B6U7_bF55bDug'
 
             return (
               <Card key={dev.id} className="overflow-hidden border border-slate-200 dark:border-white/10 hover:border-emerald-500/40 transition-all">
@@ -560,7 +560,7 @@ function AdminSensorsFleet() {
               value={form.token}
               onChange={(e) => setForm({ ...form, token: e.target.value })}
               className="input-field font-mono"
-              placeholder="e.g. gv031CJtWA7mauVredG4"
+              placeholder="e.g. tb_iT_6Twb5WgcZp5l3odn8qvu7PQCAgknZNPVgYPCVoktl6F2GkaV3auCQhi-_CFVevryhqQ1u8B6U7_bF55bDug"
             />
             <p className="text-[11px] text-slate-500 mt-1">
               This token must match the <code className="font-bold">token</code> constant in your ESP32 Arduino sketch.
@@ -670,7 +670,7 @@ function AdminSensorsFleet() {
           <div className="p-3 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-500/20 text-xs text-emerald-800 dark:text-emerald-300">
             <p className="font-semibold mb-1">✅ Pre-configured for your physical ESP32:</p>
             <p>
-              Your token <code className="font-bold underline">{selectedDevice?.token || 'gv031CJtWA7mauVredG4'}</code> and pins (Soil 34, Rain 35, Water 32, DHT11 4) are already set. Simply upload this sketch in Arduino IDE.
+              Your token <code className="font-bold underline">{selectedDevice?.token || 'tb_iT_6Twb5WgcZp5l3odn8qvu7PQCAgknZNPVgYPCVoktl6F2GkaV3auCQhi-_CFVevryhqQ1u8B6U7_bF55bDug'}</code> and pins (Soil 34, Rain 35, Water 32, DHT11 4) are already set. Simply upload this sketch in Arduino IDE.
             </p>
           </div>
 
@@ -683,7 +683,7 @@ function AdminSensorsFleet() {
                 size="sm"
                 variant="secondary"
                 onClick={() => {
-                  const code = getEsp32Sketch(selectedDevice?.token || 'gv031CJtWA7mauVredG4')
+                  const code = getEsp32Sketch(selectedDevice?.token || 'tb_iT_6Twb5WgcZp5l3odn8qvu7PQCAgknZNPVgYPCVoktl6F2GkaV3auCQhi-_CFVevryhqQ1u8B6U7_bF55bDug')
                   navigator.clipboard.writeText(code)
                   toast.success('ESP32 code copied to clipboard!')
                 }}
@@ -693,7 +693,7 @@ function AdminSensorsFleet() {
               </Button>
             </div>
             <pre className="p-4 rounded-xl bg-slate-900 text-slate-100 font-mono text-xs overflow-x-auto leading-relaxed border border-slate-800">
-              {getEsp32Sketch(selectedDevice?.token || 'gv031CJtWA7mauVredG4')}
+              {getEsp32Sketch(selectedDevice?.token || 'tb_iT_6Twb5WgcZp5l3odn8qvu7PQCAgknZNPVgYPCVoktl6F2GkaV3auCQhi-_CFVevryhqQ1u8B6U7_bF55bDug')}
             </pre>
           </div>
 
@@ -702,8 +702,8 @@ function AdminSensorsFleet() {
               Ingestion Endpoints Supported by SmartKisan Backend:
             </p>
             <ul className="list-disc list-inside space-y-1 font-mono text-[11px]">
-              <li>POST https://smartkisan-bbjf.onrender.com/api/v1/{selectedDevice?.token || 'gv031CJtWA7mauVredG4'}/telemetry</li>
-              <li>POST https://smartkisan.online/api/v1/{selectedDevice?.token || 'gv031CJtWA7mauVredG4'}/telemetry</li>
+              <li>POST https://smartkisan-bbjf.onrender.com/api/v1/{selectedDevice?.token || 'tb_iT_6Twb5WgcZp5l3odn8qvu7PQCAgknZNPVgYPCVoktl6F2GkaV3auCQhi-_CFVevryhqQ1u8B6U7_bF55bDug'}/telemetry</li>
+              <li>POST https://smartkisan.online/api/v1/{selectedDevice?.token || 'tb_iT_6Twb5WgcZp5l3odn8qvu7PQCAgknZNPVgYPCVoktl6F2GkaV3auCQhi-_CFVevryhqQ1u8B6U7_bF55bDug'}/telemetry</li>
               <li>POST /api/iot/telemetry (with token or deviceKey)</li>
             </ul>
           </div>

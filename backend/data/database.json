@@ -452,7 +452,7 @@
       "id": 1,
       "userId": 1,
       "deviceId": "ESP32_FARM_1",
-      "deviceKey": "gv031CJtWA7mauVredG4",
+      "deviceKey": "tb_iT_6Twb5WgcZp5l3odn8qvu7PQCAgknZNPVgYPCVoktl6F2GkaV3auCQhi-_CFVevryhqQ1u8B6U7_bF55bDug",
       "name": "Abrar's Main Field Node",
       "location": "North Field Acre 1",
       "crop": "Wheat (گندم)",
@@ -1451,7 +1451,7 @@
         ]
       },
       "createdAt": "2026-10-15T07:01:23.639Z",
-      "token": "gv031CJtWA7mauVredG4",
+      "token": "tb_iT_6Twb5WgcZp5l3odn8qvu7PQCAgknZNPVgYPCVoktl6F2GkaV3auCQhi-_CFVevryhqQ1u8B6U7_bF55bDug",
       "pins": {
         "soilPin": 34,
         "rainPin": 35,
