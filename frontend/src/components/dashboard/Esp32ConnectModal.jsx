@@ -21,8 +21,8 @@ export default function Esp32ConnectModal({ isOpen, onClose, deviceInfo, isHardw
     ? 'http://localhost:5000/api/iot/telemetry'
     : 'https://smartkisan-bbjf.onrender.com/api/iot/telemetry'
 
-  const deviceId = deviceInfo?.deviceId || 'ESP32_FARM_NODE'
-  const deviceKey = deviceInfo?.deviceKey || 'sk_dev_pending'
+  const deviceId = deviceInfo?.deviceId || 'ESP32_FARM_1'
+  const deviceKey = deviceInfo?.deviceKey || deviceInfo?.token || 'gv031CJtWA7mauVredG4'
 
   const copyToClipboard = (text, type) => {
     navigator.clipboard.writeText(text)
@@ -98,24 +98,25 @@ const char* serverUrl = "${backendUrl}";
 const char* deviceId  = "${deviceId}";
 const char* deviceKey = "${deviceKey}";
 
-// 3. Sensor Pin Mapping
+// 3. Sensor Pin Mapping (Hardware Setup)
 #define SOIL_PIN     34 // ADC1 Analog: Capacitive Soil Moisture Sensor
-#define LDR_PIN      35 // ADC1 Analog: Light Dependent Resistor
-#define RAIN_PIN     32 // ADC1 Analog: Rain Detection Board
-#define WATER_PIN    33 // ADC1 Analog: Water Level Float Sensor
-#define RELAY_PUMP   23 // Digital Output: 5V Relay for Irrigation Valve
+#define RAIN_PIN     35 // ADC1 Analog: Rain Detection Board
+#define WATER_PIN    32 // ADC1 Analog: Water Level Sensor
+#define DHT_PIN      4  // Digital IO: DHT11 Sensor
+#define DHT_TYPE     DHT11
+
+DHT dht(DHT_PIN, DHT_TYPE);
 
 void setup() {
   Serial.begin(115200);
   delay(1000);
   Serial.println("\\n[SmartKisan] Booting Farm IoT Sensor Node...");
 
+  analogReadResolution(12);
   pinMode(SOIL_PIN, INPUT);
-  pinMode(LDR_PIN, INPUT);
   pinMode(RAIN_PIN, INPUT);
   pinMode(WATER_PIN, INPUT);
-  pinMode(RELAY_PUMP, OUTPUT);
-  digitalWrite(RELAY_PUMP, LOW);
+  dht.begin();
 
   // Connect to Farm WiFi
   Serial.print("[WiFi] Connecting to: ");

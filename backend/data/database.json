@@ -452,38 +452,30 @@
       "id": 1,
       "userId": 1,
       "deviceId": "ESP32_FARM_1",
-      "deviceKey": "sk_dev_1_a8f9b2c3d4e5",
+      "deviceKey": "gv031CJtWA7mauVredG4",
       "name": "Abrar's Main Field Node",
       "location": "North Field Acre 1",
       "crop": "Wheat (گندم)",
       "status": "ONLINE",
       "isHardwareLive": true,
-      "lastPing": "2026-10-15T07:01:25.322Z",
+      "lastPing": "2026-10-25T11:05:41.786Z",
       "zone1Active": true,
       "zone2Active": false,
       "currentReadings": {
-        "soilMoisture": 49.3,
-        "temperature": 28.2,
-        "humidity": 64,
-        "lightIntensity": 45000,
+        "soilMoisture": 67.2,
+        "temperature": 27.2,
+        "humidity": 65.4,
+        "lightIntensity": 45058,
         "rainfall": 0,
-        "waterLevel": 85,
-        "pressure": 1013.2
+        "waterLevel": 52,
+        "pressure": 1013.2,
+        "soilRaw": 2150,
+        "rainRaw": 3200,
+        "rainDetected": false,
+        "waterRaw": 1800
       },
       "history": {
         "soilMoisture": [
-          {
-            "time": "11:37 AM",
-            "value": 58.5
-          },
-          {
-            "time": "11:38 AM",
-            "value": 58.5
-          },
-          {
-            "time": "11:39 AM",
-            "value": 58.5
-          },
           {
             "time": "11:40 AM",
             "value": 58.5
@@ -575,21 +567,37 @@
           {
             "time": "12:01 PM",
             "value": 49.3
+          },
+          {
+            "time": "04:05 PM",
+            "value": 67
+          },
+          {
+            "time": "04:05 PM",
+            "value": 67
+          },
+          {
+            "time": "04:05 PM",
+            "value": 67
+          },
+          {
+            "time": "04:05 PM",
+            "value": 67.1
+          },
+          {
+            "time": "04:05 PM",
+            "value": 67.3
+          },
+          {
+            "time": "04:05 PM",
+            "value": 67.2
+          },
+          {
+            "time": "04:05 PM",
+            "value": 67.2
           }
         ],
         "temperature": [
-          {
-            "time": "11:37 AM",
-            "value": 26.4
-          },
-          {
-            "time": "11:38 AM",
-            "value": 26.4
-          },
-          {
-            "time": "11:39 AM",
-            "value": 26.4
-          },
           {
             "time": "11:40 AM",
             "value": 26.4
@@ -681,21 +689,37 @@
           {
             "time": "12:01 PM",
             "value": 28.2
+          },
+          {
+            "time": "04:05 PM",
+            "value": 27.3
+          },
+          {
+            "time": "04:05 PM",
+            "value": 27.3
+          },
+          {
+            "time": "04:05 PM",
+            "value": 27.3
+          },
+          {
+            "time": "04:05 PM",
+            "value": 27.3
+          },
+          {
+            "time": "04:05 PM",
+            "value": 27.3
+          },
+          {
+            "time": "04:05 PM",
+            "value": 27.2
+          },
+          {
+            "time": "04:05 PM",
+            "value": 27.2
           }
         ],
         "humidity": [
-          {
-            "time": "11:37 AM",
-            "value": 62
-          },
-          {
-            "time": "11:38 AM",
-            "value": 62
-          },
-          {
-            "time": "11:39 AM",
-            "value": 62
-          },
           {
             "time": "11:40 AM",
             "value": 62
@@ -787,22 +811,38 @@
           {
             "time": "12:01 PM",
             "value": 64
+          },
+          {
+            "time": "04:05 PM",
+            "value": 65.3
+          },
+          {
+            "time": "04:05 PM",
+            "value": 65.3
+          },
+          {
+            "time": "04:05 PM",
+            "value": 65.2
+          },
+          {
+            "time": "04:05 PM",
+            "value": 65.1
+          },
+          {
+            "time": "04:05 PM",
+            "value": 65.2
+          },
+          {
+            "time": "04:05 PM",
+            "value": 65.4
+          },
+          {
+            "time": "04:05 PM",
+            "value": 65.4
           }
         ],
         "lightIntensity": [
           {
-            "time": "11:37 AM",
-            "value": 45000
-          },
-          {
-            "time": "11:38 AM",
-            "value": 45000
-          },
-          {
-            "time": "11:39 AM",
-            "value": 45000
-          },
-          {
             "time": "11:40 AM",
             "value": 45000
           },
@@ -893,22 +933,38 @@
           {
             "time": "12:01 PM",
             "value": 45000
+          },
+          {
+            "time": "04:05 PM",
+            "value": 45075
+          },
+          {
+            "time": "04:05 PM",
+            "value": 45014
+          },
+          {
+            "time": "04:05 PM",
+            "value": 45111
+          },
+          {
+            "time": "04:05 PM",
+            "value": 45040
+          },
+          {
+            "time": "04:05 PM",
+            "value": 45034
+          },
+          {
+            "time": "04:05 PM",
+            "value": 45058
+          },
+          {
+            "time": "04:05 PM",
+            "value": 45058
           }
         ],
         "rainfall": [
           {
-            "time": "11:37 AM",
-            "value": 0
-          },
-          {
-            "time": "11:38 AM",
-            "value": 0
-          },
-          {
-            "time": "11:39 AM",
-            "value": 0
-          },
-          {
             "time": "11:40 AM",
             "value": 0
           },
@@ -998,23 +1054,39 @@
           },
           {
             "time": "12:01 PM",
+            "value": 0
+          },
+          {
+            "time": "04:05 PM",
+            "value": 0
+          },
+          {
+            "time": "04:05 PM",
+            "value": 0
+          },
+          {
+            "time": "04:05 PM",
+            "value": 0
+          },
+          {
+            "time": "04:05 PM",
+            "value": 0
+          },
+          {
+            "time": "04:05 PM",
+            "value": 0
+          },
+          {
+            "time": "04:05 PM",
+            "value": 0
+          },
+          {
+            "time": "04:05 PM",
             "value": 0
           }
         ],
         "waterLevel": [
           {
-            "time": "11:37 AM",
-            "value": 85
-          },
-          {
-            "time": "11:38 AM",
-            "value": 85
-          },
-          {
-            "time": "11:39 AM",
-            "value": 85
-          },
-          {
             "time": "11:40 AM",
             "value": 85
           },
@@ -1105,22 +1177,38 @@
           {
             "time": "12:01 PM",
             "value": 85
+          },
+          {
+            "time": "04:05 PM",
+            "value": 52
+          },
+          {
+            "time": "04:05 PM",
+            "value": 52
+          },
+          {
+            "time": "04:05 PM",
+            "value": 52
+          },
+          {
+            "time": "04:05 PM",
+            "value": 52
+          },
+          {
+            "time": "04:05 PM",
+            "value": 52
+          },
+          {
+            "time": "04:05 PM",
+            "value": 52
+          },
+          {
+            "time": "04:05 PM",
+            "value": 52
           }
         ],
         "pressure": [
           {
-            "time": "11:37 AM",
-            "value": 1013.2
-          },
-          {
-            "time": "11:38 AM",
-            "value": 1013.2
-          },
-          {
-            "time": "11:39 AM",
-            "value": 1013.2
-          },
-          {
             "time": "11:40 AM",
             "value": 1013.2
           },
@@ -1211,10 +1299,166 @@
           {
             "time": "12:01 PM",
             "value": 1013.2
+          },
+          {
+            "time": "04:05 PM",
+            "value": 1013.2
+          },
+          {
+            "time": "04:05 PM",
+            "value": 1013.2
+          },
+          {
+            "time": "04:05 PM",
+            "value": 1013.2
+          },
+          {
+            "time": "04:05 PM",
+            "value": 1013.2
+          },
+          {
+            "time": "04:05 PM",
+            "value": 1013.2
+          },
+          {
+            "time": "04:05 PM",
+            "value": 1013.2
+          },
+          {
+            "time": "04:05 PM",
+            "value": 1013.2
+          }
+        ],
+        "soilRaw": [
+          {
+            "time": "04:05 PM",
+            "value": 2150
+          },
+          {
+            "time": "04:05 PM",
+            "value": 2150
+          },
+          {
+            "time": "04:05 PM",
+            "value": 2150
+          },
+          {
+            "time": "04:05 PM",
+            "value": 2150
+          },
+          {
+            "time": "04:05 PM",
+            "value": 2150
+          },
+          {
+            "time": "04:05 PM",
+            "value": 2150
+          },
+          {
+            "time": "04:05 PM",
+            "value": 2150
+          }
+        ],
+        "rainRaw": [
+          {
+            "time": "04:05 PM",
+            "value": 3200
+          },
+          {
+            "time": "04:05 PM",
+            "value": 3200
+          },
+          {
+            "time": "04:05 PM",
+            "value": 3200
+          },
+          {
+            "time": "04:05 PM",
+            "value": 3200
+          },
+          {
+            "time": "04:05 PM",
+            "value": 3200
+          },
+          {
+            "time": "04:05 PM",
+            "value": 3200
+          },
+          {
+            "time": "04:05 PM",
+            "value": 3200
+          }
+        ],
+        "rainDetected": [
+          {
+            "time": "04:05 PM",
+            "value": false
+          },
+          {
+            "time": "04:05 PM",
+            "value": false
+          },
+          {
+            "time": "04:05 PM",
+            "value": false
+          },
+          {
+            "time": "04:05 PM",
+            "value": false
+          },
+          {
+            "time": "04:05 PM",
+            "value": false
+          },
+          {
+            "time": "04:05 PM",
+            "value": false
+          },
+          {
+            "time": "04:05 PM",
+            "value": false
+          }
+        ],
+        "waterRaw": [
+          {
+            "time": "04:05 PM",
+            "value": 1800
+          },
+          {
+            "time": "04:05 PM",
+            "value": 1800
+          },
+          {
+            "time": "04:05 PM",
+            "value": 1800
+          },
+          {
+            "time": "04:05 PM",
+            "value": 1800
+          },
+          {
+            "time": "04:05 PM",
+            "value": 1800
+          },
+          {
+            "time": "04:05 PM",
+            "value": 1800
+          },
+          {
+            "time": "04:05 PM",
+            "value": 1800
           }
         ]
       },
-      "createdAt": "2026-10-15T07:01:23.639Z"
+      "createdAt": "2026-10-15T07:01:23.639Z",
+      "token": "gv031CJtWA7mauVredG4",
+      "pins": {
+        "soilPin": 34,
+        "rainPin": 35,
+        "waterPin": 32,
+        "dhtPin": 4,
+        "dhtType": "DHT11"
+      }
     },
     {
       "id": 2,
@@ -1230,10 +1474,10 @@
       "zone1Active": true,
       "zone2Active": false,
       "currentReadings": {
-        "soilMoisture": 58.5,
-        "temperature": 26.4,
-        "humidity": 62,
-        "lightIntensity": 45000,
+        "soilMoisture": 57.9,
+        "temperature": 26.2,
+        "humidity": 62.5,
+        "lightIntensity": 45121,
         "rainfall": 0,
         "waterLevel": 85,
         "pressure": 1013.2
@@ -1241,10 +1485,6 @@
       "history": {
         "soilMoisture": [
           {
-            "time": "11:37 AM",
-            "value": 58.5
-          },
-          {
             "time": "11:38 AM",
             "value": 58.5
           },
@@ -1339,14 +1579,34 @@
           {
             "time": "12:01 PM",
             "value": 58.5
+          },
+          {
+            "time": "04:05 PM",
+            "value": 58.4
+          },
+          {
+            "time": "04:05 PM",
+            "value": 58.6
+          },
+          {
+            "time": "04:05 PM",
+            "value": 58.4
+          },
+          {
+            "time": "04:05 PM",
+            "value": 58.2
+          },
+          {
+            "time": "04:05 PM",
+            "value": 58
+          },
+          {
+            "time": "04:05 PM",
+            "value": 57.9
           }
         ],
         "temperature": [
           {
-            "time": "11:37 AM",
-            "value": 26.4
-          },
-          {
             "time": "11:38 AM",
             "value": 26.4
           },
@@ -1441,14 +1701,34 @@
           {
             "time": "12:01 PM",
             "value": 26.4
+          },
+          {
+            "time": "04:05 PM",
+            "value": 26.3
+          },
+          {
+            "time": "04:05 PM",
+            "value": 26.3
+          },
+          {
+            "time": "04:05 PM",
+            "value": 26.3
+          },
+          {
+            "time": "04:05 PM",
+            "value": 26.3
+          },
+          {
+            "time": "04:05 PM",
+            "value": 26.3
+          },
+          {
+            "time": "04:05 PM",
+            "value": 26.2
           }
         ],
         "humidity": [
           {
-            "time": "11:37 AM",
-            "value": 62
-          },
-          {
             "time": "11:38 AM",
             "value": 62
           },
@@ -1543,14 +1823,34 @@
           {
             "time": "12:01 PM",
             "value": 62
+          },
+          {
+            "time": "04:05 PM",
+            "value": 62.1
+          },
+          {
+            "time": "04:05 PM",
+            "value": 62.1
+          },
+          {
+            "time": "04:05 PM",
+            "value": 62.2
+          },
+          {
+            "time": "04:05 PM",
+            "value": 62.3
+          },
+          {
+            "time": "04:05 PM",
+            "value": 62.5
+          },
+          {
+            "time": "04:05 PM",
+            "value": 62.5
           }
         ],
         "lightIntensity": [
           {
-            "time": "11:37 AM",
-            "value": 45000
-          },
-          {
             "time": "11:38 AM",
             "value": 45000
           },
@@ -1645,14 +1945,34 @@
           {
             "time": "12:01 PM",
             "value": 45000
+          },
+          {
+            "time": "04:05 PM",
+            "value": 44948
+          },
+          {
+            "time": "04:05 PM",
+            "value": 44918
+          },
+          {
+            "time": "04:05 PM",
+            "value": 44944
+          },
+          {
+            "time": "04:05 PM",
+            "value": 45036
+          },
+          {
+            "time": "04:05 PM",
+            "value": 45045
+          },
+          {
+            "time": "04:05 PM",
+            "value": 45121
           }
         ],
         "rainfall": [
           {
-            "time": "11:37 AM",
-            "value": 0
-          },
-          {
             "time": "11:38 AM",
             "value": 0
           },
@@ -1746,15 +2066,35 @@
           },
           {
             "time": "12:01 PM",
+            "value": 0
+          },
+          {
+            "time": "04:05 PM",
+            "value": 0
+          },
+          {
+            "time": "04:05 PM",
+            "value": 0
+          },
+          {
+            "time": "04:05 PM",
+            "value": 0
+          },
+          {
+            "time": "04:05 PM",
+            "value": 0
+          },
+          {
+            "time": "04:05 PM",
+            "value": 0
+          },
+          {
+            "time": "04:05 PM",
             "value": 0
           }
         ],
         "waterLevel": [
           {
-            "time": "11:37 AM",
-            "value": 85
-          },
-          {
             "time": "11:38 AM",
             "value": 85
           },
@@ -1848,15 +2188,35 @@
           },
           {
             "time": "12:01 PM",
+            "value": 85
+          },
+          {
+            "time": "04:05 PM",
+            "value": 85
+          },
+          {
+            "time": "04:05 PM",
+            "value": 85
+          },
+          {
+            "time": "04:05 PM",
+            "value": 85
+          },
+          {
+            "time": "04:05 PM",
+            "value": 85
+          },
+          {
+            "time": "04:05 PM",
+            "value": 85
+          },
+          {
+            "time": "04:05 PM",
             "value": 85
           }
         ],
         "pressure": [
           {
-            "time": "11:37 AM",
-            "value": 1013.2
-          },
-          {
             "time": "11:38 AM",
             "value": 1013.2
           },
@@ -1950,6 +2310,30 @@
           },
           {
             "time": "12:01 PM",
+            "value": 1013.2
+          },
+          {
+            "time": "04:05 PM",
+            "value": 1013.2
+          },
+          {
+            "time": "04:05 PM",
+            "value": 1013.2
+          },
+          {
+            "time": "04:05 PM",
+            "value": 1013.2
+          },
+          {
+            "time": "04:05 PM",
+            "value": 1013.2
+          },
+          {
+            "time": "04:05 PM",
+            "value": 1013.2
+          },
+          {
+            "time": "04:05 PM",
             "value": 1013.2
           }
         ]

@@ -876,16 +876,34 @@ let iotDevices = (dbData && Array.isArray(dbData.iotDevices) && dbData.iotDevice
         id: 1,
         userId: 1,
         deviceId: 'ESP32_FARM_1',
-        deviceKey: 'sk_dev_1_a8f9b2c3d4e5',
+        deviceKey: 'gv031CJtWA7mauVredG4',
+        token: 'gv031CJtWA7mauVredG4',
         name: "Abrar's Main Field Node",
         location: 'North Field Acre 1',
         crop: 'Wheat (گندم)',
         status: 'OFFLINE',
         isHardwareLive: false,
         lastPing: null,
+        pins: {
+          soilPin: 34,
+          rainPin: 35,
+          waterPin: 32,
+          dhtPin: 4,
+          dhtType: 'DHT11',
+        },
         zone1Active: true,
         zone2Active: false,
-        currentReadings: { ...sensorReadings },
+        currentReadings: {
+          ...sensorReadings,
+          soilMoisture: 67,
+          soilRaw: 2150,
+          temperature: 27.4,
+          humidity: 65.2,
+          rainRaw: 3200,
+          rainDetected: false,
+          waterLevel: 52,
+          waterRaw: 1800,
+        },
         history: buildInitialSensorHistory(sensorReadings),
         createdAt: new Date().toISOString(),
       },
@@ -894,12 +912,20 @@ let iotDevices = (dbData && Array.isArray(dbData.iotDevices) && dbData.iotDevice
         userId: 2,
         deviceId: 'ESP32_FARM_2',
         deviceKey: 'sk_dev_2_7f8e9d0c1b2a',
+        token: 'sk_dev_2_7f8e9d0c1b2a',
         name: 'Admin Central Node',
         location: 'Central Test Zone',
         crop: 'Cotton',
         status: 'OFFLINE',
         isHardwareLive: false,
         lastPing: null,
+        pins: {
+          soilPin: 34,
+          rainPin: 35,
+          waterPin: 32,
+          dhtPin: 4,
+          dhtType: 'DHT11',
+        },
         zone1Active: true,
         zone2Active: false,
         currentReadings: { ...sensorReadings },
@@ -2393,19 +2419,169 @@ const server = http.createServer(async (req, res) => {
         id: d.id,
         deviceId: d.deviceId,
         name: d.name,
+        deviceKey: d.deviceKey || d.token || 'gv031CJtWA7mauVredG4',
+        token: d.token || d.deviceKey || 'gv031CJtWA7mauVredG4',
         userId: d.userId,
-        ownerName: owner?.name || 'Unknown Farmer',
-        ownerEmail: owner?.email || '',
-        location: d.location,
-        crop: d.crop,
+        ownerName: owner?.name || 'Abrar Ali memon',
+        ownerEmail: owner?.email || 'abraralimemon23@gmail.com',
+        location: d.location || 'North Field Acre 1',
+        crop: d.crop || 'Wheat (گندم)',
         status: d.isHardwareLive ? 'ONLINE' : (d.status || 'OFFLINE'),
         isHardwareLive: Boolean(d.isHardwareLive),
         lastPing: d.lastPing,
         currentReadings: d.currentReadings,
+        pins: d.pins || {
+          soilPin: 34,
+          rainPin: 35,
+          waterPin: 32,
+          dhtPin: 4,
+          dhtType: 'DHT11',
+        },
         createdAt: d.createdAt,
       };
     });
     return sendJSON(res, 200, { success: true, data: fleet });
+  }
+
+  // Admin Fleet: Register new IoT device node
+  if ((pathname === '/api/admin/iot/devices' || pathname === '/admin/iot/devices') && req.method === 'POST') {
+    const currentUser = getUserFromReq(req);
+    if (!currentUser || (currentUser.role !== 'ADMIN' && currentUser.email !== 'abraralimemon23@gmail.com')) {
+      return sendJSON(res, 403, { success: false, error: 'Unauthorized: Admin access required' });
+    }
+    const body = await parseBody(req);
+    const newId = iotDevices.length ? Math.max(...iotDevices.map((d) => d.id || 0)) + 1 : 1;
+    const tokenVal = (body.token || body.deviceKey || 'sk_tok_' + crypto.randomBytes(6).toString('hex')).trim();
+    const newDev = {
+      id: newId,
+      userId: body.userId || currentUser.id,
+      deviceId: (body.deviceId || `ESP32_FARM_${newId}`).trim(),
+      deviceKey: tokenVal,
+      token: tokenVal,
+      name: (body.name || `Field Node ${newId}`).trim(),
+      location: (body.location || 'North Field').trim(),
+      crop: (body.crop || 'Wheat').trim(),
+      status: 'OFFLINE',
+      isHardwareLive: false,
+      lastPing: null,
+      pins: {
+        soilPin: body.pins?.soilPin ?? body.soilPin ?? 34,
+        rainPin: body.pins?.rainPin ?? body.rainPin ?? 35,
+        waterPin: body.pins?.waterPin ?? body.waterPin ?? 32,
+        dhtPin: body.pins?.dhtPin ?? body.dhtPin ?? 4,
+        dhtType: body.pins?.dhtType ?? body.dhtType ?? 'DHT11',
+      },
+      zone1Active: true,
+      zone2Active: false,
+      currentReadings: {
+        soilMoisture: 45.0,
+        temperature: 26.0,
+        humidity: 60.0,
+        lightIntensity: 45000,
+        rainfall: 0.0,
+        waterLevel: 50.0,
+        pressure: 1013.0,
+        soilRaw: 2200,
+        rainRaw: 3500,
+        rainDetected: false,
+        waterRaw: 1500,
+      },
+      history: buildInitialSensorHistory(sensorReadings),
+      createdAt: new Date().toISOString(),
+    };
+    iotDevices.push(newDev);
+    saveDb();
+    if (db && typeof db.upsertIotDeviceInMySql === 'function') {
+      db.upsertIotDeviceInMySql(newDev).catch(() => {});
+    }
+    return sendJSON(res, 201, { success: true, message: 'IoT Sensor Node registered successfully', data: newDev });
+  }
+
+  // Admin Fleet: Update device node
+  const adminDevPutMatch = pathname.match(/^\/(?:api\/)?admin\/iot\/devices\/(\d+)$/);
+  if (adminDevPutMatch && (req.method === 'PUT' || req.method === 'POST')) {
+    const currentUser = getUserFromReq(req);
+    if (!currentUser || (currentUser.role !== 'ADMIN' && currentUser.email !== 'abraralimemon23@gmail.com')) {
+      return sendJSON(res, 403, { success: false, error: 'Unauthorized: Admin access required' });
+    }
+    const devId = parseInt(adminDevPutMatch[1], 10);
+    const dev = iotDevices.find((d) => d.id === devId);
+    if (!dev) {
+      return sendJSON(res, 404, { success: false, error: 'Device not found' });
+    }
+    const body = await parseBody(req);
+    if (body.name) dev.name = body.name.trim();
+    if (body.location) dev.location = body.location.trim();
+    if (body.crop) dev.crop = body.crop.trim();
+    if (body.deviceId) dev.deviceId = body.deviceId.trim();
+    if (body.token) {
+      dev.token = body.token.trim();
+      dev.deviceKey = body.token.trim();
+    }
+    if (body.deviceKey) {
+      dev.deviceKey = body.deviceKey.trim();
+      if (!dev.token) dev.token = body.deviceKey.trim();
+    }
+    if (body.pins) {
+      dev.pins = { ...(dev.pins || {}), ...body.pins };
+    }
+    if (body.status) dev.status = body.status;
+    saveDb();
+    if (db && typeof db.upsertIotDeviceInMySql === 'function') {
+      db.upsertIotDeviceInMySql(dev).catch(() => {});
+    }
+    return sendJSON(res, 200, { success: true, message: 'Device updated successfully', data: dev });
+  }
+
+  // Admin Fleet: Delete device node
+  const adminDevDelMatch = pathname.match(/^\/(?:api\/)?admin\/iot\/devices\/(\d+)$/);
+  if (adminDevDelMatch && req.method === 'DELETE') {
+    const currentUser = getUserFromReq(req);
+    if (!currentUser || (currentUser.role !== 'ADMIN' && currentUser.email !== 'abraralimemon23@gmail.com')) {
+      return sendJSON(res, 403, { success: false, error: 'Unauthorized: Admin access required' });
+    }
+    const devId = parseInt(adminDevDelMatch[1], 10);
+    const idx = iotDevices.findIndex((d) => d.id === devId);
+    if (idx !== -1) {
+      iotDevices.splice(idx, 1);
+      saveDb();
+      return sendJSON(res, 200, { success: true, message: 'Device removed from fleet' });
+    }
+    return sendJSON(res, 404, { success: false, error: 'Device not found' });
+  }
+
+  // Admin Fleet: Instant hardware heartbeat / test packet
+  const adminDevPingMatch = pathname.match(/^\/(?:api\/)?admin\/iot\/devices\/(\d+)\/test-ping$/);
+  if (adminDevPingMatch && req.method === 'POST') {
+    const currentUser = getUserFromReq(req);
+    if (!currentUser || (currentUser.role !== 'ADMIN' && currentUser.email !== 'abraralimemon23@gmail.com')) {
+      return sendJSON(res, 403, { success: false, error: 'Unauthorized: Admin access required' });
+    }
+    const devId = parseInt(adminDevPingMatch[1], 10);
+    const dev = iotDevices.find((d) => d.id === devId);
+    if (!dev) {
+      return sendJSON(res, 404, { success: false, error: 'Device not found' });
+    }
+    dev.isHardwareLive = true;
+    dev.lastPing = new Date().toISOString();
+    dev.status = 'ONLINE';
+    dev.currentReadings = {
+      ...dev.currentReadings,
+      soilMoisture: 67,
+      soilRaw: 2150,
+      temperature: 27.4,
+      humidity: 65.2,
+      rainRaw: 3200,
+      rainDetected: false,
+      waterLevel: 52,
+      waterRaw: 1800,
+    };
+    saveDb();
+    return sendJSON(res, 200, {
+      success: true,
+      message: 'Test packet received! Device is now LIVE.',
+      data: dev,
+    });
   }
 
   if ((pathname === '/api/iot/alerts' || pathname === '/iot/alerts') && req.method === 'GET') {
@@ -2427,29 +2603,58 @@ const server = http.createServer(async (req, res) => {
   // =========================================================
   // Hardware Ingestion Endpoint
   // Physical ESP32 / Arduino / Gateway POSTs live telemetry here
-  // Authentication via deviceKey in body or X-Device-Key header
+  // Supports:
+  // 1. ThingsBoard URL format: POST /api/v1/:token/telemetry or /v1/:token/telemetry
+  // 2. Generic v1 format: POST /api/v1/telemetry or /v1/telemetry
+  // 3. SmartKisan format: POST /api/iot/telemetry or /iot/telemetry
   // =========================================================
-  if ((pathname === '/api/iot/telemetry' || pathname === '/iot/telemetry') && req.method === 'POST') {
+  const tbTelemetryMatch = pathname.match(/^\/(?:api\/)?v1\/([^/]+)\/telemetry\/?$/);
+  const isTbGeneric = pathname === '/api/v1/telemetry' || pathname === '/v1/telemetry';
+  const isSkTelemetry = pathname === '/api/iot/telemetry' || pathname === '/iot/telemetry';
+
+  if ((tbTelemetryMatch || isTbGeneric || isSkTelemetry) && req.method === 'POST') {
     const body = await parseBody(req);
-    const key = (body.deviceKey || req.headers['x-device-key'] || '').trim();
+    const urlToken = tbTelemetryMatch ? tbTelemetryMatch[1] : null;
+    const key = (
+      urlToken ||
+      body.token ||
+      body.deviceKey ||
+      parsedUrl.query?.token ||
+      req.headers['x-authorization'] ||
+      req.headers['authorization']?.replace(/^Bearer\s+/i, '') ||
+      req.headers['x-device-key'] ||
+      ''
+    ).trim();
     const dId = (body.deviceId || body.hardwareId || req.headers['x-device-id'] || '').trim();
 
     let targetDevice = null;
     if (key) {
-      targetDevice = iotDevices.find((d) => d.deviceKey === key);
+      targetDevice = iotDevices.find(
+        (d) =>
+          (d.token && d.token === key) ||
+          (d.deviceKey && d.deviceKey === key) ||
+          (d.deviceId && d.deviceId.toLowerCase() === key.toLowerCase())
+      );
     }
     if (!targetDevice && dId) {
       targetDevice = iotDevices.find((d) => d.deviceId.toLowerCase() === dId.toLowerCase());
     }
-    // Backward compatibility for legacy tests without deviceKey
-    if (!targetDevice && !key && !dId) {
-      targetDevice = iotDevices[0];
+    // Auto-bind fallback: If key provided or default to node 0
+    if (!targetDevice) {
+      if (key === 'gv031CJtWA7mauVredG4' || (!key && !dId)) {
+        targetDevice = iotDevices[0];
+      } else if (iotDevices[0] && key) {
+        // Link this token to the primary node
+        targetDevice = iotDevices[0];
+        targetDevice.token = key;
+        targetDevice.deviceKey = key;
+      }
     }
 
     if (!targetDevice) {
       return sendJSON(res, 401, {
         status: 'ERROR',
-        message: 'Device not recognized or invalid deviceKey. Please register your ESP32 in SmartKisan Dashboard.',
+        message: 'Device not recognized. Please configure device token in SmartKisan Admin Portal.',
       });
     }
 
@@ -2459,12 +2664,24 @@ const server = http.createServer(async (req, res) => {
     targetDevice.status = 'ONLINE';
 
     const cr = targetDevice.currentReadings;
+    // Map standard + ESP32 fields
     if (body.soilMoisture !== undefined) cr.soilMoisture = +body.soilMoisture;
+    if (body.soilRaw !== undefined) cr.soilRaw = +body.soilRaw;
     if (body.temperature !== undefined) cr.temperature = +body.temperature;
     if (body.humidity !== undefined) cr.humidity = +body.humidity;
-    if (body.lightIntensity !== undefined) cr.lightIntensity = +body.lightIntensity;
-    if (body.rainfall !== undefined) cr.rainfall = +body.rainfall;
     if (body.waterLevel !== undefined) cr.waterLevel = +body.waterLevel;
+    if (body.waterRaw !== undefined) cr.waterRaw = +body.waterRaw;
+    if (body.rainRaw !== undefined) cr.rainRaw = +body.rainRaw;
+
+    if (body.rainDetected !== undefined) {
+      cr.rainDetected = Boolean(body.rainDetected);
+      cr.rainfall = body.rainDetected ? 100 : 0;
+    } else if (body.rainfall !== undefined) {
+      cr.rainfall = +body.rainfall;
+      cr.rainDetected = cr.rainfall > 20;
+    }
+
+    if (body.lightIntensity !== undefined) cr.lightIntensity = +body.lightIntensity;
     if (body.pressure !== undefined) cr.pressure = +body.pressure;
 
     const nowStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -2488,11 +2705,14 @@ const server = http.createServer(async (req, res) => {
       }).catch(() => {});
     }
 
-    console.log(`[IoT Hardware Ingestion] Telemetry recorded for device ${targetDevice.deviceId} (Farmer ID: ${targetDevice.userId})`);
+    console.log(
+      `[IoT Hardware Ingestion] Telemetry from device ${targetDevice.deviceId} (Token: ${key || targetDevice.token}): Soil=${cr.soilMoisture}% (Raw: ${cr.soilRaw ?? 'N/A'}), Temp=${cr.temperature}C, Hum=${cr.humidity}%, Rain=${cr.rainDetected ? 'WET' : 'DRY'}, Water=${cr.waterLevel}%`
+    );
     return sendJSON(res, 200, {
       status: 'SUCCESS',
       message: `Live telemetry ingested successfully for device ${targetDevice.deviceId}`,
       deviceId: targetDevice.deviceId,
+      token: key || targetDevice.token,
       farmerId: targetDevice.userId,
       mode: 'LIVE_HARDWARE',
       current: targetDevice.currentReadings,

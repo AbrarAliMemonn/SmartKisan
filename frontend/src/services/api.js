@@ -112,6 +112,10 @@ export const adminAPI = {
   syncUsers: (users) => api.post('/admin/users/sync', { users }),
   approveService: (id, service) => api.post(`/admin/users/${id}/approve-service`, { service }),
   getIotDevices: () => api.get('/admin/iot/devices').catch(() => ({ data: { success: true, data: [] } })),
+  createIotDevice: (data) => api.post('/admin/iot/devices', data),
+  updateIotDevice: (id, data) => api.put(`/admin/iot/devices/${id}`, data),
+  deleteIotDevice: (id) => api.delete(`/admin/iot/devices/${id}`),
+  testDevicePing: (id) => api.post(`/admin/iot/devices/${id}/test-ping`),
 }
 
 // =========================================================
