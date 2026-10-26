@@ -1,5 +1,5 @@
-export const API_BASE_URL = import.meta.env.VITE_API_URL || (typeof window !== 'undefined' && !window.location.hostname.includes('localhost') ? 'https://smartkisan-bbjf.onrender.com/api' : 'http://localhost:5000/api')
-export const WS_URL = import.meta.env.VITE_WS_URL || (typeof window !== 'undefined' && !window.location.hostname.includes('localhost') ? 'https://smartkisan-bbjf.onrender.com' : 'http://localhost:5000')
+export const API_BASE_URL = import.meta.env.VITE_API_URL || (typeof window !== 'undefined' && !window.location.hostname.includes('localhost') ? 'https://smartkisan-api-c7adbxfpggg9c9ft.westus3-01.azurewebsites.net/api' : 'http://localhost:5000/api')
+export const WS_URL = import.meta.env.VITE_WS_URL || (typeof window !== 'undefined' && !window.location.hostname.includes('localhost') ? 'https://smartkisan-api-c7adbxfpggg9c9ft.westus3-01.azurewebsites.net' : 'http://localhost:5000')
 
 // Root of the backend (without the /api prefix) — Spring Security's OAuth2
 // endpoints (/oauth2/authorization/**) live outside the /api namespace.
