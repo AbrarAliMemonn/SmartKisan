@@ -1349,7 +1349,7 @@ const server = http.createServer(async (req, res) => {
     req.method === 'GET'
   ) {
     const proto = req.headers['x-forwarded-proto'] || (req.connection && req.connection.encrypted ? 'https' : 'http');
-    const host = req.headers['x-forwarded-host'] || req.headers.host || 'smartkisan-bbjf.onrender.com';
+    const host = req.headers['x-forwarded-host'] || req.headers.host || 'smartkisan-api-c7adbxfpggg9c9ft.westus3-01.azurewebsites.net';
     const backendOrigin = `${proto}://${host}`;
 
     // Target frontend page after OAuth completion
@@ -1443,7 +1443,7 @@ const server = http.createServer(async (req, res) => {
     }
 
     const proto = req.headers['x-forwarded-proto'] || (req.connection && req.connection.encrypted ? 'https' : 'http');
-    const host = req.headers['x-forwarded-host'] || req.headers.host || 'smartkisan-bbjf.onrender.com';
+    const host = req.headers['x-forwarded-host'] || req.headers.host || 'smartkisan-api-c7adbxfpggg9c9ft.westus3-01.azurewebsites.net';
     const callbackUrl = callbackUrlUsed || process.env.GOOGLE_REDIRECT_URI || `${proto}://${host}${pathname}`;
 
     try {
