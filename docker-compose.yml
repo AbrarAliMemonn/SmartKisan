@@ -97,6 +97,10 @@ services:
       DB_PASSWORD: root
       KAFKA_BROKER: kafka:9092
       EUREKA_URL: http://eureka-server:8761/eureka
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-496873835689-no368jma02iatvkle5q1i5d0o6btpt9c.apps.googleusercontent.com}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-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}
+      MAIL_USERNAME: ${MAIL_USERNAME:-smartagriculture076@gmail.com}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-rwngyxispdsecrvt}
 
   # ========================================================
   # Marketplace Service (with Socket.IO)

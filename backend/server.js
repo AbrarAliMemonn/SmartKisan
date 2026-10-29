@@ -85,8 +85,8 @@ function fetchOpenMeteo(lat, lon) {
 // ---------------- Email & OTP Service (Gmail SMTP & HTTPS API) ----------------
 const nodemailer = require('nodemailer');
 
-const MAIL_USER = process.env.MAIL_USERNAME || 'm01012002809234@gmail.com';
-const MAIL_PASS = process.env.MAIL_PASSWORD || 'vvqtqfglovgljecn';
+const MAIL_USER = process.env.MAIL_USERNAME || 'smartagriculture076@gmail.com';
+const MAIL_PASS = process.env.MAIL_PASSWORD || 'rwngyxispdsecrvt';
 
 // Configure short socket timeouts so blocked cloud outbound SMTP never hangs server
 const transporter = nodemailer.createTransport({
