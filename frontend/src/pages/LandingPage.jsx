@@ -47,11 +47,13 @@ import {
   Upload,
   Camera,
   Trash2,
+  Activity,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import useStore from '../store/useStore'
 import { useAuthContext } from '../context/AuthContext'
-import { marketplaceAPI, paymentAccountAPI, contactAPI } from '../services/api'
+import { marketplaceAPI, paymentAccountAPI, contactAPI, iotAPI } from '../services/api'
+import { useSensorFeed } from '../hooks/useSensorFeed'
 import { productFromResponse, unwrapList, paymentAccountFromResponse } from '../utils/marketplaceMapper'
 import { formatPKR } from '../utils/format'
 
@@ -175,6 +177,35 @@ export default function LandingPage() {
   const navigate = useNavigate()
   const { user, isAuthenticated, logout } = useAuthContext()
   const { cartItems, addToCart } = useStore()
+
+  // Live Hardware Telemetry Feed (ESP32_FARM_1)
+  const { readings, isHardwareLive, deviceInfo, refetchSensors } = useSensorFeed()
+  const [testingPing, setTestingPing] = useState(false)
+
+  const handleHeroTestPing = async () => {
+    setTestingPing(true)
+    try {
+      await iotAPI.sendTelemetry({
+        deviceId: deviceInfo?.deviceId || 'ESP32_FARM_1',
+        deviceKey: deviceInfo?.deviceKey || 'tb_iT_6Twb5WgcZp5l3odn8qvu7PQCAgknZNPVgYPCVoktl6F2GkaV3auCQhi-_CFVevryhqQ1u8B6U7_bF55bDug',
+        soilMoisture: 64.5,
+        soilRaw: 2280,
+        temperature: 27.8,
+        humidity: 58.2,
+        rainfall: 0,
+        rainRaw: 4095,
+        waterLevel: 82.0,
+        waterRaw: 2350,
+        lightIntensity: 42000,
+      })
+      toast.success('Live test packet broadcasted! Telemetry active.')
+      if (refetchSensors) refetchSensors()
+    } catch (err) {
+      toast.error('Test packet failed: ' + err.message)
+    } finally {
+      setTestingPing(false)
+    }
+  }
 
   const [products, setProducts] = useState(FALLBACK_PRODUCTS)
   const [loadingProducts, setLoadingProducts] = useState(false)
@@ -808,52 +839,41 @@ export default function LandingPage() {
       </header>
 
       {/* =========================================================
-          HERO SECTION
+          HERO SECTION - High-Precision AgriTech Telemetry Console
       ========================================================= */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-green-900 via-emerald-800 to-green-900 text-white py-16 sm:py-24">
-        {/* Background Decorative Pattern */}
+      <section className="relative overflow-hidden bg-slate-950 text-white border-b border-slate-800 py-12 sm:py-20">
+        {/* Subtle Technical Grid Background */}
         <div
-          className="absolute inset-0 opacity-10"
+          className="absolute inset-0 opacity-[0.03] pointer-events-none"
           style={{
             backgroundImage:
-              'radial-gradient(circle at 25px 25px, white 2%, transparent 0%), radial-gradient(circle at 75px 75px, white 2%, transparent 0%)',
-            backgroundSize: '100px 100px',
+              'linear-gradient(to right, #ffffff 1px, transparent 1px), linear-gradient(to bottom, #ffffff 1px, transparent 1px)',
+            backgroundSize: '36px 36px',
           }}
         />
-        <div className="absolute -top-32 -right-32 h-96 w-96 rounded-full bg-lime-400/20 blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-32 -left-32 h-96 w-96 rounded-full bg-teal-400/20 blur-3xl pointer-events-none" />
 
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid gap-12 lg:grid-cols-12 lg:items-center">
+          <div className="grid gap-10 lg:grid-cols-12 lg:items-center">
             {/* Left Content */}
-            <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
-              <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-xs font-semibold text-lime-300 ring-1 ring-white/15 backdrop-blur">
-                <Sparkles className="h-3.5 w-3.5" />
-                <span>Pakistan&apos;s #1 Smart IoT Agriculture &amp; Marketplace</span>
+            <div className="lg:col-span-7 space-y-5 text-center lg:text-left">
+              <div className="inline-flex items-center gap-2 rounded-lg bg-emerald-950/80 px-3.5 py-1.5 text-xs font-mono font-medium text-emerald-400 border border-emerald-800/60 shadow-sm">
+                <span className={`h-2 w-2 rounded-full ${isHardwareLive ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`} />
+                <span>{isHardwareLive ? 'EDGE TELEMETRY: HARDWARE ONLINE' : 'NODE TELEMETRY: OFFLINE (READINGS 0)'}</span>
+                <span className="text-emerald-700">|</span>
+                <span className="text-slate-400">Node: {deviceInfo?.deviceId || 'ESP32_FARM_1'}</span>
               </div>
 
-              <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.15]">
-                Smart Farming.{' '}
-                <span className="bg-gradient-to-r from-lime-200 via-emerald-200 to-teal-200 bg-clip-text text-transparent">
-                  Direct Trade.
-                </span>{' '}
-                Higher Yields.
+              <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight text-white leading-[1.12]">
+                Precision IoT Agriculture &amp;{' '}
+                <span className="text-emerald-400">Direct Farmer Trade</span>
               </h1>
 
-              <p className="mx-auto lg:mx-0 max-w-2xl text-base sm:text-lg text-green-100/90 leading-relaxed">
-                Monitor soil moisture and irrigation with real-time IoT sensors, consult our intelligent AI Crop Doctor in your local language, and buy or sell certified agricultural supplies directly with zero middleman commission.
+              <p className="mx-auto lg:mx-0 max-w-2xl text-sm sm:text-base text-slate-300 leading-relaxed">
+                Engineered specifically for Pakistan&apos;s agricultural ecosystem. Continuous root-zone capacitive moisture monitoring, automated 220V tubewell &amp; 12V solenoid relay switching, trilingual agronomic diagnostics (اردو / سنڌي), and an open marketplace eliminating middleman commission.
               </p>
 
               {/* Action Buttons */}
               <div className="flex flex-col sm:flex-row flex-wrap items-center justify-center lg:justify-start gap-3 pt-2">
-                <a
-                  href="#marketplace"
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-lime-400 px-6 py-3.5 text-[15px] font-bold text-green-950 shadow-lg shadow-lime-400/25 hover:bg-lime-300 transition-all hover:scale-105"
-                >
-                  <ShoppingCart className="h-5 w-5" />
-                  <span>Browse Marketplace</span>
-                </a>
-
                 <button
                   onClick={() =>
                     handleFeatureAccess(
@@ -862,10 +882,10 @@ export default function LandingPage() {
                       'Sign in to access live IoT sensors, root-zone telemetry, and automated drip irrigation controls.'
                     )
                   }
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-white/15 px-5 py-3.5 text-[15px] font-semibold text-white ring-1 ring-white/20 backdrop-blur hover:bg-white/25 transition-all"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-emerald-900/40 hover:bg-emerald-500 transition-all"
                 >
-                  <Radio className="h-5 w-5 text-lime-300 animate-pulse" />
-                  <span>IoT Farm Monitoring</span>
+                  <Activity className="h-4 w-4" />
+                  <span>Launch IoT Farm Console</span>
                 </button>
 
                 <button
@@ -876,115 +896,192 @@ export default function LandingPage() {
                       'Sign in to diagnose crop diseases and get agricultural recommendations in English, Urdu, or Sindhi.'
                     )
                   }
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-white/15 px-5 py-3.5 text-[15px] font-semibold text-white ring-1 ring-white/20 backdrop-blur hover:bg-white/25 transition-all"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl border border-slate-700 bg-slate-900/90 px-5 py-3.5 text-sm font-semibold text-slate-200 hover:bg-slate-800 hover:text-white transition-all"
                 >
-                  <MessageCircle className="h-5 w-5 text-indigo-300" />
-                  <span>AI Crop Doctor</span>
+                  <MessageCircle className="h-4 w-4 text-emerald-400" />
+                  <span>AI Crop Doctor (اردو / سنڌي)</span>
                 </button>
+
+                <a
+                  href="#marketplace"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl border border-slate-800 bg-slate-950 px-5 py-3.5 text-sm font-semibold text-slate-300 hover:bg-slate-900 hover:text-white transition-all"
+                >
+                  <ShoppingCart className="h-4 w-4 text-slate-400" />
+                  <span>Browse Products</span>
+                </a>
               </div>
 
-              {/* Trust Badges */}
-              <div className="pt-4 grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 text-left">
-                <div className="rounded-xl bg-white/10 p-2.5 sm:p-3 ring-1 ring-white/15 backdrop-blur">
-                  <p className="text-lg sm:text-xl font-bold text-lime-300">100%</p>
-                  <p className="text-[11px] sm:text-xs text-green-100/80 leading-tight">Certified Seeds &amp; Fertilizer</p>
+              {/* Engineering Specifications Bar */}
+              <div className="pt-4 grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-left font-mono text-xs">
+                <div className="rounded-xl border border-slate-800 bg-slate-900/70 p-3">
+                  <p className="text-[10px] text-slate-500 uppercase tracking-wider font-sans">ADC Resolution</p>
+                  <p className="text-sm font-bold text-emerald-400 mt-0.5">12-Bit (0-4095)</p>
+                  <p className="text-[11px] text-slate-400 font-sans mt-0.5">Capacitive v1.2</p>
                 </div>
-                <div className="rounded-xl bg-white/10 p-2.5 sm:p-3 ring-1 ring-white/15 backdrop-blur">
-                  <p className="text-lg sm:text-xl font-bold text-lime-300">24/7</p>
-                  <p className="text-[11px] sm:text-xs text-green-100/80 leading-tight">Live IoT Telemetry</p>
+                <div className="rounded-xl border border-slate-800 bg-slate-900/70 p-3">
+                  <p className="text-[10px] text-slate-500 uppercase tracking-wider font-sans">Watchdog Timer</p>
+                  <p className="text-sm font-bold text-emerald-400 mt-0.5">35s Auto-Zero</p>
+                  <p className="text-[11px] text-slate-400 font-sans mt-0.5">Failsafe Shutdown</p>
                 </div>
-                <div className="rounded-xl bg-white/10 p-2.5 sm:p-3 ring-1 ring-white/15 backdrop-blur">
-                  <p className="text-base sm:text-xl font-bold text-lime-300 truncate">Multilingual</p>
-                  <p className="text-[11px] sm:text-xs text-green-100/80 leading-tight">Urdu, Sindhi &amp; English AI</p>
+                <div className="rounded-xl border border-slate-800 bg-slate-900/70 p-3">
+                  <p className="text-[10px] text-slate-500 uppercase tracking-wider font-sans">Agri Languages</p>
+                  <p className="text-sm font-bold text-emerald-400 mt-0.5">Urdu &amp; Sindhi</p>
+                  <p className="text-[11px] text-slate-400 font-sans mt-0.5">Local Diagnostics</p>
                 </div>
-                <div className="rounded-xl bg-white/10 p-2.5 sm:p-3 ring-1 ring-white/15 backdrop-blur">
-                  <p className="text-lg sm:text-xl font-bold text-lime-300">0% Fee</p>
-                  <p className="text-[11px] sm:text-xs text-green-100/80 leading-tight">Direct Seller Store</p>
+                <div className="rounded-xl border border-slate-800 bg-slate-900/70 p-3">
+                  <p className="text-[10px] text-slate-500 uppercase tracking-wider font-sans">Market Comm.</p>
+                  <p className="text-sm font-bold text-emerald-400 mt-0.5">0% Middleman</p>
+                  <p className="text-[11px] text-slate-400 font-sans mt-0.5">Direct Arhti Bypass</p>
                 </div>
               </div>
             </div>
 
-            {/* Right Interactive Telemetry Preview */}
+            {/* Right Interactive Telemetry Console Card */}
             <div className="lg:col-span-5">
-              <div className="relative rounded-2xl sm:rounded-3xl bg-white/10 p-4 sm:p-6 ring-1 ring-white/20 backdrop-blur-xl shadow-2xl space-y-3.5 sm:space-y-4">
-                <div className="flex items-center justify-between border-b border-white/15 pb-3">
+              <div className="rounded-2xl border border-slate-800 bg-slate-900/90 shadow-2xl p-5 space-y-4">
+                {/* Node Status Header */}
+                <div className="flex items-center justify-between border-b border-slate-800 pb-3">
                   <div className="flex items-center gap-2">
-                    <div className="h-2.5 w-2.5 rounded-full bg-emerald-400 animate-ping" />
-                    <span className="text-xs sm:text-sm font-bold tracking-wide">Live Sensor Telemetry</span>
+                    <span className={`h-2.5 w-2.5 rounded-full ${isHardwareLive ? 'bg-emerald-400 animate-ping' : 'bg-slate-500'}`} />
+                    <span className="text-xs font-mono font-bold text-white tracking-wide">
+                      {isHardwareLive ? 'FIELD NODE ONLINE' : 'FIELD NODE OFFLINE'}
+                    </span>
                   </div>
-                  <span className="rounded-full bg-white/15 px-2 sm:px-2.5 py-0.5 text-[10px] sm:text-[11px] font-semibold text-lime-300">
-                    Active Node: Sindh Field 01
+                  <span className={`rounded px-2 py-0.5 text-[11px] font-mono font-semibold ${
+                    isHardwareLive ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' : 'bg-slate-800 text-slate-400 border border-slate-700'
+                  }`}>
+                    {isHardwareLive ? 'STREAMING PACKETS' : '0.0 IDLE STATE'}
                   </span>
                 </div>
 
-                {/* 4 Sensor Cards */}
-                <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
-                  <div className="rounded-xl bg-black/20 p-2.5 sm:p-3.5 ring-1 ring-white/10">
-                    <div className="flex items-center justify-between text-[11px] sm:text-xs text-green-200">
+                {/* 4 Real Sensor Channels Grid */}
+                <div className="grid grid-cols-2 gap-2.5">
+                  {/* Channel 1: Soil Moisture */}
+                  <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-3">
+                    <div className="flex items-center justify-between text-[11px] text-slate-400">
                       <span>Soil Moisture</span>
-                      <Droplets className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-emerald-400 shrink-0" />
+                      <Droplets className="h-3.5 w-3.5 text-emerald-400" />
                     </div>
-                    <p className="mt-1 text-xl sm:text-2xl font-black text-white">58.5%</p>
-                    <p className="text-[10px] sm:text-[11px] text-emerald-300 font-medium truncate">Optimal root-zone</p>
+                    <div className="mt-1 flex items-baseline gap-1">
+                      <span className="text-2xl font-black text-white font-mono">
+                        {isHardwareLive ? Number(readings.soilMoisture || 0).toFixed(1) : '0.0'}
+                      </span>
+                      <span className="text-xs text-slate-400 font-mono">%</span>
+                    </div>
+                    <div className="mt-1 flex items-center justify-between text-[10px] text-slate-500 font-mono">
+                      <span>GPIO 34 ADC1</span>
+                      <span className={isHardwareLive ? 'text-emerald-400' : 'text-slate-600'}>
+                        {isHardwareLive ? `${readings.soilRaw || 0} RAW` : '0 RAW'}
+                      </span>
+                    </div>
                   </div>
 
-                  <div className="rounded-xl bg-black/20 p-2.5 sm:p-3.5 ring-1 ring-white/10">
-                    <div className="flex items-center justify-between text-[11px] sm:text-xs text-green-200">
-                      <span>Temperature</span>
-                      <Thermometer className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-amber-400 shrink-0" />
+                  {/* Channel 2: Ambient Temp */}
+                  <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-3">
+                    <div className="flex items-center justify-between text-[11px] text-slate-400">
+                      <span>Field Temp</span>
+                      <Thermometer className="h-3.5 w-3.5 text-amber-400" />
                     </div>
-                    <p className="mt-1 text-xl sm:text-2xl font-black text-white">26.4°C</p>
-                    <p className="text-[10px] sm:text-[11px] text-amber-300 font-medium truncate">Warm &amp; Sunny</p>
+                    <div className="mt-1 flex items-baseline gap-1">
+                      <span className="text-2xl font-black text-white font-mono">
+                        {isHardwareLive ? Number(readings.temperature || 0).toFixed(1) : '0.0'}
+                      </span>
+                      <span className="text-xs text-slate-400 font-mono">°C</span>
+                    </div>
+                    <div className="mt-1 flex items-center justify-between text-[10px] text-slate-500 font-mono">
+                      <span>GPIO 4 DHT22</span>
+                      <span className={isHardwareLive ? 'text-amber-400' : 'text-slate-600'}>
+                        {isHardwareLive ? 'NORMAL' : 'OFFLINE'}
+                      </span>
+                    </div>
                   </div>
 
-                  <div className="rounded-xl bg-black/20 p-2.5 sm:p-3.5 ring-1 ring-white/10">
-                    <div className="flex items-center justify-between text-[11px] sm:text-xs text-green-200">
+                  {/* Channel 3: Relative Humidity */}
+                  <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-3">
+                    <div className="flex items-center justify-between text-[11px] text-slate-400">
                       <span>Air Humidity</span>
-                      <Wind className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-sky-400 shrink-0" />
+                      <Wind className="h-3.5 w-3.5 text-sky-400" />
                     </div>
-                    <p className="mt-1 text-xl sm:text-2xl font-black text-white">62.0%</p>
-                    <p className="text-[10px] sm:text-[11px] text-sky-300 font-medium truncate">Normal transpiration</p>
+                    <div className="mt-1 flex items-baseline gap-1">
+                      <span className="text-2xl font-black text-white font-mono">
+                        {isHardwareLive ? Number(readings.humidity || 0).toFixed(1) : '0.0'}
+                      </span>
+                      <span className="text-xs text-slate-400 font-mono">%</span>
+                    </div>
+                    <div className="mt-1 flex items-center justify-between text-[10px] text-slate-500 font-mono">
+                      <span>GPIO 4 Digital</span>
+                      <span className={isHardwareLive ? 'text-sky-400' : 'text-slate-600'}>
+                        {isHardwareLive ? 'NORMAL' : 'OFFLINE'}
+                      </span>
+                    </div>
                   </div>
 
-                  <div className="rounded-xl bg-black/20 p-2.5 sm:p-3.5 ring-1 ring-white/10">
-                    <div className="flex items-center justify-between text-[11px] sm:text-xs text-green-200">
-                      <span>Water Tank</span>
-                      <Layers className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-indigo-400 shrink-0" />
+                  {/* Channel 4: Rainfall / Water Reservoir */}
+                  <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-3">
+                    <div className="flex items-center justify-between text-[11px] text-slate-400">
+                      <span>Rain Level</span>
+                      <CloudSun className="h-3.5 w-3.5 text-indigo-400" />
                     </div>
-                    <p className="mt-1 text-xl sm:text-2xl font-black text-white">85.0%</p>
-                    <p className="text-[10px] sm:text-[11px] text-indigo-300 font-medium truncate">Pumps Ready</p>
+                    <div className="mt-1 flex items-baseline gap-1">
+                      <span className="text-2xl font-black text-white font-mono">
+                        {isHardwareLive ? Number(readings.rainfall || 0).toFixed(1) : '0.0'}
+                      </span>
+                      <span className="text-xs text-slate-400 font-mono">%</span>
+                    </div>
+                    <div className="mt-1 flex items-center justify-between text-[10px] text-slate-500 font-mono">
+                      <span>GPIO 35 ADC1</span>
+                      <span className={isHardwareLive ? 'text-indigo-400' : 'text-slate-600'}>
+                        {isHardwareLive ? (readings.rainfall > 0 ? 'WET' : 'DRY') : 'OFFLINE'}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
-                {/* Drip Irrigation Status */}
-                <div className="rounded-xl bg-emerald-950/40 p-3.5 ring-1 ring-emerald-500/30 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="h-8 w-8 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-300">
-                      <Droplets className="h-4 w-4" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-bold text-white">Zone 1 Auto-Irrigation</p>
-                      <p className="text-[11px] text-emerald-300">Automated AI scheduling enabled</p>
-                    </div>
+                {/* Actuator & Safety Interlock Status */}
+                <div className="rounded-xl border border-slate-800 bg-slate-950/80 p-3 space-y-2 font-mono text-xs">
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-400">Zone 1 Solenoid Valve:</span>
+                    <span className={`font-semibold ${isHardwareLive ? 'text-emerald-400' : 'text-slate-500'}`}>
+                      {isHardwareLive ? 'STANDBY / AUTOMATIC' : 'INTERLOCKED (CLOSED)'}
+                    </span>
                   </div>
-                  <span className="rounded-full bg-emerald-500/30 px-2.5 py-1 text-[11px] font-bold text-emerald-300">
-                    RUNNING
-                  </span>
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-400">Submersible Pump Relay:</span>
+                    <span className={`font-semibold ${isHardwareLive ? 'text-emerald-400' : 'text-slate-500'}`}>
+                      {isHardwareLive ? 'READY (AUTO-CUTOFF)' : 'ISOLATED (SAFE)'}
+                    </span>
+                  </div>
                 </div>
 
-                <button
-                  onClick={() =>
-                    handleFeatureAccess(
-                      '/dashboard',
-                      'Full IoT Dashboard',
-                      'Sign in to monitor live sensors and control automated irrigation switches.'
-                    )
-                  }
-                  className="w-full rounded-xl bg-white/20 py-2.5 text-center text-xs font-bold text-white hover:bg-white/30 transition-colors flex items-center justify-center gap-2"
-                >
-                  <span>Open Complete IoT Farm Console</span>
-                  <ArrowRight className="h-3.5 w-3.5" />
-                </button>
+                {/* Interactive Demo Test Ping Button */}
+                <div className="space-y-2 pt-1">
+                  <button
+                    onClick={handleHeroTestPing}
+                    disabled={testingPing}
+                    className="w-full rounded-xl border border-emerald-600/40 bg-emerald-950/60 hover:bg-emerald-900/60 py-2.5 text-center text-xs font-mono font-semibold text-emerald-300 transition-colors flex items-center justify-center gap-2 disabled:opacity-60"
+                  >
+                    {testingPing ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin text-emerald-400" />
+                    ) : (
+                      <Radio className="h-3.5 w-3.5 text-emerald-400" />
+                    )}
+                    <span>{testingPing ? 'Broadcasting Test Packet...' : 'Simulate Hardware Packet (Test Ping)'}</span>
+                  </button>
+
+                  <button
+                    onClick={() =>
+                      handleFeatureAccess(
+                        '/dashboard',
+                        'Full IoT Dashboard',
+                        'Sign in to monitor live sensors and control automated irrigation switches.'
+                      )
+                    }
+                    className="w-full rounded-xl bg-slate-800 hover:bg-slate-700 py-2.5 text-center text-xs font-semibold text-slate-200 transition-colors flex items-center justify-center gap-2"
+                  >
+                    <span>Open Complete IoT Farm Console</span>
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -1171,50 +1268,61 @@ export default function LandingPage() {
       </section>
 
       {/* =========================================================
-          PROJECT FEATURES & CAPABILITIES SHOWCASE
+          SYSTEM ARCHITECTURE & TECHNICAL CAPABILITIES
       ========================================================= */}
-      <section className="bg-slate-100/70 border-y border-slate-200 py-16 sm:py-24">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-16">
+      <section className="bg-slate-50 border-y border-slate-200/80 py-16 sm:py-24">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-14">
           <div className="text-center max-w-3xl mx-auto space-y-3">
-            <span className="rounded-full bg-green-100 px-3.5 py-1 text-xs font-bold text-green-800">
-              Smart Ecosystem
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-3.5 py-1 text-xs font-mono font-bold text-emerald-800">
+              <Cpu className="h-3.5 w-3.5" />
+              <span>TECHNICAL ARCHITECTURE &amp; HARDWARE MODULES</span>
             </span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
-              Key Features &amp; Platform Capabilities
+            <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
+              Engineered for Pakistan&apos;s Agricultural Reality
             </h2>
-            <p className="text-sm sm:text-base text-slate-600">
-              Empowering farmers with modern agricultural technology. Every module is purpose-built to maximize crop yield, conserve resources, and boost profitability.
+            <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
+              Designed from the ground up to solve tubewell load shedding, water-table depletion in the Indus Basin, and unmonitored crop pest outbreaks without intermediary middleman exploitation.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Feature 1: IoT Smart Farming */}
-            <div className="rounded-3xl bg-white p-7 border border-slate-200 shadow-sm hover:shadow-xl transition-all flex flex-col justify-between space-y-6">
+            {/* Feature 1: Edge IoT & Actuation */}
+            <div className="rounded-2xl bg-white p-7 border border-slate-200/90 shadow-sm hover:shadow-lg transition-all flex flex-col justify-between space-y-6">
               <div className="space-y-4">
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 ring-1 ring-emerald-200">
-                  <Radio className="h-7 w-7" />
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200">
+                  <Radio className="h-6 w-6" />
                 </div>
-                <div className="inline-block rounded-full bg-emerald-100/60 px-3 py-1 text-[11px] font-bold text-emerald-800">
-                  Hardware &amp; Telemetry
+                <div className="inline-block rounded-md bg-emerald-50 px-2.5 py-0.5 text-[11px] font-mono font-semibold text-emerald-800 border border-emerald-200">
+                  Physical Layer · ESP32-WROOM
                 </div>
                 <h3 className="text-xl font-bold text-slate-900">
-                  1. IoT Precision Farm Monitoring
+                  1. Edge Telemetry &amp; Valve Actuation
                 </h3>
-                <p className="text-sm text-slate-600 leading-relaxed">
-                  Real-time monitoring of root-zone soil moisture, temperature, humidity, and automated drip irrigation. Save up to 40% water while maintaining peak crop health.
+                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                  Precision root-zone capacitive moisture sensing with galvanic corrosion immunity. Controls 220V AC tubewell starters and 12V solenoid valves with automated failsafe interlocks.
                 </p>
-                <ul className="text-xs text-slate-600 space-y-2 pt-2">
+                <div className="rounded-xl bg-slate-50 p-3.5 border border-slate-200 font-mono text-xs space-y-1.5 text-slate-700">
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Soil Sensor:</span>
+                    <span className="font-semibold text-slate-900">Capacitive v1.2 (ADC1_CH6)</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Relay Module:</span>
+                    <span className="font-semibold text-slate-900">Optocoupled 5V Dual Channel</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Watchdog Timer:</span>
+                    <span className="font-semibold text-emerald-700">35s Auto-Zero Safety Cutoff</span>
+                  </div>
+                </div>
+                <ul className="text-xs text-slate-600 space-y-2 pt-1 font-sans">
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-                    <span>Real-time ESP32 / Arduino sensor feeds</span>
+                    <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+                    <span>Real-time ADC calibration prevents over-irrigation</span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-                    <span>Automated irrigation pump controls &amp; alerts</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-                    <span>Historical trend analytics &amp; moisture telemetry</span>
+                    <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+                    <span>Zero readings strictly enforced during hardware offline state</span>
                   </li>
                 </ul>
               </div>
@@ -1227,42 +1335,42 @@ export default function LandingPage() {
                     'Sign in to access field sensor telemetry and automated irrigation controls.'
                   )
                 }
-                className="w-full rounded-xl bg-emerald-600 py-3 text-sm font-bold text-white shadow-md shadow-emerald-600/20 hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2"
+                className="w-full rounded-xl bg-slate-900 py-3 text-xs font-bold text-white hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2"
               >
-                <span>Launch IoT Dashboard</span>
-                <ArrowRight className="h-4 w-4" />
+                <span>Launch IoT Farm Console</span>
+                <ArrowRight className="h-3.5 w-3.5" />
               </button>
             </div>
 
-            {/* Feature 2: Multilingual AI Crop Doctor */}
-            <div className="rounded-3xl bg-white p-7 border border-slate-200 shadow-sm hover:shadow-xl transition-all flex flex-col justify-between space-y-6">
+            {/* Feature 2: Trilingual AI Agronomic Intelligence */}
+            <div className="rounded-2xl bg-white p-7 border border-slate-200/90 shadow-sm hover:shadow-lg transition-all flex flex-col justify-between space-y-6">
               <div className="space-y-4">
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600 ring-1 ring-indigo-200">
-                  <MessageCircle className="h-7 w-7" />
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-50 text-indigo-700 ring-1 ring-indigo-200">
+                  <MessageCircle className="h-6 w-6" />
                 </div>
-                <div className="inline-block rounded-full bg-indigo-100/60 px-3 py-1 text-[11px] font-bold text-indigo-800">
-                  Generative AI Advisor
+                <div className="inline-block rounded-md bg-indigo-50 px-2.5 py-0.5 text-[11px] font-mono font-semibold text-indigo-800 border border-indigo-200">
+                  Advisory Layer · En / Ur / Sd
                 </div>
                 <h3 className="text-xl font-bold text-slate-900">
-                  2. Multilingual AI Crop Doctor
+                  2. Trilingual Agronomic Intelligence
                 </h3>
-                <p className="text-sm text-slate-600 leading-relaxed">
-                  Get instant expert advisory on crop diseases, pest management, and fertilizer schedules in English, Urdu, and Sindhi.
+                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                  Real-time crop disease diagnosis and soil nutrient scheduling in English, Urdu (اردو), and Sindhi (سنڌي), grounded directly in live root-zone telemetry.
                 </p>
-                <div className="rounded-xl bg-indigo-50/50 p-3 border border-indigo-100 space-y-2">
-                  <p className="text-[11px] font-bold text-indigo-900">Sample AI Inquiries (English, Urdu &amp; Sindhi):</p>
-                  <p className="text-xs text-indigo-800 italic">&ldquo;How much irrigation does wheat need this week?&rdquo;</p>
-                  <p className="text-xs text-indigo-800 italic">&ldquo;گندم کے لیے اس ہفتے کتنا پانی درکار ہے؟&rdquo;</p>
-                  <p className="text-xs text-indigo-800 italic">&ldquo;ڪڻڪ ۽ ڦٽي لاءِ پهرين پاڻي تي ڪهڙو ڀاڻ وجهجي؟&rdquo;</p>
+                <div className="rounded-xl bg-indigo-50/60 p-3.5 border border-indigo-100 space-y-2 text-xs">
+                  <p className="font-bold text-indigo-950 font-mono text-[11px]">Pakistani Crop Diagnostics:</p>
+                  <p className="text-indigo-900 italic font-serif">&ldquo;گندم میں زنگ اور پانی کی ضرورت کا معائنہ&rdquo;</p>
+                  <p className="text-indigo-900 italic font-serif">&ldquo;ڪڻڪ ۽ ڪپهه جي ڦٽين ۾ جيتن جي روڪٿام&rdquo;</p>
+                  <p className="text-slate-600 text-[11px]">Covers Wheat Rust, Cotton Pink Bollworm &amp; Rice Blast.</p>
                 </div>
-                <ul className="text-xs text-slate-600 space-y-2">
+                <ul className="text-xs text-slate-600 space-y-2 pt-1 font-sans">
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-indigo-600" />
-                    <span>Multilingual voice &amp; text understanding</span>
+                    <CheckCircle2 className="h-4 w-4 text-indigo-600 shrink-0" />
+                    <span>Telemetry-aware: checks soil moisture before recommending watering</span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-indigo-600" />
-                    <span>Grounded in real-time IoT sensor telemetry</span>
+                    <CheckCircle2 className="h-4 w-4 text-indigo-600 shrink-0" />
+                    <span>Native Nastaliq and Sindhi script conversational support</span>
                   </li>
                 </ul>
               </div>
@@ -1275,40 +1383,50 @@ export default function LandingPage() {
                     'Sign in to consult the AI Crop Doctor.'
                   )
                 }
-                className="w-full rounded-xl bg-indigo-600 py-3 text-sm font-bold text-white shadow-md shadow-indigo-600/20 hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2"
+                className="w-full rounded-xl bg-indigo-700 py-3 text-xs font-bold text-white hover:bg-indigo-800 transition-colors flex items-center justify-center gap-2"
               >
                 <span>Consult AI Crop Doctor</span>
-                <ArrowRight className="h-4 w-4" />
+                <ArrowRight className="h-3.5 w-3.5" />
               </button>
             </div>
 
-            {/* Feature 3: Become a Seller & Store */}
-            <div className="rounded-3xl bg-white p-7 border border-slate-200 shadow-sm hover:shadow-xl transition-all flex flex-col justify-between space-y-6">
+            {/* Feature 3: Direct Trade & Local Payments */}
+            <div className="rounded-2xl bg-white p-7 border border-slate-200/90 shadow-sm hover:shadow-lg transition-all flex flex-col justify-between space-y-6">
               <div className="space-y-4">
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-50 text-amber-600 ring-1 ring-amber-200">
-                  <Store className="h-7 w-7" />
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-amber-50 text-amber-700 ring-1 ring-amber-200">
+                  <Store className="h-6 w-6" />
                 </div>
-                <div className="inline-block rounded-full bg-amber-100/60 px-3 py-1 text-[11px] font-bold text-amber-800">
-                  Farmer Storefront
+                <div className="inline-block rounded-md bg-amber-50 px-2.5 py-0.5 text-[11px] font-mono font-semibold text-amber-800 border border-amber-200">
+                  Commerce Layer · 0% Arhti Fee
                 </div>
                 <h3 className="text-xl font-bold text-slate-900">
-                  3. Become a Seller &amp; Run Store
+                  3. Disintermediated Direct Marketplace
                 </h3>
-                <p className="text-sm text-slate-600 leading-relaxed">
-                  Launch your official farm storefront. Configure store branding, payment payout accounts (Bank, EasyPaisa, JazzCash), and sell products directly nationwide.
+                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                  Direct farmer-to-buyer transactions eliminating commission agents. Verified seed lots, certified fertilizer batches, and integrated Pakistani payment clearing.
                 </p>
-                <ul className="text-xs text-slate-600 space-y-2 pt-2">
+                <div className="rounded-xl bg-slate-50 p-3.5 border border-slate-200 font-mono text-xs space-y-1.5 text-slate-700">
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Payment Rails:</span>
+                    <span className="font-semibold text-slate-900">JazzCash, EasyPaisa, Raast</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Platform Fee:</span>
+                    <span className="font-semibold text-emerald-700">0% Commission to Sellers</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Verification:</span>
+                    <span className="font-semibold text-slate-900">FSC&amp;RD Certified Batches</span>
+                  </div>
+                </div>
+                <ul className="text-xs text-slate-600 space-y-2 pt-1 font-sans">
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-amber-600" />
-                    <span>Add, update, delete products &amp; inventory control</span>
+                    <CheckCircle2 className="h-4 w-4 text-amber-600 shrink-0" />
+                    <span>Upload payment screenshot or pay with Cash on Delivery</span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-amber-600" />
-                    <span>Custom store logo &amp; shop branding</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-amber-600" />
-                    <span>Direct payouts to JazzCash, EasyPaisa &amp; Bank</span>
+                    <CheckCircle2 className="h-4 w-4 text-amber-600 shrink-0" />
+                    <span>Real-time stock management and seller payout ledger</span>
                   </li>
                 </ul>
               </div>
@@ -1321,7 +1439,7 @@ export default function LandingPage() {
                     'Sign in to create and manage your seller storefront.'
                   )
                 }
-                className="w-full rounded-xl bg-amber-600 py-3 text-sm font-bold text-white shadow-md shadow-amber-600/20 hover:bg-amber-700 transition-colors flex items-center justify-center gap-2"
+                className="w-full rounded-xl bg-slate-900 py-3 text-xs font-bold text-white hover:bg-amber-700 transition-colors flex items-center justify-center gap-2"
               >
                 <span>Open Seller Center</span>
                 <ArrowRight className="h-4 w-4" />
@@ -1332,45 +1450,46 @@ export default function LandingPage() {
       </section>
 
       {/* =========================================================
-          ABOUT US SECTION
+          ABOUT US SECTION - Grounded in University FYP Engineering
       ========================================================= */}
       <section id="about" className="py-16 sm:py-24 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div className="space-y-6">
-            <span className="rounded-full bg-green-100 px-3.5 py-1 text-xs font-bold text-green-800">
-              About SmartKisan
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-3.5 py-1 text-xs font-mono font-bold text-emerald-800">
+              <Sprout className="h-3.5 w-3.5" />
+              <span>PROJECT BACKGROUND &amp; FIELD RESEARCH</span>
             </span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">
-              Modern Agricultural Revolution: A Complete Platform for Farmers
+            <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight leading-tight">
+              Tackling Canal Water Scarcity &amp; Input Costs in the Indus Basin
             </h2>
             <p className="text-slate-600 leading-relaxed text-sm sm:text-base">
-              SmartKisan is an end-to-end platform engineered for farmers and agricultural producers across Pakistan. We transform traditional agriculture into a data-driven, high-yield enterprise through IoT edge telemetry, intelligent advisory, and a commission-free direct marketplace.
+              Developed as an applied engineering Final Year Project (FYP), SmartKisan addresses critical challenges faced by smallholder farmers across Sindh and Punjab: rotational canal water rationing (Warabandi), soaring tubewell electricity and diesel tariffs, and unfair market pricing driven by middlemen (arhtis).
             </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-              <div className="rounded-2xl border border-slate-200 bg-white p-4">
-                <ShieldCheck className="h-8 w-8 text-green-600 mb-2" />
-                <h4 className="font-bold text-slate-900 text-sm">Direct Marketplace</h4>
-                <p className="text-xs text-slate-500 mt-1">Eliminating middleman exploitation and hidden commissions.</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 font-sans">
+              <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                <ShieldCheck className="h-7 w-7 text-emerald-600 mb-2" />
+                <h4 className="font-bold text-slate-900 text-sm">Direct Mandi Disintermediation</h4>
+                <p className="text-xs text-slate-500 mt-1">Saves farmers an estimated 8-12% commission by connecting certified suppliers and growers directly.</p>
               </div>
-              <div className="rounded-2xl border border-slate-200 bg-white p-4">
-                <Cpu className="h-8 w-8 text-emerald-600 mb-2" />
-                <h4 className="font-bold text-slate-900 text-sm">IoT Telemetry</h4>
-                <p className="text-xs text-slate-500 mt-1">Applying water and nutrients precisely when your crops need them.</p>
+              <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                <Cpu className="h-7 w-7 text-slate-800 mb-2" />
+                <h4 className="font-bold text-slate-900 text-sm">Closed-Loop Precision Irrigation</h4>
+                <p className="text-xs text-slate-500 mt-1">Stops over-watering by triggering solenoid valves solely when root-zone capacitive moisture falls below calibrated thresholds.</p>
               </div>
             </div>
           </div>
 
-          <div className="relative rounded-3xl overflow-hidden shadow-2xl border border-slate-200">
+          <div className="relative rounded-2xl overflow-hidden shadow-xl border border-slate-200">
             <img
               src="https://images.unsplash.com/photo-1592982537447-7440770cbfc9?w=900"
-              alt="Pakistani Agriculture"
-              className="w-full h-[240px] sm:h-[380px] object-cover"
+              alt="Pakistani Agriculture and Irrigation"
+              className="w-full h-[260px] sm:h-[400px] object-cover"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent flex items-end p-5 sm:p-8">
-              <div className="text-white">
-                <p className="text-xs font-bold uppercase tracking-wider text-lime-300">Sindh Agri Corridor</p>
-                <h3 className="text-xl font-bold mt-1">Hyderabad &amp; Tando Jam Agri Hub</h3>
-                <p className="text-xs text-slate-200 mt-1">Empowering 50,000+ acres with sustainable smart irrigation.</p>
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/20 to-transparent flex items-end p-6">
+              <div className="text-white space-y-1">
+                <p className="text-[11px] font-mono font-semibold uppercase tracking-wider text-emerald-400">Indus Basin Agri Corridor</p>
+                <h3 className="text-lg font-bold">Sindh &amp; Punjab Agro-Climatic Pilot</h3>
+                <p className="text-xs text-slate-300">Calibrated for cotton, basmati rice, sugarcane, and high-yield wheat cultivars.</p>
               </div>
             </div>
           </div>
