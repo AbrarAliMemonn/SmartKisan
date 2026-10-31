@@ -381,13 +381,13 @@ let isHardwareLive = false;
 let lastHardwarePing = null;
 
 const sensorReadings = {
-  soilMoisture: 58.5,
-  temperature: 26.4,
-  humidity: 62.0,
-  lightIntensity: 45000,
+  soilMoisture: 0,
+  temperature: 0,
+  humidity: 0,
+  lightIntensity: 0,
   rainfall: 0,
-  waterLevel: 85.0,
-  pressure: 1013.2,
+  waterLevel: 0,
+  pressure: 0,
 };
 
 const history = {
@@ -973,7 +973,7 @@ function getOrCreateUserDevice(user) {
   return dev;
 }
 
-// Multi-tenant background simulation & watchdog loop
+// Multi-tenant background watchdog loop (strictly NO fake AI simulation)
 setInterval(() => {
   const now = Date.now();
   for (const dev of iotDevices) {
@@ -982,25 +982,38 @@ setInterval(() => {
       if (diff > 35000) {
         dev.isHardwareLive = false;
         dev.status = 'OFFLINE';
-        console.log(`[IoT Service] Device ${dev.deviceId} (Farmer #${dev.userId}) offline (no hardware telemetry in 35s).`);
+        console.log(`[IoT Service] Device ${dev.deviceId} (Farmer #${dev.userId}) offline (no hardware telemetry in 35s). Zeroing channels.`);
+        // Zero out readings when offline so dashboard reflects real hardware state
+        dev.currentReadings = {
+          soilMoisture: 0,
+          soilRaw: 0,
+          temperature: 0,
+          humidity: 0,
+          lightIntensity: 0,
+          rainfall: 0,
+          rainRaw: 0,
+          rainDetected: false,
+          waterLevel: 0,
+          waterRaw: 0,
+          pressure: 0,
+        };
       }
     }
 
     if (!dev.isHardwareLive) {
+      // Offline: Keep strictly at 0 (no simulated / fake AI jitter)
       const cr = dev.currentReadings;
-      cr.soilMoisture = Math.max(10, Math.min(95, +(cr.soilMoisture + (Math.random() - 0.5) * 0.4).toFixed(1)));
-      cr.temperature = Math.max(10, Math.min(48, +(cr.temperature + (Math.random() - 0.5) * 0.2).toFixed(1)));
-      cr.humidity = Math.max(20, Math.min(99, +(cr.humidity + (Math.random() - 0.5) * 0.5).toFixed(1)));
-      cr.lightIntensity = Math.max(0, Math.min(95000, Math.round(cr.lightIntensity + (Math.random() - 0.5) * 200)));
-      cr.waterLevel = Math.max(5, Math.min(100, +(cr.waterLevel + (Math.random() - 0.5) * 0.1).toFixed(1)));
-      cr.pressure = Math.max(970, Math.min(1040, +(cr.pressure + (Math.random() - 0.5) * 0.1).toFixed(1)));
-
-      const nowStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      Object.keys(cr).forEach((k) => {
-        if (!dev.history[k]) dev.history[k] = [];
-        dev.history[k].push({ time: nowStr, value: cr[k] });
-        if (dev.history[k].length > 30) dev.history[k].shift();
-      });
+      cr.soilMoisture = 0;
+      cr.soilRaw = 0;
+      cr.temperature = 0;
+      cr.humidity = 0;
+      cr.lightIntensity = 0;
+      cr.rainfall = 0;
+      cr.rainRaw = 0;
+      cr.rainDetected = false;
+      cr.waterLevel = 0;
+      cr.waterRaw = 0;
+      cr.pressure = 0;
     }
   }
 

@@ -1,31 +1,19 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { sensorDefinitions } from '../utils/constants'
 import { useWebSocket } from './useWebSocket'
 import useStore from '../store/useStore'
 import { iotAPI } from '../services/api'
 
-const HISTORY_LENGTH = 24
-
-const seedValue = (sensor) => {
-  const mid = (sensor.thresholds.low + sensor.thresholds.high) / 2
-  return Math.round(mid * 100) / 100
-}
-
-const jitter = (value, sensor) => {
-  const range = (sensor.max - sensor.min) * 0.03
-  let next = value + (Math.random() - 0.5) * range
-  next = Math.max(sensor.min, Math.min(sensor.max, next))
-  return Math.round(next * 100) / 100
-}
+const HISTORY_LENGTH = 30
 
 const legacyFieldMap = {
   soilMoisture: 'moisture',
 }
 
 /**
- * Provides current readings + rolling history for all sensors.
- * Fetches from iot-service backend (/api/iot/sensors) and prefers real hardware data.
- * Falls back to realistic simulated dummy data if hardware is not yet attached.
+ * Real-time Hardware Telemetry Hook
+ * Reads live telemetry from physical ESP32 via Azure backend.
+ * When hardware is offline, all readings strictly default to 0 (no fake AI jitter).
  */
 export function useSensorFeed() {
   const { sensorData, updateSensorData } = useStore()
@@ -33,9 +21,10 @@ export function useSensorFeed() {
   const [isHardwareLive, setIsHardwareLive] = useState(false)
   const [deviceInfo, setDeviceInfo] = useState(null)
 
+  // Initialize all sensor channels to 0 (Offline State)
   const [readings, setReadings] = useState(() => {
     const init = {}
-    sensorDefinitions.forEach((s) => { init[s.id] = seedValue(s) })
+    sensorDefinitions.forEach((s) => { init[s.id] = 0 })
     return init
   })
 
@@ -52,14 +41,15 @@ export function useSensorFeed() {
       const data = res?.data || {}
       if (data.readings) {
         updateSensorData(data.readings)
-        setIsHardwareLive(!!data.isHardwareLive)
+        const live = Boolean(data.isHardwareLive)
+        setIsHardwareLive(live)
         setDeviceInfo({
-          deviceId: data.deviceId || 'ESP32_FIELD_NODE',
-          deviceName: data.deviceName || 'Field Sensor Node',
+          deviceId: data.deviceId || 'ESP32_FARM_1',
+          deviceName: data.deviceName || "Abrar's Main Field Node",
           deviceKey: data.deviceKey || '',
           farmerId: data.farmerId,
           farmerName: data.farmerName,
-          status: data.status || (data.isHardwareLive ? 'ONLINE' : 'OFFLINE'),
+          status: live ? 'ONLINE' : 'OFFLINE',
           lastHardwarePing: data.lastHardwarePing,
           mode: data.mode,
           zone1Pump: data.zone1Pump,
@@ -67,7 +57,7 @@ export function useSensorFeed() {
         })
       }
     } catch {
-      // Server offline - smooth client-side simulation takes over
+      setIsHardwareLive(false)
     }
   }
 
@@ -76,45 +66,57 @@ export function useSensorFeed() {
     fetchIoT()
     const timer = setInterval(() => {
       if (mounted) fetchIoT()
-    }, 3500)
+    }, 3000)
     return () => {
       mounted = false
       clearInterval(timer)
     }
   }, [updateSensorData])
 
+  // Sync readings with store / live hardware
   useEffect(() => {
-    const interval = setInterval(() => {
-      setReadings((prev) => {
-        const next = { ...prev }
-        sensorDefinitions.forEach((sensor) => {
-          const backendValue = sensorData?.[sensor.id] ?? sensorData?.[legacyFieldMap[sensor.id]]
-          if (backendValue !== undefined && backendValue !== null) {
-            // When real hardware is sending data, use real data directly
-            next[sensor.id] = isHardwareLive ? backendValue : jitter(backendValue, sensor)
-          } else {
-            next[sensor.id] = jitter(prev[sensor.id], sensor)
-          }
-        })
-        return next
-      })
-    }, 3000)
-    return () => clearInterval(interval)
-  }, [sensorData, isHardwareLive])
-
-  useEffect(() => {
-    setHistory((prev) => {
+    setReadings(() => {
       const next = {}
       sensorDefinitions.forEach((sensor) => {
+        if (!isHardwareLive) {
+          // Hardware offline: strictly 0
+          next[sensor.id] = 0
+        } else {
+          const backendValue = sensorData?.[sensor.id] ?? sensorData?.[legacyFieldMap[sensor.id]]
+          next[sensor.id] = (backendValue !== undefined && backendValue !== null)
+            ? Number(backendValue)
+            : 0
+        }
+      })
+      return next
+    })
+  }, [sensorData, isHardwareLive])
+
+  // Only append history when real hardware is actively streaming
+  useEffect(() => {
+    if (!isHardwareLive) {
+      setHistory(() => {
+        const reset = {}
+        sensorDefinitions.forEach((s) => { reset[s.id] = [] })
+        return reset
+      })
+      return
+    }
+
+    setHistory((prev) => {
+      const next = {}
+      const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+      sensorDefinitions.forEach((sensor) => {
+        const val = readings[sensor.id] || 0
         const arr = [...(prev[sensor.id] || []), {
-          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          value: readings[sensor.id]
+          time: timeStr,
+          value: val,
         }]
         next[sensor.id] = arr.slice(-HISTORY_LENGTH)
       })
       return next
     })
-  }, [readings])
+  }, [readings, isHardwareLive])
 
   return { readings, history, isConnected, isHardwareLive, deviceInfo, refetchSensors: fetchIoT }
 }
