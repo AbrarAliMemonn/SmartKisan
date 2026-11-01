@@ -40,8 +40,8 @@ export default async function handler(req, res) {
       port: 587,
       secure: false,
       auth: {
-        user: process.env.MAIL_USERNAME || 'm01012002809234@gmail.com',
-        pass: process.env.MAIL_PASSWORD || 'vvqtqfglovgljecn',
+        user: process.env.MAIL_USERNAME || 'smartagriculture076@gmail.com',
+        pass: process.env.MAIL_PASSWORD || 'rwngyxispdsecrvt',
       },
       connectionTimeout: 15000,
       greetingTimeout: 15000,
@@ -49,7 +49,7 @@ export default async function handler(req, res) {
     });
 
     const info = await transporter.sendMail({
-      from: `"SmartKisan" <${process.env.MAIL_USERNAME || 'm01012002809234@gmail.com'}>`,
+      from: `"SmartKisan" <${process.env.MAIL_USERNAME || 'smartagriculture076@gmail.com'}>`,
       to,
       subject,
       html,

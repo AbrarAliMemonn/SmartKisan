@@ -549,19 +549,19 @@ export default function LandingPage() {
         email,
         phone,
         message,
+        destEmail: 'abraralimemon23@gmail.com',
         timestamp: new Date().toISOString(),
       }
       const res = await contactAPI.submitInquiry(payload)
       if (res?.data?.success) {
-        toast.success(res.data.message || 'Thank you! Your message has been sent to the SmartKisan team.')
+        toast.success(res.data.message || 'Thank you! Your message has been sent to abraralimemon23@gmail.com.')
       } else {
-        toast.success('Thank you! Your inquiry has been received by the SmartKisan team.')
+        toast.success('Thank you! Your inquiry has been sent to abraralimemon23@gmail.com.')
       }
       setContactForm({ name: '', email: '', phone: '', message: '' })
     } catch (err) {
       console.error('Contact submit error:', err)
-      toast.success('Thank you! Your inquiry has been received by the SmartKisan team.')
-      setContactForm({ name: '', email: '', phone: '', message: '' })
+      toast.error('Could not send message. Please email directly to abraralimemon23@gmail.com')
     } finally {
       setContactSubmitting(false)
     }
@@ -1540,7 +1540,9 @@ export default function LandingPage() {
                   </div>
                   <div>
                     <p className="text-xs text-slate-400 font-semibold uppercase">Email Support</p>
-                    <p className="text-sm font-medium text-white">support@smartkisan.app</p>
+                    <a href="mailto:abraralimemon23@gmail.com" className="text-sm font-medium text-white hover:text-emerald-400 transition-colors">
+                      abraralimemon23@gmail.com
+                    </a>
                   </div>
                 </div>
               </div>

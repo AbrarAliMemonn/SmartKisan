@@ -298,18 +298,39 @@ export const iotAPI = {
 // =========================================================
 export const contactAPI = {
   submitInquiry: async (data) => {
+    // 1. Primary: Cloud API
     try {
       const response = await api.post('/contact', data);
-      return response;
+      if (response?.data?.success) return response;
     } catch (err) {
-      // Fallback to Vercel serverless function /api/contact
-      const response = await fetch('/api/contact', {
+      console.warn('[Contact Primary API Notice]:', err.message);
+    }
+
+    // 2. Direct Fallback to Azure Backend Endpoint
+    try {
+      const directRes = await fetch('https://smartkisan-api-c7adbxfpggg9c9ft.westus3-01.azurewebsites.net/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
-      const json = await response.json();
-      return { data: json };
+      const directJson = await directRes.json();
+      if (directJson?.success) return { data: directJson };
+    } catch (err) {
+      console.warn('[Contact Azure Direct Notice]:', err.message);
+    }
+
+    // 3. Fallback to Vercel Serverless Function
+    try {
+      const relayRes = await fetch('https://smart-kisan-two.vercel.app/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      const relayJson = await relayRes.json();
+      return { data: relayJson };
+    } catch (err) {
+      console.error('[Contact Relay Error]:', err.message);
+      throw err;
     }
   },
 };

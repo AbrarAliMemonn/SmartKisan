@@ -88,16 +88,16 @@ const nodemailer = require('nodemailer');
 const MAIL_USER = process.env.MAIL_USERNAME || 'smartagriculture076@gmail.com';
 const MAIL_PASS = process.env.MAIL_PASSWORD || 'rwngyxispdsecrvt';
 
-// Configure short socket timeouts so blocked cloud outbound SMTP never hangs server
+// Configure robust socket timeouts for cloud outbound SMTP
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
     user: MAIL_USER,
     pass: MAIL_PASS,
   },
-  connectionTimeout: 3000,
-  greetingTimeout: 3000,
-  socketTimeout: 3000,
+  connectionTimeout: 15000,
+  greetingTimeout: 15000,
+  socketTimeout: 15000,
 });
 
 const otps = new Map(); // key: email:PURPOSE, value: { otp, expiresAt }
@@ -358,18 +358,30 @@ async function sendContactMessageEmail({ name, email, phone, message, timestamp,
   `;
 
   try {
-    const viaHttps = await sendViaHttpsApi(targetEmail, subject, html);
-    if (viaHttps === true) return true;
+    // 1. Direct Gmail SMTP via Nodemailer
+    try {
+      const info = await transporter.sendMail({
+        from: `"SmartKisan Contact Form" <${MAIL_USER}>`,
+        replyTo: email,
+        to: targetEmail,
+        subject,
+        html,
+      });
+      console.log(`[Contact Form Direct SMTP] Successfully delivered inquiry to ${targetEmail}:`, info.messageId);
+      return true;
+    } catch (smtpErr) {
+      console.warn(`[Contact Form Direct SMTP Warning]: ${smtpErr.message}. Attempting HTTPS Relay fallback...`);
+    }
 
-    await transporter.sendMail({
-      from: `"SmartKisan Contact" <${MAIL_USER}>`,
-      replyTo: email,
-      to: targetEmail,
-      subject,
-      html,
-    });
-    console.log(`[Contact Form] Email delivered to ${targetEmail}`);
-    return true;
+    // 2. HTTPS Relay API Fallback (Port 443)
+    const viaHttps = await sendViaHttpsApi(targetEmail, subject, html);
+    if (viaHttps === true) {
+      console.log(`[Contact Form HTTPS Relay] Successfully delivered inquiry to ${targetEmail}`);
+      return true;
+    }
+
+    console.warn(`[Contact Form Notice] Both direct SMTP and relay attempts completed for ${targetEmail}`);
+    return false;
   } catch (err) {
     console.error(`[Contact Email Dispatch Error]:`, err.message);
     return false;
@@ -934,6 +946,8 @@ let iotDevices = (dbData && Array.isArray(dbData.iotDevices) && dbData.iotDevice
       },
     ];
 
+let inquiries = (dbData && Array.isArray(dbData.inquiries)) ? dbData.inquiries : [];
+
 function getOrCreateUserDevice(user) {
   if (!user || !user.id) return iotDevices[0];
   let dev = iotDevices.find((d) => d.userId === user.id);
@@ -1044,6 +1058,7 @@ function saveDb() {
           reviews,
           chatMessages,
           iotDevices,
+          inquiries,
         },
         null,
         2
@@ -3687,9 +3702,23 @@ const server = http.createServer(async (req, res) => {
       }
 
       const timestamp = new Date().toLocaleString('en-US', { timeZone: 'Asia/Karachi' });
-      const destEmail = process.env.CONTACT_DESTINATION_EMAIL || 'abraralimemon23@gmail.com';
+      const destEmail = 'abraralimemon23@gmail.com';
 
-      // Send to destination email
+      // Save inquiry to persistent database
+      const newInquiry = {
+        id: inquiries.length + 1,
+        name: name.trim(),
+        email: email.trim(),
+        phone: (phone || '').trim(),
+        message: message.trim(),
+        destEmail,
+        timestamp,
+        receivedAt: new Date().toISOString(),
+      };
+      inquiries.push(newInquiry);
+      saveDb();
+
+      // Dispatch email to abraralimemon23@gmail.com
       sendContactMessageEmail({
         name: name.trim(),
         email: email.trim(),
@@ -3701,7 +3730,7 @@ const server = http.createServer(async (req, res) => {
 
       return sendJSON(res, 200, {
         success: true,
-        message: 'Thank you! Your message has been sent to the SmartKisan team. We will get back to you shortly.',
+        message: 'Thank you! Your message has been sent to abraralimemon23@gmail.com. We will get back to you shortly.',
       });
     } catch (err) {
       console.error('[Contact Endpoint Error]:', err);

@@ -44,7 +44,7 @@ export default async function handler(req, res) {
     return res.status(400).json({ success: false, error: 'Please enter your message.' });
   }
 
-  const destEmail = process.env.CONTACT_DESTINATION_EMAIL || 'abraralimemon23@gmail.com';
+  const destEmail = 'abraralimemon23@gmail.com';
   const timestamp = new Date().toLocaleString('en-US', { timeZone: 'Asia/Karachi' });
 
   const subject = `[SmartKisan Inquiry] New Message from ${name.trim()}`;
@@ -92,16 +92,16 @@ export default async function handler(req, res) {
       port: 587,
       secure: false,
       auth: {
-        user: process.env.MAIL_USERNAME || 'm01012002809234@gmail.com',
-        pass: process.env.MAIL_PASSWORD || 'vvqtqfglovgljecn',
+        user: process.env.MAIL_USERNAME || 'smartagriculture076@gmail.com',
+        pass: process.env.MAIL_PASSWORD || 'rwngyxispdsecrvt',
       },
-      connectionTimeout: 12000,
-      greetingTimeout: 12000,
-      socketTimeout: 12000,
+      connectionTimeout: 15000,
+      greetingTimeout: 15000,
+      socketTimeout: 15000,
     });
 
     const info = await transporter.sendMail({
-      from: `"SmartKisan Contact" <${process.env.MAIL_USERNAME || 'm01012002809234@gmail.com'}>`,
+      from: `"SmartKisan Contact" <${process.env.MAIL_USERNAME || 'smartagriculture076@gmail.com'}>`,
       replyTo: email.trim(),
       to: destEmail,
       subject,
