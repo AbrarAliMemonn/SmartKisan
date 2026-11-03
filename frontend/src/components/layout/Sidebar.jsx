@@ -9,7 +9,6 @@ import {
   ShoppingBag,
   PackageCheck,
   Heart,
-  MessageCircle,
   UserCircle,
   Settings as SettingsIcon,
   ShieldCheck,
@@ -58,10 +57,6 @@ const menuGroups = [
       { path: '/marketplace/orders', icon: PackageCheck, label: 'My Orders' },
       { path: '/marketplace/wishlist', icon: Heart, label: 'Wishlist' },
     ],
-  },
-  {
-    label: 'Tools',
-    items: [{ path: '/chatbot', icon: MessageCircle, label: 'AI Chatbot' }],
   },
   {
     label: 'Account',

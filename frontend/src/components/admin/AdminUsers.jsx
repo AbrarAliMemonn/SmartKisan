@@ -320,13 +320,6 @@ export default function AdminUsers({ users, loading }) {
                             )
                           )}
 
-                          {/* AI */}
-                          {u.requestedServices?.includes('AI_ADVISORY') && (
-                            <span className="inline-flex items-center gap-1 rounded-md bg-indigo-50 px-2 py-0.5 text-[11px] font-semibold text-indigo-700 ring-1 ring-indigo-600/20 dark:bg-indigo-500/15 dark:text-indigo-300">
-                              🤖 AI Doctor
-                            </span>
-                          )}
-
                           {/* Buyer */}
                           {(!u.requestedServices || u.requestedServices.includes('BUY_PRODUCTS')) && (
                             <span className="inline-flex items-center gap-1 rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-600 dark:bg-white/10 dark:text-slate-300">

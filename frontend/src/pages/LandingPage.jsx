@@ -4,7 +4,6 @@ import {
   Sprout,
   Radio,
   Cpu,
-  MessageCircle,
   Store,
   ShoppingCart,
   Search,
@@ -613,19 +612,6 @@ export default function LandingPage() {
             <button
               onClick={() =>
                 handleFeatureAccess(
-                  '/chatbot',
-                  'Multilingual AI Crop Doctor',
-                  'Sign in to consult our AI Crop Doctor for diagnostics in English, Urdu, or Sindhi.'
-                )
-              }
-              className="hover:text-green-700 transition-colors flex items-center gap-1"
-            >
-              <MessageCircle className="h-3.5 w-3.5 text-indigo-600" />
-              AI Doctor
-            </button>
-            <button
-              onClick={() =>
-                handleFeatureAccess(
                   '/marketplace/seller',
                   'Seller Center',
                   'Sign in to set up your store profile, manage payment payout accounts, and sell products.'
@@ -745,21 +731,6 @@ export default function LandingPage() {
                   onClick={() => {
                     setMobileMenuOpen(false)
                     handleFeatureAccess(
-                      '/chatbot',
-                      'Multilingual AI Crop Doctor',
-                      'Sign in to consult our AI Crop Doctor for diagnostics in English, Urdu, or Sindhi.'
-                    )
-                  }}
-                  className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-green-700 transition-colors text-left"
-                >
-                  <MessageCircle className="h-4 w-4 text-indigo-600" />
-                  <span>AI Crop Doctor</span>
-                </button>
-
-                <button
-                  onClick={() => {
-                    setMobileMenuOpen(false)
-                    handleFeatureAccess(
                       '/marketplace/seller',
                       'Seller Center',
                       'Sign in to set up your store profile, manage payment payout accounts, and sell products.'
@@ -869,7 +840,7 @@ export default function LandingPage() {
               </h1>
 
               <p className="mx-auto lg:mx-0 max-w-2xl text-sm sm:text-base text-slate-300 leading-relaxed">
-                Engineered specifically for Pakistan&apos;s agricultural ecosystem. Continuous root-zone capacitive moisture monitoring, automated 220V tubewell &amp; 12V solenoid relay switching, trilingual agronomic diagnostics (اردو / سنڌي), and an open marketplace eliminating middleman commission.
+                Engineered specifically for Pakistan&apos;s agricultural ecosystem. Continuous root-zone capacitive moisture monitoring, automated 220V tubewell &amp; 12V solenoid relay switching, calibrated multi-sensor telemetry, and an open marketplace eliminating middleman commission.
               </p>
 
               {/* Action Buttons */}
@@ -891,15 +862,15 @@ export default function LandingPage() {
                 <button
                   onClick={() =>
                     handleFeatureAccess(
-                      '/chatbot',
-                      'AI Agriculture Advisor',
-                      'Sign in to diagnose crop diseases and get agricultural recommendations in English, Urdu, or Sindhi.'
+                      '/live-monitoring',
+                      'Live Field Telemetry',
+                      'Sign in to stream live sensor waveforms and ADC channel diagnostics.'
                     )
                   }
                   className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl border border-slate-700 bg-slate-900/90 px-5 py-3.5 text-sm font-semibold text-slate-200 hover:bg-slate-800 hover:text-white transition-all"
                 >
-                  <MessageCircle className="h-4 w-4 text-emerald-400" />
-                  <span>AI Crop Doctor (اردو / سنڌي)</span>
+                  <Radio className="h-4 w-4 text-emerald-400 animate-pulse" />
+                  <span>Live Field Telemetry</span>
                 </button>
 
                 <a
@@ -924,9 +895,9 @@ export default function LandingPage() {
                   <p className="text-[11px] text-slate-400 font-sans mt-0.5">Failsafe Shutdown</p>
                 </div>
                 <div className="rounded-xl border border-slate-800 bg-slate-900/70 p-3">
-                  <p className="text-[10px] text-slate-500 uppercase tracking-wider font-sans">Agri Languages</p>
-                  <p className="text-sm font-bold text-emerald-400 mt-0.5">Urdu &amp; Sindhi</p>
-                  <p className="text-[11px] text-slate-400 font-sans mt-0.5">Local Diagnostics</p>
+                  <p className="text-[10px] text-slate-500 uppercase tracking-wider font-sans">Actuator Relay</p>
+                  <p className="text-sm font-bold text-emerald-400 mt-0.5">220V / 12V Dual</p>
+                  <p className="text-[11px] text-slate-400 font-sans mt-0.5">Optocoupled Drive</p>
                 </div>
                 <div className="rounded-xl border border-slate-800 bg-slate-900/70 p-3">
                   <p className="text-[10px] text-slate-500 uppercase tracking-wider font-sans">Market Comm.</p>
@@ -1342,35 +1313,43 @@ export default function LandingPage() {
               </button>
             </div>
 
-            {/* Feature 2: Trilingual AI Agronomic Intelligence */}
+            {/* Feature 2: Microclimate & Field Diagnostics */}
             <div className="rounded-2xl bg-white p-7 border border-slate-200/90 shadow-sm hover:shadow-lg transition-all flex flex-col justify-between space-y-6">
               <div className="space-y-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-50 text-indigo-700 ring-1 ring-indigo-200">
-                  <MessageCircle className="h-6 w-6" />
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-sky-50 text-sky-700 ring-1 ring-sky-200">
+                  <CloudSun className="h-6 w-6" />
                 </div>
-                <div className="inline-block rounded-md bg-indigo-50 px-2.5 py-0.5 text-[11px] font-mono font-semibold text-indigo-800 border border-indigo-200">
-                  Advisory Layer · En / Ur / Sd
+                <div className="inline-block rounded-md bg-sky-50 px-2.5 py-0.5 text-[11px] font-mono font-semibold text-sky-800 border border-sky-200">
+                  Telemetry Layer · Multi-Sensor Bus
                 </div>
                 <h3 className="text-xl font-bold text-slate-900">
-                  2. Trilingual Agronomic Intelligence
+                  2. Microclimate &amp; Field Diagnostics
                 </h3>
                 <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                  Real-time crop disease diagnosis and soil nutrient scheduling in English, Urdu (اردو), and Sindhi (سنڌي), grounded directly in live root-zone telemetry.
+                  Continuous high-frequency sampling of ambient field temperature, humidity (DHT22), optical rain detection, and atmospheric pressure to prevent crop heat-stress and root rot.
                 </p>
-                <div className="rounded-xl bg-indigo-50/60 p-3.5 border border-indigo-100 space-y-2 text-xs">
-                  <p className="font-bold text-indigo-950 font-mono text-[11px]">Pakistani Crop Diagnostics:</p>
-                  <p className="text-indigo-900 italic font-serif">&ldquo;گندم میں زنگ اور پانی کی ضرورت کا معائنہ&rdquo;</p>
-                  <p className="text-indigo-900 italic font-serif">&ldquo;ڪڻڪ ۽ ڪپهه جي ڦٽين ۾ جيتن جي روڪٿام&rdquo;</p>
-                  <p className="text-slate-600 text-[11px]">Covers Wheat Rust, Cotton Pink Bollworm &amp; Rice Blast.</p>
+                <div className="rounded-xl bg-slate-50 p-3.5 border border-slate-200 font-mono text-xs space-y-1.5 text-slate-700">
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Air Sensor:</span>
+                    <span className="font-semibold text-slate-900">DHT22 Digital 1-Wire (GPIO 4)</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Rain Sensor:</span>
+                    <span className="font-semibold text-slate-900">Optical Hydro-ADC (GPIO 35)</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Telemetry Rate:</span>
+                    <span className="font-semibold text-sky-700">Sub-second Live Streaming</span>
+                  </div>
                 </div>
                 <ul className="text-xs text-slate-600 space-y-2 pt-1 font-sans">
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-indigo-600 shrink-0" />
-                    <span>Telemetry-aware: checks soil moisture before recommending watering</span>
+                    <CheckCircle2 className="h-4 w-4 text-sky-600 shrink-0" />
+                    <span>Real-time environmental tracking across Indus Basin cropping cycles</span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-indigo-600 shrink-0" />
-                    <span>Native Nastaliq and Sindhi script conversational support</span>
+                    <CheckCircle2 className="h-4 w-4 text-sky-600 shrink-0" />
+                    <span>Automated threshold alerts on sudden heat or rainfall spikes</span>
                   </li>
                 </ul>
               </div>
@@ -1378,14 +1357,14 @@ export default function LandingPage() {
               <button
                 onClick={() =>
                   handleFeatureAccess(
-                    '/chatbot',
-                    'AI Agriculture Doctor',
-                    'Sign in to consult the AI Crop Doctor.'
+                    '/live-monitoring',
+                    'Live Sensor Monitoring',
+                    'Sign in to access real-time live sensor waveforms and field diagnostic telemetry.'
                   )
                 }
-                className="w-full rounded-xl bg-indigo-700 py-3 text-xs font-bold text-white hover:bg-indigo-800 transition-colors flex items-center justify-center gap-2"
+                className="w-full rounded-xl bg-slate-900 py-3 text-xs font-bold text-white hover:bg-sky-700 transition-colors flex items-center justify-center gap-2"
               >
-                <span>Consult AI Crop Doctor</span>
+                <span>Open Live Monitoring</span>
                 <ArrowRight className="h-3.5 w-3.5" />
               </button>
             </div>

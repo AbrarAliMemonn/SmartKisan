@@ -30,7 +30,6 @@ const SEARCH_TARGETS = [
   { label: 'Wishlist', path: '/marketplace/wishlist', hint: 'Products you saved', words: 'saved favourites' },
   { label: 'Cart', path: '/marketplace/cart', hint: 'Review items before checkout', words: 'basket checkout' },
   { label: 'Seller Dashboard', path: '/marketplace/seller', hint: 'Listings, orders and payments', words: 'sell listings payouts', sellerOnly: true },
-  { label: 'AI Chatbot', path: '/chatbot', hint: 'Ask the farming assistant', words: 'help advice assistant' },
   { label: 'Profile', path: '/profile', hint: 'Your account details', words: 'account password avatar' },
   { label: 'Settings', path: '/settings', hint: 'Theme, alerts and units', words: 'preferences dark mode notifications' },
   { label: 'Admin Panel', path: '/admin', hint: 'Users, approvals, system', words: 'users moderation sellers', adminOnly: true },

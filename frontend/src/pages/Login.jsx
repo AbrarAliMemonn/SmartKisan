@@ -956,12 +956,7 @@ export default function Login() {
                                     title: '🏪 Sell Agri Products / Become a Seller',
                                     desc: 'Open your farm storefront to sell seeds, crops, fertilizers, or tools (Admin approval)',
                                   },
-                                  {
-                                    id: 'AI_ADVISORY',
-                                    title: '🤖 Multilingual AI Crop Doctor',
-                                    desc: 'Consult AI for crop disease diagnostics and advisory in English, Urdu, or Sindhi',
-                                  },
-                                  {
+                                                                    {
                                     id: 'BUY_PRODUCTS',
                                     title: '🛒 Buy Agricultural Supplies',
                                     desc: 'Purchase certified seeds, high-yield fertilizers, drip kits, and farm machinery',

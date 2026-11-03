@@ -25,7 +25,6 @@ const SellerDashboard = lazy(() => import('./pages/SellerDashboard'))
 const SellerStore = lazy(() => import('./pages/SellerStore'))
 const LiveMonitoring = lazy(() => import('./pages/LiveMonitoring'))
 const SensorDetails = lazy(() => import('./pages/SensorDetails'))
-const AIChatbot = lazy(() => import('./pages/AIChatbot'))
 const UserProfile = lazy(() => import('./pages/UserProfile'))
 const Settings = lazy(() => import('./pages/Settings'))
 
@@ -119,13 +118,7 @@ function App() {
         />
         <Route
           path="/chatbot"
-          element={
-            <ProtectedRoute>
-              <Layout>
-                <AIChatbot />
-              </Layout>
-            </ProtectedRoute>
-          }
+          element={<Navigate to="/dashboard" replace />}
         />
         <Route
           path="/marketplace/cart"
