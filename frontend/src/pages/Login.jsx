@@ -15,7 +15,7 @@ import {
   Leaf,
   Cpu,
   Store,
-  LineChart,
+
 } from 'lucide-react'
 import { useAuthContext } from '../context/AuthContext'
 import Button from '../components/common/Button'
@@ -683,7 +683,7 @@ export default function Login() {
 
                     <div className="flex items-center gap-3">
                       <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/10 ring-1 ring-white/15">
-                        <LineChart className="h-[18px] w-[18px] text-lime-200" />
+                        <Cpu className="h-[18px] w-[18px] text-lime-200" />
                       </div>
 
                       <p className="text-sm text-green-50/90">

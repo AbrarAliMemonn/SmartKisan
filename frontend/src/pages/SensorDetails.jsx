@@ -1,9 +1,6 @@
 import { useMemo, useState } from 'react'
 import * as Icons from 'lucide-react'
-import { Download } from 'lucide-react'
-import {
-  LineChart, Line, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid,
-} from 'recharts'
+import { Download, Cpu, Terminal, ShieldCheck, Activity } from 'lucide-react'
 import Card from '../components/common/Card'
 import Button from '../components/common/Button'
 import SearchableTable from '../components/common/SearchableTable'
@@ -195,29 +192,50 @@ export default function SensorDetails() {
               {sensor.description}
             </p>
 
-            <div className="mt-4">
-              <ResponsiveContainer width="100%" height={260}>
-                <LineChart data={history[selected] || []}>
-                  <CartesianGrid
-                    strokeDasharray="3 3"
-                    stroke="currentColor"
-                    opacity={0.1}
-                  />
-                  <XAxis dataKey="time" tick={{ fontSize: 11 }} />
-                  <YAxis
-                    tick={{ fontSize: 11 }}
-                    domain={[sensor.min, sensor.max]}
-                  />
-                  <Tooltip />
-                  <Line
-                    type="monotone"
-                    dataKey="value"
-                    stroke={sensor.color}
-                    strokeWidth={2}
-                    dot={false}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+            {/* Technical Hardware Parameters & Channel Specs (Replaced synthetic graph) */}
+            <div className="mt-6 pt-5 border-t border-slate-100 dark:border-white/10">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3 flex items-center gap-2">
+                <Terminal size={14} className="text-emerald-600" />
+                Hardware Interface &amp; Calibration Specs
+              </h4>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
+                <div className="p-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200/70 dark:border-white/10">
+                  <p className="text-[11px] text-slate-400 font-mono">Physical Pin</p>
+                  <p className="mt-1 font-bold text-slate-800 dark:text-slate-200 font-mono">
+                    {sensor.pin || 'GPIO 34 (ADC1)'}
+                  </p>
+                </div>
+                <div className="p-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200/70 dark:border-white/10">
+                  <p className="text-[11px] text-slate-400 font-mono">Operating Range</p>
+                  <p className="mt-1 font-bold text-slate-800 dark:text-slate-200 font-mono">
+                    {sensor.min} – {sensor.max} {sensor.unit}
+                  </p>
+                </div>
+                <div className="p-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200/70 dark:border-white/10">
+                  <p className="text-[11px] text-slate-400 font-mono">Safe Thresholds</p>
+                  <p className="mt-1 font-bold text-slate-800 dark:text-slate-200 font-mono">
+                    {sensor.thresholds.low} – {sensor.thresholds.high} {sensor.unit}
+                  </p>
+                </div>
+                <div className="p-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200/70 dark:border-white/10">
+                  <p className="text-[11px] text-slate-400 font-mono">ADC Resolution</p>
+                  <p className="mt-1 font-bold text-slate-800 dark:text-slate-200 font-mono">
+                    12-bit (0-4095)
+                  </p>
+                </div>
+                <div className="p-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200/70 dark:border-white/10">
+                  <p className="text-[11px] text-slate-400 font-mono">Sampling Cycle</p>
+                  <p className="mt-1 font-bold text-slate-800 dark:text-slate-200 font-mono">
+                    5000ms periodic
+                  </p>
+                </div>
+                <div className="p-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200/70 dark:border-white/10">
+                  <p className="text-[11px] text-slate-400 font-mono">Telemetry Protocol</p>
+                  <p className="mt-1 font-bold text-slate-800 dark:text-slate-200 font-mono">
+                    HTTP/JSON Ingest
+                  </p>
+                </div>
+              </div>
             </div>
           </Card>
 

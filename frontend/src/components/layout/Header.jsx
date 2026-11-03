@@ -21,7 +21,7 @@ import { useAuthContext } from '../../context/AuthContext'
 // Pages the quick-search can jump to
 const SEARCH_TARGETS = [
   { label: 'Dashboard', path: '/dashboard', hint: 'Overview of all sensors', words: 'home farm overview stats' },
-  { label: 'Live Monitoring', path: '/live-monitoring', hint: 'Streaming sensor charts', words: 'realtime stream chart' },
+  { label: 'Live Monitoring', path: '/live-monitoring', hint: 'Real-time telemetry stream', words: 'realtime stream sensors telemetry' },
   { label: 'Sensor Details', path: '/sensor-details', hint: 'Thresholds and reading history', words: 'moisture temperature humidity ph readings export' },
   { label: 'Crop Guide', path: '/crop-guide', hint: 'Seasons, water and soil needs', words: 'rice wheat maize cotton season' },
   { label: 'Live Weather', path: '/weather', hint: 'Current weather and forecast', words: 'rain temperature forecast' },

@@ -415,8 +415,8 @@ const history = {
 let zone1Active = true;
 let zone2Active = false;
 
-function buildInitialSensorHistory(initialReadings) {
-  const h = {
+function buildInitialSensorHistory() {
+  return {
     soilMoisture: [],
     temperature: [],
     humidity: [],
@@ -425,14 +425,6 @@ function buildInitialSensorHistory(initialReadings) {
     waterLevel: [],
     pressure: [],
   };
-  for (let i = 24; i >= 0; i--) {
-    const d = new Date(Date.now() - i * 60000);
-    const timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    Object.keys(initialReadings).forEach((k) => {
-      h[k].push({ time: timeStr, value: initialReadings[k] });
-    });
-  }
-  return h;
 }
 
 // Populate initial global historical points

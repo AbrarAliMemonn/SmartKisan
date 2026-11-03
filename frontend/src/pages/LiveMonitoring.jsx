@@ -1,9 +1,6 @@
 import { useState } from 'react'
 import * as Icons from 'lucide-react'
-import { Wifi, WifiOff, AlertTriangle, RadioTower, Radio, Cpu, RefreshCw } from 'lucide-react'
-import {
-  AreaChart, Area, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid,
-} from 'recharts'
+import { Wifi, WifiOff, AlertTriangle, RadioTower, Radio, Cpu, Terminal, CheckCircle2, ShieldCheck } from 'lucide-react'
 import Card from '../components/common/Card'
 import { useSensorFeed } from '../hooks/useSensorFeed'
 import { sensorDefinitions } from '../utils/constants'
@@ -154,57 +151,98 @@ export default function LiveMonitoring() {
           </div>
         </div>
 
-        {isHardwareLive && chartData.length > 0 ? (
-          <ResponsiveContainer width="100%" height={300}>
-            <AreaChart data={chartData}>
-              <defs>
-                <linearGradient id="liveGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop
-                    offset="0%"
-                    stopColor={activeSensor.color}
-                    stopOpacity={0.4}
-                  />
-                  <stop
-                    offset="100%"
-                    stopColor={activeSensor.color}
-                    stopOpacity={0}
-                  />
-                </linearGradient>
-              </defs>
-              <CartesianGrid
-                strokeDasharray="3 3"
-                stroke="currentColor"
-                opacity={0.1}
-              />
-              <XAxis dataKey="time" tick={{ fontSize: 11 }} />
-              <YAxis
-                tick={{ fontSize: 11 }}
-                domain={[activeSensor.min, activeSensor.max]}
-              />
-              <Tooltip />
-              <Area
-                type="monotone"
-                dataKey="value"
-                stroke={activeSensor.color}
-                strokeWidth={2}
-                fill="url(#liveGrad)"
-                isAnimationActive={false}
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-        ) : (
-          <div className="flex flex-col items-center justify-center p-12 text-center rounded-xl bg-slate-50 dark:bg-white/5 border border-dashed border-slate-200 dark:border-white/10 my-2">
-            <div className="h-12 w-12 rounded-xl bg-slate-100 dark:bg-white/10 flex items-center justify-center text-slate-400 mb-3">
-              <Cpu size={24} />
-            </div>
-            <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200">
-              Channel Offline — Value: 0 {activeSensor.unit}
-            </h4>
-            <p className="text-xs text-slate-500 max-w-md mt-1.5 leading-relaxed">
-              No live telemetry packet received from <strong>ESP32_FARM_1</strong> for <strong>{activeSensor.name}</strong> on physical pin <code>{activeSensor.pin}</code>. Simulated artificial graphs have been completely removed. Connect your physical ESP32 or click &quot;Send Test Ping&quot; on the dashboard to view real-time waveforms.
+        {/* Real-Time Hardware Diagnostic Metrics (Graphs removed) */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 my-4">
+          <div className="rounded-xl border border-slate-200/80 dark:border-white/10 bg-slate-50/70 dark:bg-white/5 p-3.5">
+            <span className="text-[11px] font-mono text-slate-400">Current Reading</span>
+            <p className="mt-1 text-2xl font-bold font-mono text-slate-900 dark:text-white">
+              {isHardwareLive ? readings[selected] : 0}
+              <span className="ml-1 text-xs font-normal text-slate-400">{activeSensor.unit}</span>
             </p>
           </div>
-        )}
+
+          <div className="rounded-xl border border-slate-200/80 dark:border-white/10 bg-slate-50/70 dark:bg-white/5 p-3.5">
+            <span className="text-[11px] font-mono text-slate-400">Transducer Pin</span>
+            <p className="mt-1 text-lg font-bold font-mono text-emerald-600 dark:text-emerald-400">
+              {activeSensor.pin || 'GPIO 34'}
+            </p>
+          </div>
+
+          <div className="rounded-xl border border-slate-200/80 dark:border-white/10 bg-slate-50/70 dark:bg-white/5 p-3.5">
+            <span className="text-[11px] font-mono text-slate-400">Safe Operating Band</span>
+            <p className="mt-1 text-base font-bold font-mono text-slate-800 dark:text-slate-200">
+              {activeSensor.thresholds.low} – {activeSensor.thresholds.high} {activeSensor.unit}
+            </p>
+          </div>
+
+          <div className="rounded-xl border border-slate-200/80 dark:border-white/10 bg-slate-50/70 dark:bg-white/5 p-3.5">
+            <span className="text-[11px] font-mono text-slate-400">Hardware Line State</span>
+            <p className="mt-1 text-xs font-bold font-mono text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+              <span className={`inline-block h-2 w-2 rounded-full ${isHardwareLive ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300 dark:bg-white/20'}`} />
+              {isHardwareLive ? 'LIVE_STREAM_3V3' : 'OFFLINE (HIGH-Z / 0V)'}
+            </p>
+          </div>
+        </div>
+
+        {/* Streaming Telemetry Packets Log (Tabular, zero-graph) */}
+        <div className="mt-4 rounded-xl border border-slate-200/80 dark:border-white/10 overflow-hidden">
+          <div className="bg-slate-100/70 dark:bg-white/5 px-4 py-2.5 flex items-center justify-between border-b border-slate-200/80 dark:border-white/10">
+            <div className="flex items-center gap-2">
+              <Terminal size={14} className="text-slate-500" />
+              <span className="text-xs font-bold font-mono text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                Telemetry Ingestion Stream Log (Pin: {activeSensor.pin || 'ADC'})
+              </span>
+            </div>
+            <span className="text-[11px] font-mono text-slate-500">
+              {chartData.length} packets logged
+            </span>
+          </div>
+
+          {chartData.length > 0 ? (
+            <div className="max-h-64 overflow-y-auto">
+              <table className="w-full text-left text-xs font-mono">
+                <thead className="bg-slate-50 dark:bg-white/5 text-slate-500 text-[10px] uppercase tracking-wider sticky top-0">
+                  <tr>
+                    <th className="py-2 px-3">#</th>
+                    <th className="py-2 px-3">Timestamp</th>
+                    <th className="py-2 px-3">Pin</th>
+                    <th className="py-2 px-3">Calibrated Reading</th>
+                    <th className="py-2 px-3">Threshold Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-white/5">
+                  {chartData.slice(-10).reverse().map((pkt, idx) => (
+                    <tr key={idx} className="hover:bg-slate-50/60 dark:hover:bg-white/5 transition-colors">
+                      <td className="py-2 px-3 text-slate-400">#{chartData.length - idx}</td>
+                      <td className="py-2 px-3 text-slate-600 dark:text-slate-300">{pkt.time}</td>
+                      <td className="py-2 px-3 text-slate-500">{activeSensor.pin || 'GPIO 34'}</td>
+                      <td className="py-2 px-3 font-bold text-slate-900 dark:text-white">
+                        {pkt.value} {activeSensor.unit}
+                      </td>
+                      <td className="py-2 px-3">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-500/20 dark:bg-emerald-950/40 dark:text-emerald-300">
+                          LOGGED
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="p-8 text-center bg-slate-50/50 dark:bg-white/5">
+              <div className="h-10 w-10 mx-auto rounded-xl bg-slate-100 dark:bg-white/10 flex items-center justify-center text-slate-400 mb-2.5">
+                <Cpu size={20} />
+              </div>
+              <h5 className="text-xs font-bold font-mono text-slate-800 dark:text-slate-200">
+                Channel Offline — Reading: 0 {activeSensor.unit}
+              </h5>
+              <p className="text-[11px] text-slate-500 max-w-sm mx-auto mt-1 leading-relaxed">
+                Awaiting physical telemetry transmission from <strong>ESP32_FARM_1</strong> on pin <code>{activeSensor.pin}</code>. Simulated artificial graphs have been completely removed.
+              </p>
+            </div>
+          )}
+        </div>
 
         <div className="mt-4 pt-3 border-t border-slate-100 dark:border-white/5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs text-slate-500">
           <p>{activeSensor.description}</p>
