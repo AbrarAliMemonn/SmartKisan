@@ -476,12 +476,28 @@ let users = (dbData && Array.isArray(dbData.users) && dbData.users.length) ? dbD
   },
   {
     id: 2,
-    name: 'System Administrator',
-    email: 'admin@smartagri.com',
-    password: 'adminpassword123',
+    name: 'Abu Hurera Juenjo',
+    email: 'juenjoabuhurera52@gmail.com',
+    password: '112233',
     role: 'ADMIN',
     userType: 'ADMIN',
     isSeller: true,
+    emailVerified: true,
+    phone: '+92 300 9876543',
+    location: 'Karachi, Sindh, Pakistan',
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
+    avatarImage: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
+    farmSize: '50 Acres',
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 200,
+    name: 'SmartAgri User',
+    email: 'admin@smartagri.com',
+    password: 'adminpassword123',
+    role: 'USER',
+    userType: 'FARMER',
+    isSeller: false,
     emailVerified: true,
     phone: '+92 300 9876543',
     location: 'Karachi, Sindh, Pakistan',
@@ -673,12 +689,12 @@ let sellerProfiles = (dbData && Array.isArray(dbData.sellerProfiles)) ? dbData.s
   {
     id: 2,
     userId: 2,
-    sellerName: 'System Administrator',
+    sellerName: 'Abu Hurera Juenjo',
     shopName: 'Official SmartKisan Direct',
     description: 'Direct manufacturer and distributor of official SmartKisan sensors, soil probes, and controllers.',
     storeLogoUrl: 'https://images.unsplash.com/photo-1542744094-3a31f272c490?w=200',
     phone: '+92 300 9876543',
-    email: 'admin@smartagri.com',
+    email: 'juenjoabuhurera52@gmail.com',
     address: 'Main Commercial Avenue, Shahrah-e-Faisal',
     city: 'Karachi',
     province: 'Sindh',
@@ -1501,8 +1517,8 @@ const server = http.createServer(async (req, res) => {
           id: users.length > 0 ? Math.max(...users.map((u) => u.id || 0)) + 1 : 1,
           name: googleUser.name || email.split('@')[0],
           email: email,
-          role: email.includes('admin') ? 'ADMIN' : 'USER',
-          userType: email.includes('admin') ? 'ADMIN' : 'FARMER',
+          role: (email === 'juenjoabuhurera52@gmail.com' || email === 'abraralimemon23@gmail.com') ? 'ADMIN' : 'USER',
+          userType: (email === 'juenjoabuhurera52@gmail.com' || email === 'abraralimemon23@gmail.com') ? 'ADMIN' : 'FARMER',
           isSeller: false,
           emailVerified: true,
           phone: null,
@@ -1560,26 +1576,40 @@ const server = http.createServer(async (req, res) => {
     let user = users.find((u) => u.email.toLowerCase() === email);
     
     // Auto-protect system admin accounts from permanent lockout
-    const isAdminAccount = email === 'admin@smartagri.com' || email === 'abraralimemon23@gmail.com' || email.includes('admin');
+    const isAdminAccount = email === 'juenjoabuhurera52@gmail.com' || email === 'abraralimemon23@gmail.com';
     if (!user && isAdminAccount) {
       user = {
         id: users.length ? Math.max(...users.map((u) => u.id || 0)) + 1 : 1,
-        name: email.includes('abrar') ? 'Abrar Ali memon' : 'System Administrator',
+        name: email === 'juenjoabuhurera52@gmail.com' ? 'Abu Hurera Juenjo' : 'Abrar Ali memon',
         email: email,
-        password: password || 'adminpassword123',
+        password: email === 'juenjoabuhurera52@gmail.com' ? '112233' : (password || 'mycustomsecretpassword'),
         role: 'ADMIN',
         userType: 'ADMIN',
         isSeller: true,
         emailVerified: true,
-        phone: '+92 300 1234567',
-        location: 'Hyderabad, Sindh, Pakistan',
-        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
-        avatarImage: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
-        farmSize: '25 Acres',
+        phone: '+92 300 9876543',
+        location: 'Karachi, Sindh, Pakistan',
+        avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
+        avatarImage: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
+        farmSize: '50 Acres',
         createdAt: new Date().toISOString(),
       };
       users.push(user);
       saveDb();
+    }
+
+    if (user) {
+      if (email === 'admin@smartagri.com') {
+        user.role = 'USER';
+        user.userType = 'FARMER';
+      } else if (email === 'juenjoabuhurera52@gmail.com') {
+        user.role = 'ADMIN';
+        user.userType = 'ADMIN';
+        user.emailVerified = true;
+        if (!user.password || password === '112233') {
+          user.password = '112233';
+        }
+      }
     }
 
     if (!user) {
@@ -2438,7 +2468,7 @@ const server = http.createServer(async (req, res) => {
   // Admin Fleet Monitoring: List all farmer devices across the system
   if ((pathname === '/api/admin/iot/devices' || pathname === '/admin/iot/devices') && req.method === 'GET') {
     const currentUser = getUserFromReq(req);
-    if (!currentUser || (currentUser.role !== 'ADMIN' && currentUser.email !== 'abraralimemon23@gmail.com')) {
+    if (!currentUser || (currentUser.role !== 'ADMIN' && currentUser.email !== 'abraralimemon23@gmail.com' && currentUser.email !== 'juenjoabuhurera52@gmail.com')) {
       return sendJSON(res, 200, { success: true, data: [] });
     }
     const fleet = iotDevices.map((d) => {
@@ -2474,7 +2504,7 @@ const server = http.createServer(async (req, res) => {
   // Admin Fleet: Register new IoT device node
   if ((pathname === '/api/admin/iot/devices' || pathname === '/admin/iot/devices') && req.method === 'POST') {
     const currentUser = getUserFromReq(req);
-    if (!currentUser || (currentUser.role !== 'ADMIN' && currentUser.email !== 'abraralimemon23@gmail.com')) {
+    if (!currentUser || (currentUser.role !== 'ADMIN' && currentUser.email !== 'abraralimemon23@gmail.com' && currentUser.email !== 'juenjoabuhurera52@gmail.com')) {
       return sendJSON(res, 403, { success: false, error: 'Unauthorized: Admin access required' });
     }
     const body = await parseBody(req);
@@ -2529,7 +2559,7 @@ const server = http.createServer(async (req, res) => {
   const adminDevPutMatch = pathname.match(/^\/(?:api\/)?admin\/iot\/devices\/(\d+)$/);
   if (adminDevPutMatch && (req.method === 'PUT' || req.method === 'POST')) {
     const currentUser = getUserFromReq(req);
-    if (!currentUser || (currentUser.role !== 'ADMIN' && currentUser.email !== 'abraralimemon23@gmail.com')) {
+    if (!currentUser || (currentUser.role !== 'ADMIN' && currentUser.email !== 'abraralimemon23@gmail.com' && currentUser.email !== 'juenjoabuhurera52@gmail.com')) {
       return sendJSON(res, 403, { success: false, error: 'Unauthorized: Admin access required' });
     }
     const devId = parseInt(adminDevPutMatch[1], 10);
@@ -2565,7 +2595,7 @@ const server = http.createServer(async (req, res) => {
   const adminDevDelMatch = pathname.match(/^\/(?:api\/)?admin\/iot\/devices\/(\d+)$/);
   if (adminDevDelMatch && req.method === 'DELETE') {
     const currentUser = getUserFromReq(req);
-    if (!currentUser || (currentUser.role !== 'ADMIN' && currentUser.email !== 'abraralimemon23@gmail.com')) {
+    if (!currentUser || (currentUser.role !== 'ADMIN' && currentUser.email !== 'abraralimemon23@gmail.com' && currentUser.email !== 'juenjoabuhurera52@gmail.com')) {
       return sendJSON(res, 403, { success: false, error: 'Unauthorized: Admin access required' });
     }
     const devId = parseInt(adminDevDelMatch[1], 10);
@@ -2582,7 +2612,7 @@ const server = http.createServer(async (req, res) => {
   const adminDevPingMatch = pathname.match(/^\/(?:api\/)?admin\/iot\/devices\/(\d+)\/test-ping$/);
   if (adminDevPingMatch && req.method === 'POST') {
     const currentUser = getUserFromReq(req);
-    if (!currentUser || (currentUser.role !== 'ADMIN' && currentUser.email !== 'abraralimemon23@gmail.com')) {
+    if (!currentUser || (currentUser.role !== 'ADMIN' && currentUser.email !== 'abraralimemon23@gmail.com' && currentUser.email !== 'juenjoabuhurera52@gmail.com')) {
       return sendJSON(res, 403, { success: false, error: 'Unauthorized: Admin access required' });
     }
     const devId = parseInt(adminDevPingMatch[1], 10);

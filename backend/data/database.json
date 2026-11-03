@@ -24,9 +24,9 @@
     },
     {
       "id": 2,
-      "name": "System Administrator",
-      "password": "admin123",
-      "email": "admin@smartagri.com",
+      "name": "Abu Hurera Juenjo",
+      "password": "112233",
+      "email": "juenjoabuhurera52@gmail.com",
       "role": "ADMIN",
       "userType": "ADMIN",
       "isSeller": true,
@@ -39,7 +39,27 @@
       "allowedServices": [
         "iot",
         "marketplace",
-        "chatbot",
+        "weather"
+      ],
+      "createdAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": 200,
+      "name": "SmartAgri User",
+      "password": "adminpassword123",
+      "email": "admin@smartagri.com",
+      "role": "USER",
+      "userType": "FARMER",
+      "isSeller": false,
+      "emailVerified": true,
+      "phone": "+92 300 9876543",
+      "location": "Karachi, Sindh, Pakistan",
+      "avatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150",
+      "avatarImage": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150",
+      "farmSize": "50 Acres",
+      "allowedServices": [
+        "iot",
+        "marketplace",
         "weather"
       ],
       "createdAt": "2026-01-01T00:00:00.000Z"
@@ -296,12 +316,12 @@
     {
       "id": 2,
       "userId": 2,
-      "sellerName": "System Administrator",
+      "sellerName": "Abu Hurera Juenjo",
       "shopName": "Official SmartKisan Direct",
       "description": "Direct manufacturer and distributor of official SmartKisan sensors, soil probes, and controllers.",
       "storeLogoUrl": "https://images.unsplash.com/photo-1542744094-3a31f272c490?w=200",
       "phone": "+92 300 9876543",
-      "email": "admin@smartagri.com",
+      "email": "juenjoabuhurera52@gmail.com",
       "address": "Main Commercial Avenue, Shahrah-e-Faisal",
       "city": "Karachi",
       "province": "Sindh",
