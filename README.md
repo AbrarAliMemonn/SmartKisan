@@ -71,10 +71,6 @@ start-kafka.bat
 ```cmd
 start-all-spring-services.bat
 ```
-*Or use the fast developer runner for instant zero-wait startup:*
-```cmd
-node backend/services-runner.js
-```
 
 ### 3. Start Frontend
 ```cmd

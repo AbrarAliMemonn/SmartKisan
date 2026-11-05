@@ -10,7 +10,7 @@ echo ===========================================================================
 echo.
 echo  [1] Start Apache Kafka Broker (KRaft Mode - Port 9092)
 echo  [2] Start FULL Spring Cloud Microservices Stack (All 7 Services in 1-Click)
-echo  [3] Start Fast Services Runner (IoT & AgricultureBot on Ports 8085 & 8086)
+echo  [3] Start IoT & Chatbot Services (Ports 8085 & 8086)
 echo  [4] Start Frontend (React 19 + Vite on http://localhost:3000)
 echo  [5] Stop All Running Services (1-Click Port Killer)
 echo  [6] View Microservices Architecture & Port Mapping
@@ -47,8 +47,9 @@ goto menu
 
 :start_fast_services
 echo.
-echo Starting IoT Telemetry & Multilingual AgricultureBot fast runner...
-start "IoT & Chatbot Services Runner" cmd /k "cd /d "%~dp0backend" && node services-runner.js"
+echo Starting IoT Telemetry & Multilingual AgricultureBot Spring Boot Services...
+start "IoT Service [Port 8085]" cmd /k "cd /d "%~dp0backend\iot-service" && mvnw.cmd spring-boot:run"
+start "Chatbot Service [Port 8086]" cmd /k "cd /d "%~dp0backend\chatbot-service" && mvnw.cmd spring-boot:run"
 echo Services runner launched!
 pause
 goto menu
