@@ -702,7 +702,6 @@ function AdminSensorsFleet() {
               Ingestion Endpoints Supported by SmartKisan Backend:
             </p>
             <ul className="list-disc list-inside space-y-1 font-mono text-[11px]">
-              <li>POST https://smartkisan-api-c7adbxfpggg9c9ft.westus3-01.azurewebsites.net/api/v1/{selectedDevice?.token || 'tb_iT_6Twb5WgcZp5l3odn8qvu7PQCAgknZNPVgYPCVoktl6F2GkaV3auCQhi-_CFVevryhqQ1u8B6U7_bF55bDug'}/telemetry</li>
               <li>POST https://smartkisan.online/api/v1/{selectedDevice?.token || 'tb_iT_6Twb5WgcZp5l3odn8qvu7PQCAgknZNPVgYPCVoktl6F2GkaV3auCQhi-_CFVevryhqQ1u8B6U7_bF55bDug'}/telemetry</li>
               <li>POST /api/iot/telemetry (with token or deviceKey)</li>
             </ul>
@@ -751,8 +750,8 @@ const char* password = "12340987";
 const char* token = "${token}";
 
 // SmartKisan Cloud Telemetry Endpoint
-const char* serverURL = "https://smartkisan-api-c7adbxfpggg9c9ft.westus3-01.azurewebsites.net/api/v1/";
-// Or when running on domain: "https://smartkisan.online/api/v1/";
+const char* serverURL = "https://smartkisan.online/api/v1/";
+// Or direct VM IP: "http://20.49.0.13:8080/api/v1/";
 
 // ------------ TIMING ------------
 const unsigned long interval = 2000; // Telemetry upload every 2s

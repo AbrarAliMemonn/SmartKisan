@@ -17,9 +17,9 @@ export default function Esp32ConnectModal({ isOpen, onClose, deviceInfo, isHardw
 
   if (!isOpen) return null
 
-  const backendUrl = window.location.origin.includes('localhost')
-    ? 'http://localhost:5000/api/iot/telemetry'
-    : 'https://smartkisan-api-c7adbxfpggg9c9ft.westus3-01.azurewebsites.net/api/iot/telemetry'
+  const backendUrl = typeof window !== 'undefined'
+    ? `${window.location.origin}/api/iot/telemetry`
+    : 'http://localhost:8080/api/iot/telemetry'
 
   const deviceId = deviceInfo?.deviceId || 'ESP32_FARM_1'
   const deviceKey = deviceInfo?.deviceKey || deviceInfo?.token || 'tb_iT_6Twb5WgcZp5l3odn8qvu7PQCAgknZNPVgYPCVoktl6F2GkaV3auCQhi-_CFVevryhqQ1u8B6U7_bF55bDug'

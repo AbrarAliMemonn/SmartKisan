@@ -1,9 +1,9 @@
-export const API_BASE_URL = import.meta.env.VITE_API_URL || (typeof window !== 'undefined' && !window.location.hostname.includes('localhost') ? 'https://smartkisan-api-c7adbxfpggg9c9ft.westus3-01.azurewebsites.net/api' : 'http://localhost:5000/api')
-export const WS_URL = import.meta.env.VITE_WS_URL || (typeof window !== 'undefined' && !window.location.hostname.includes('localhost') ? 'https://smartkisan-api-c7adbxfpggg9c9ft.westus3-01.azurewebsites.net' : 'http://localhost:5000')
+export const API_BASE_URL = import.meta.env.VITE_API_URL || '/api'
+export const WS_URL = import.meta.env.VITE_WS_URL || '/ws'
 
 // Root of the backend (without the /api prefix) — Spring Security's OAuth2
 // endpoints (/oauth2/authorization/**) live outside the /api namespace.
-export const API_ROOT_URL = API_BASE_URL.replace(/\/api\/?$/, '')
+export const API_ROOT_URL = API_BASE_URL.replace(/\/api\/?$/, '') || ''
 
 export const soilTypes = [
   { id: 1, name: 'Clay Soil', phRange: '5.5-7.0' },
