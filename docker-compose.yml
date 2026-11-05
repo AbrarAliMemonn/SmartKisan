@@ -101,6 +101,7 @@ services:
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-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}
       MAIL_USERNAME: ${MAIL_USERNAME:-smartagriculture076@gmail.com}
       MAIL_PASSWORD: ${MAIL_PASSWORD:-rwngyxispdsecrvt}
+      JWT_SECRET: ${JWT_SECRET:-c21hcnRhZ3JpLXN1cGVyLXNlY3JldC1rZXktZm9yLWp3dC1zaWduaW5nLWNoYW5nZS1pbi1wcm9kdWN0aW9uLTEyMzQ1Ng==}
 
   # ========================================================
   # Marketplace Service (with Socket.IO)
