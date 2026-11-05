@@ -184,6 +184,7 @@ services:
     container_name: smartkisan-frontend
     restart: always
     ports:
+      - "80:80"
       - "3000:80"
     depends_on:
       - api-gateway
