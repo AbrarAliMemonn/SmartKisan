@@ -54,39 +54,25 @@ flowchart TD
 
 ---
 
-## 🚀 Quick Start Guide
+## 🚀 Quick Start Guide (Docker Compose)
 
-### Prerequisites
-- **Java 21 LTS**
-- **Node.js 20+**
-- **MySQL 8.0** (Port 3306)
-- **Apache Kafka** (Included in project)
+Launch the entire ecosystem (all 7 Spring Boot microservices, Kafka KRaft, MySQL, Eureka, API Gateway, and React Frontend) with a single command:
 
-### 1. Start Kafka (KRaft Mode)
-```cmd
-start-kafka.bat
-```
-
-### 2. Start Microservices Stack
-```cmd
-start-all-spring-services.bat
-```
-
-### 3. Start Frontend
-```cmd
-cd frontend
-npm install
-npm run dev
-```
-Open **`http://localhost:3000`** in your browser.
-
----
-
-## 🐳 Docker Deployment
-To launch the entire platform in production containers:
 ```bash
 docker compose up -d
 ```
+
+### Stack Management
+- **Check Status**: `docker compose ps`
+- **View Logs**: `docker compose logs -f [service-name]`
+- **Stop Stack**: `docker compose down`
+
+### Port Allocation
+- **Frontend Web UI**: http://localhost (and http://localhost:3000)
+- **Spring Cloud API Gateway**: http://localhost:8080
+- **Eureka Service Registry**: http://localhost:8761
+- **Apache Kafka Broker**: localhost:9092
+- **MySQL Database**: localhost:3306
 
 ---
 
