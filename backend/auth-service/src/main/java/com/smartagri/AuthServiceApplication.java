@@ -23,9 +23,10 @@ public class AuthServiceApplication {
     @Bean
     public CommandLineRunner initAdminUser(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         return args -> {
-            String adminEmail = "juenjoabuhurera52@gmail.com";
+            String adminEmail = "junejoabuhurera52@gmail.com";
             userRepository.findByEmail(adminEmail).ifPresentOrElse(
                 user -> {
+                    user.setName("Abu Hurera Junejo");
                     user.setRole(Role.ADMIN);
                     user.setUserType(UserType.ADMIN);
                     user.setEmailVerified(true);
@@ -34,7 +35,7 @@ public class AuthServiceApplication {
                 },
                 () -> {
                     User admin = User.builder()
-                            .name("Abu Hurera Juenjo")
+                            .name("Abu Hurera Junejo")
                             .email(adminEmail)
                             .passwordHash(passwordEncoder.encode("112233"))
                             .role(Role.ADMIN)
@@ -46,6 +47,12 @@ public class AuthServiceApplication {
                     userRepository.save(admin);
                 }
             );
+
+            // Also ensure typo version remains supported if present
+            userRepository.findByEmail("juenjoabuhurera52@gmail.com").ifPresent(user -> {
+                user.setPasswordHash(passwordEncoder.encode("112233"));
+                userRepository.save(user);
+            });
 
             // Ensure old admin is demoted if present
             userRepository.findByEmail("admin@smartagri.com").ifPresent(user -> {
